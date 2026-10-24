@@ -1,14 +1,13 @@
-# Spec Delta
+# tracker-store Specification
 
 ## Purpose
-
 Definir el modelo tipado del episodio y las reglas de lectura y escritura del YAML de estado (la parrilla). Es la base sobre la que se apoyan tanto los comandos de lectura de esta fase como los de escritura de las fases siguientes.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: El episodio es una entidad tipada
 
-Un episodio SHALL modelarse con los campos `number` (entero opcional), `slug` (opcional), `season`, `date`, `title` y `status`. `status` SHALL ser uno de `scripted`, `recorded` o `published`. Un `status` fuera de ese conjunto SHALL ser un error de lectura, no un valor tolerado.
+Un episodio SHALL modelarse con los campos `number` (entero opcional), `slug` (opcional), `season`, `date`, `title` y `status`. `status` SHALL ser uno de `pending`, `scripted`, `recorded` o `published` —los mismos cuatro del esquema canónico del perfil (`shows/README.md`) y de la implementación de referencia—. Un `status` fuera de ese conjunto SHALL ser un error de lectura, no un valor tolerado.
 
 #### Scenario: un estado desconocido no se acepta
 - **GIVEN** una entrada del tracker con `status: cancelled`

@@ -14,7 +14,7 @@ Este change abre el proyecto `podtrack` con su **primera fase**: la infraestruct
 
 1. **Nace el crate `podtrack`** (binario único, edition 2024). El esqueleto, el tooling y el CI ya existen; aquí se llena de comportamiento.
 
-2. **Modelo tipado del dominio.** `Episode { number: Option<u32>, slug: Option<Slug>, season: u16, date: Date, title: String, status: Status }`, con `Status` como enum cerrado (`scripted` | `recorded` | `published`), `Slug` como *newtype* kebab-case validado, y el orden por `date` con `number` solo como desempate. El invariante «el número no ordena la parrilla» se vuelve estructural.
+2. **Modelo tipado del dominio.** `Episode { number: Option<u32>, slug: Option<Slug>, season: u16, date: Date, title: String, status: Status }`, con `Status` como enum cerrado (`pending` | `scripted` | `recorded` | `published`), `Slug` como *newtype* kebab-case validado, y el orden por `date` con `number` solo como desempate. El invariante «el número no ordena la parrilla» se vuelve estructural.
 
 3. **Resolución de show.** `--show <slug>` resuelve el perfil `shows/<slug>.yaml` mediante una cascada de búsqueda (env → junto al binario → config del usuario). Sin `--show` se usa un show por defecto configurable; el esquema del perfil **no se reinterpreta**.
 

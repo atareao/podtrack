@@ -1,10 +1,9 @@
-# Spec Delta
+# tracker-read Specification
 
 ## Purpose
-
 Definir la superficie de **solo lectura** del binario —`status`, `next`, `next-date`, `list`, `list-range`, `get` y `where`— con el mismo contrato que la implementación de referencia: misma salida de texto, mismos iconos y leyendas, mismos *exit codes*. Es la mitad del contrato total y la que no toca nada.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Los comandos de lectura no modifican nada
 
@@ -42,7 +41,7 @@ Ningún comando de esta capacidad SHALL escribir en el tracker, crear el materia
 
 ### Requirement: `next-date` calcula la próxima fecha publicable
 
-`next-date` SHALL devolver la próxima fecha de publicación según los días declarados por el perfil (por defecto lunes y jueves).
+`next-date` SHALL devolver la próxima fecha de publicación en lunes o jueves (los días del show por defecto), calculada a partir de la fecha del último episodio de la parrilla o, en su defecto, del inicio de temporada.
 
 #### Scenario: desde un jueves el siguiente es lunes
 - **GIVEN** que hoy es jueves y los días de publicación son lunes y jueves
