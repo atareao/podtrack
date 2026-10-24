@@ -57,6 +57,8 @@ Ningún comando escribe el fichero a mano: todos mutan el modelo y llaman al esc
 
 Cada comando emite `{ schema_version, show, action, episode: {...}, changes: [...] }` (forma concreta por comando; p. ej. `publish` incluye `number` estampado y los `nulled`; `insert` incluye los desplazamientos y el material renombrado). Aditivo: sin `--json` la salida de texto no cambia.
 
+En modo `--json` se **descartan** los avisos que en texto irían a `stderr` (p. ej. la colisión de fechas que emite `save_tracker`): el contrato del modo exige **un único documento JSON** en `stdout` y nada más. Es una decisión consciente, no un olvido.
+
 ## Risks / Trade-offs
 
 - **Escritura sobre el tracker real.** A diferencia de la fase 1, estas rutas mutan datos. *Mitigación:* todos los tests y el `diff` de paridad corren sobre fixtures temporales; el binario no se reapunta en producción hasta la fase 5.

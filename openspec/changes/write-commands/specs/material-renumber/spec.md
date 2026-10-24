@@ -29,14 +29,20 @@ El renombrado SHALL planificarse como pares origen→destino ordenados **de más
 - **WHEN** se planifica el renombrado a `0844`
 - **THEN** los ficheros SHALL aparecer antes que la carpeta en el plan
 
-### Requirement: El renombrado aborta si un destino ya existe
+### Requirement: El renombrado aborta par a par si un destino ya existe
 
-Al aplicar el plan, si un destino ya existe, el binario SHALL abortar con un error y un código distinto de cero, informando de la ruta en conflicto, y NO SHALL dejar el árbol a medias.
+Al aplicar el plan, el binario SHALL validar cada par **por separado** (como la
+implementación de referencia: `dst.exists()` par a par en
+`_apply_material_renames`) y, en cuanto un destino ya exista, SHALL abortar con un
+error y un código distinto de cero e informar de la ruta en conflicto por
+`stderr`. NO SHALL haber atomicidad de árbol: los pares anteriores al conflicto
+MAY quedar ya aplicados (el aborto es par a par, no atómico).
 
-#### Scenario: destino ocupado
-- **GIVEN** un material donde `0844/` ya existe
-- **WHEN** se intenta renombrar `0843/` a `0844/`
-- **THEN** SHALL error con código distinto de cero y sin renombrar
+#### Scenario: destino ocupado en un par
+- **GIVEN** un material donde un destino del plan ya existe
+- **WHEN** se aplica el renombrado
+- **THEN** SHALL error con un código distinto de cero e informar de la ruta en conflicto por `stderr`
+- **AND** los pares anteriores al conflicto MAY quedar aplicados (no SHALL asumirse atomicidad de árbol)
 
 ### Requirement: La aplicación reporta cada renombrado
 

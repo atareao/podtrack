@@ -17,8 +17,12 @@ use crate::model::{Episode, Status};
 use crate::profile::ResolvedShow;
 use crate::tracker::{Tracker, num_label, save_tracker};
 
-/// Guarda el tracker **sin** emitir la confirmación (modo `--json`, donde solo se
-/// emite un documento).
+/// Guarda el tracker **sin** emitir la confirmación ni los avisos (modo `--json`).
+///
+/// Decisión consciente (no un olvido): en modo `--json` el contrato exige **un
+/// único documento JSON** en `stdout` y nada más, así que tanto la confirmación
+/// `✓ Tracker actualizado: …` como los avisos que en texto irían a `stderr` (p. ej.
+/// la colisión de fechas que emite `save_tracker`) se **descartan** a propósito.
 pub fn save_quiet(
     tracker_path: &std::path::Path,
     name: &str,

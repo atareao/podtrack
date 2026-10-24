@@ -198,6 +198,28 @@ pub fn build_material(root: &Path) {
     }
 }
 
+/// Crea un material **anidado** (tokens de número en varios niveles) para el
+/// episodio `num`: fija el orden del plan y el respeto a las secuencias más largas.
+pub fn build_nested_material(root: &Path, num: u32) {
+    let top = root.join(format!("{num:04}"));
+    for rel in ["zdir", "adir", "mdir", "zdir/deep"] {
+        std::fs::create_dir_all(top.join(rel)).expect("mkdir nested");
+    }
+    let files = [
+        format!("top-{num:04}.md"),
+        format!("e{num}-top.md"),
+        format!("zdir/e{num}-z.md"),
+        format!("adir/e{num}-a.md"),
+        format!("mdir/e{num}-m.md"),
+        format!("zdir/deep/e{num}-deep.md"),
+        // Secuencia de dígitos más larga: NO debe tocarse.
+        format!("zdir/deep/{num:04}0-largo.md"),
+    ];
+    for rel in files {
+        std::fs::write(top.join(rel), "x\n").expect("write nested");
+    }
+}
+
 /// Instantánea del **material numerado** (carpetas `0NNN` y su contenido), sin el
 /// tracker ni sus copias (`_material_snapshot` del oráculo).
 pub fn material_snapshot(root: &Path) -> BTreeMap<String, Vec<u8>> {

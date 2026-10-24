@@ -119,3 +119,53 @@ fn plan_vacio_si_no_existe_la_carpeta() {
     let pairs = plan_number_renames(&fx.root, 42, 43);
     assert!(pairs.is_empty());
 }
+
+#[test]
+fn orden_anidado_de_mas_profundo_a_menos_y_tokens_reescritos() {
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    common::build_nested_material(&fx.root, 843);
+
+    let pairs = plan_number_renames(&fx.root, 843, 844);
+    let position = |needle: &str| {
+        pairs
+            .iter()
+            .position(|(src, _)| src.ends_with(needle))
+            .unwrap_or_else(|| panic!("no está en el plan: {needle}"))
+    };
+
+    let deep = position("zdir/deep/e843-deep.md");
+    let z = position("zdir/e843-z.md");
+    let a = position("adir/e843-a.md");
+    let m = position("mdir/e843-m.md");
+    let top_file = position("top-0843.md");
+    let e_top = position("e843-top.md");
+    let top = position("0843");
+
+    // zdir/deep/ (más profundo) antes que zdir/, adir/ y mdir/…
+    assert!(deep < z && deep < a && deep < m);
+    // …éstos antes que los ficheros de la raíz…
+    assert!(z < top_file && z < e_top && a < top_file && m < e_top);
+    // …y la carpeta del episodio, la última.
+    assert_eq!(pairs.last().expect("last").0, fx.root.join("0843"));
+    assert_eq!(top, pairs.len() - 1);
+
+    // La secuencia más larga no aparece en el plan.
+    assert!(
+        pairs
+            .iter()
+            .all(|(src, _)| !src.ends_with("08430-largo.md"))
+    );
+
+    // Se aplica y todos los tokens quedan reescritos; el largo, intacto.
+    let mut out = Vec::new();
+    apply_renames(&pairs, &fx.root, &mut out).expect("aplicar");
+    let dest = fx.root.join("0844");
+    assert!(dest.join("top-0844.md").exists());
+    assert!(dest.join("e844-top.md").exists());
+    assert!(dest.join("zdir/e844-z.md").exists());
+    assert!(dest.join("adir/e844-a.md").exists());
+    assert!(dest.join("mdir/e844-m.md").exists());
+    assert!(dest.join("zdir/deep/e844-deep.md").exists());
+    assert!(dest.join("zdir/deep/08430-largo.md").exists());
+    assert!(!fx.root.join("0843").exists());
+}

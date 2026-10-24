@@ -31,11 +31,11 @@ struct Outcome {
     stderr: String,
 }
 
-fn reset(fx: &Fixture, yaml: &str) {
+fn reset(fx: &Fixture, yaml: &str, setup: &dyn Fn(&Fixture)) {
     let _ = std::fs::remove_dir_all(&fx.root);
     std::fs::create_dir_all(&fx.root).expect("mkdir root");
     std::fs::write(&fx.tracker, yaml).expect("write tracker");
-    build_material(&fx.root);
+    setup(fx);
 }
 
 fn run_oracle(module: &Path, harness: &Path, shows: &Path, args: &[&str]) -> Outcome {
@@ -69,7 +69,7 @@ fn run_podtrack(fx: &Fixture, args: &[&str]) -> Outcome {
     }
 }
 
-fn assert_case(yaml: &str, args: &[&str]) {
+fn assert_case_with(yaml: &str, args: &[&str], setup: &dyn Fn(&Fixture)) {
     let Some(module) = common::require_oracle() else {
         return;
     };
@@ -77,12 +77,12 @@ fn assert_case(yaml: &str, args: &[&str]) {
     let harness = fx.dir.path().join("write_harness.py");
     std::fs::write(&harness, HARNESS).expect("harness");
 
-    reset(&fx, yaml);
+    reset(&fx, yaml, setup);
     let oracle = run_oracle(&module, &harness, &fx.shows, args);
     let oracle_tracker = std::fs::read(&fx.tracker).expect("read tracker");
     let oracle_material = common::material_snapshot(&fx.root);
 
-    reset(&fx, yaml);
+    reset(&fx, yaml, setup);
     let lib = run_podtrack(&fx, args);
     let lib_tracker = std::fs::read(&fx.tracker).expect("read tracker");
     let lib_material = common::material_snapshot(&fx.root);
@@ -98,6 +98,11 @@ fn assert_case(yaml: &str, args: &[&str]) {
         oracle_material, lib_material,
         "material difiere para {args:?}"
     );
+}
+
+/// Como `assert_case_with`, con el material numerado estándar.
+fn assert_case(yaml: &str, args: &[&str]) {
+    assert_case_with(yaml, args, &|fx| build_material(&fx.root));
 }
 
 // ─── add ────────────────────────────────────────────────────────────
@@ -221,6 +226,24 @@ fn oraculo_insert() {
             "--date",
             "2026-09-08",
         ],
+    );
+}
+
+/// Contraste en vivo del **orden de renombrado** con material anidado (tokens en
+/// varios niveles): el oráculo ordena `sorted(rglob, key=len(parts), reverse=True)`
+/// y el binario debe emitir exactamente las mismas líneas en el mismo orden.
+#[test]
+fn oraculo_insert_material_anidado() {
+    assert_case_with(
+        MINI_YAML,
+        &[
+            "--show", "demo", "insert", "--before", "101", "--title", "Nuevo",
+        ],
+        &|fx| {
+            common::build_nested_material(&fx.root, 101);
+            // Segundo episodio con material anidado, para ejercitar el plan de 102.
+            common::build_nested_material(&fx.root, 102);
+        },
     );
 }
 

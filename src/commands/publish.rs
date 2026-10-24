@@ -15,11 +15,18 @@ pub struct PublishParams {
     pub dry_run: bool,
 }
 
-fn label(episode: &crate::model::Episode) -> String {
+/// `slug or title` del episodio, sin recortar: la base de las etiquetas del oráculo.
+fn slug_or_title(episode: &crate::model::Episode) -> String {
     episode
         .slug
         .as_ref()
         .map_or_else(|| episode.title.clone(), |s| s.as_str().to_string())
+}
+
+/// `str(slug or title or "").strip()` (`cmd_publish`): etiqueta del alta y de la
+/// anulación del provisional obsoleto de otro episodio.
+fn label(episode: &crate::model::Episode) -> String {
+    slug_or_title(episode).trim().to_string()
 }
 
 /// Ejecuta `publish`.
@@ -38,7 +45,10 @@ pub fn run(
     if current.status == Status::Published {
         return Err(PodtrackError::PublishAlreadyPublished {
             label: num_label(current.number),
-            name: label(current),
+            // El oráculo NO recorta en este mensaje (`ep.get('slug') or
+            // ep.get('title')`), así que se usa la variante sin `strip` para no
+            // divergir byte a byte.
+            name: slug_or_title(current),
         });
     }
 
