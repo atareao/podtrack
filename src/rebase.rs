@@ -128,7 +128,19 @@ fn path_parts(path: &Path) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{RebaseKind, numeric_references, rebase_line};
+    use super::{
+        HOOK_BARE_RE, HOOK_TITLE_RE, NUM_REF_RE, RebaseKind, numeric_references, rebase_line,
+    };
+
+    /// Los patrones son constantes: si alguno dejara de compilar, los `LazyLock`
+    /// quedarían en `None` y `rebase_line`/`numeric_references` degradarían en
+    /// silencio (no reconocerían nada). Este test cierra ese hueco.
+    #[test]
+    fn los_patrones_compilan() {
+        assert!(HOOK_TITLE_RE.is_some());
+        assert!(HOOK_BARE_RE.is_some());
+        assert!(NUM_REF_RE.is_some());
+    }
 
     #[test]
     fn clasifica_hooks_y_prosa() {

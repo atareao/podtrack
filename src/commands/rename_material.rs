@@ -117,6 +117,11 @@ pub fn run(
 
     if json_mode {
         if !params.dry_run {
+            // Asimetría **intencional** con el modo texto: el oráculo no tiene
+            // `--json`, así que la emulación del `stdout` parcial ante un aborto
+            // par-a-par (ver más abajo) solo aplica al modo texto. En `--json`
+            // preferimos el documento de error tipado: si un destino ya existe,
+            // `apply_renames` propaga el `Err` y `main` emite el JSON de error.
             for pairs in &plans {
                 let mut sink = Vec::new();
                 apply_renames(pairs, &root, &mut sink)?;
@@ -168,5 +173,5 @@ pub fn run(
         out.extend_from_slice(format!("  ✓ {total} elemento(s) renombrado(s).\n").as_bytes());
     }
 
-    Ok(Rendered::stdout(bytes_to_string(out)))
+    Ok(Rendered::new(bytes_to_string(out), bytes_to_string(err)))
 }
