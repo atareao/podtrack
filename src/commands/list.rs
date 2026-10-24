@@ -80,8 +80,5 @@ pub fn run(ctx: &Ctx<'_>, filters: &Filters, json_mode: bool) -> Result<Rendered
     let mut err = String::new();
     out.push_str(&format!("\n  {} ({} episodios):\n", label, view.len()));
     show_episodes(&view, true, &mut out, &mut err);
-    Ok(Rendered {
-        stdout: out,
-        stderr: err,
-    })
+    Ok(Rendered::new(out, err))
 }

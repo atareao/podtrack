@@ -25,6 +25,9 @@ serde_yaml = "0.9"
 chrono = "0.4"
 # Normalización Unicode NFKD para `slugify` (paridad con `unicodedata.normalize`).
 unicode-normalization = "0.1"
+# Reconocimiento de los hooks «Próximo episodio» y de la prosa numérica
+# (`rebase-references`), con los mismos patrones que el oráculo.
+regex = "1"
 anyhow = "1.0"
 thiserror = "2.0"
 

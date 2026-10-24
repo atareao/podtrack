@@ -116,10 +116,7 @@ pub fn run(ctx: &Ctx<'_>, json_mode: bool) -> Result<Rendered, PodtrackError> {
     let tail: Vec<&crate::model::Episode> = ordered.iter().rev().take(8).collect();
     show_episodes(&tail, true, &mut out, &mut err);
 
-    Ok(Rendered {
-        stdout: out,
-        stderr: err,
-    })
+    Ok(Rendered::new(out, err))
 }
 
 /// Líneas del bloque «Siguiente a publicar» (`_next_to_publish_block`).

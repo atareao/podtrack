@@ -5,14 +5,20 @@ use std::path::{Path, PathBuf};
 use clap::{Parser, Subcommand};
 
 use podtrack::commands::add::{AddParams, parse_add_positionals};
+use podtrack::commands::backfill_slugs::BackfillParams;
 use podtrack::commands::insert::InsertParams;
 use podtrack::commands::list::Filters;
+use podtrack::commands::migrate_material::MigrateParams;
 use podtrack::commands::move_cmd::MoveParams;
 use podtrack::commands::publish::PublishParams;
+use podtrack::commands::rebase_references::RebaseParams;
+use podtrack::commands::rename_material::RenameMaterialParams;
+use podtrack::commands::renumber::RenumberParams;
 use podtrack::commands::update::UpdateParams;
 use podtrack::commands::{
-    Ctx, Rendered, add, get, insert, list, list_range, move_cmd, next, next_date, publish, status,
-    update, where_cmd,
+    Ctx, Rendered, add, backfill_slugs, get, insert, list, list_range, migrate_material, move_cmd,
+    next, next_date, publish, rebase_references, rename_material, renumber, status, update,
+    where_cmd,
 };
 use podtrack::error::PodtrackError;
 use podtrack::json;
@@ -139,6 +145,54 @@ enum Command {
         #[arg(long)]
         dry_run: bool,
     },
+    /// Renumerar la parrilla (solo números, sin fechas ni material).
+    Renumber {
+        /// Primer número afectado (`>=`).
+        #[arg(long, value_name = "NUM", allow_hyphen_values = true)]
+        from: i64,
+        /// Desplazamiento a aplicar (±d).
+        #[arg(long, allow_hyphen_values = true)]
+        delta: i64,
+        /// Previsualizar los cambios sin escribir nada.
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Renombrar carpetas `0NNN` y ficheros `0NNN`/`eNNN` del árbol de guiones.
+    RenameMaterial {
+        /// Primer número afectado (`>=`).
+        #[arg(long, value_name = "NUM", allow_hyphen_values = true)]
+        from: Option<i64>,
+        /// Desplazamiento a aplicar (±d).
+        #[arg(long, allow_hyphen_values = true)]
+        delta: Option<i64>,
+        /// Solo detectar y listar desajustes, sin tocar nada.
+        #[arg(long)]
+        check: bool,
+        /// Previsualizar los cambios sin escribir nada.
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Derivar y persistir el slug de los episodios que no lo tienen.
+    BackfillSlugs {
+        /// Previsualizar los cambios sin escribir nada.
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Renombrar el material de guiones a `<slug>` (carpetas y ficheros).
+    MigrateMaterial {
+        /// Incluir también los episodios publicados (por defecto se omiten).
+        #[arg(long)]
+        include_published: bool,
+        /// Previsualizar los cambios sin escribir nada.
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Reescribir los hooks «Próximo episodio: NNN» del material no publicado.
+    RebaseReferences {
+        /// Previsualizar los cambios sin escribir nada.
+        #[arg(long)]
+        dry_run: bool,
+    },
 }
 
 fn main() -> std::process::ExitCode {
@@ -147,7 +201,7 @@ fn main() -> std::process::ExitCode {
         Ok(rendered) => {
             print!("{}", rendered.stdout);
             eprint!("{}", rendered.stderr);
-            std::process::ExitCode::SUCCESS
+            std::process::ExitCode::from(u8::try_from(rendered.exit_code).unwrap_or(0))
         }
         Err(err) => {
             // `anyhow` solo en el borde (D4): recuperamos el error tipado para
@@ -251,6 +305,50 @@ fn run(cli: &Cli) -> anyhow::Result<Rendered> {
                 dry_run: *dry_run,
             };
             move_cmd::run(&ctx, &params, cli.json)?
+        }
+        Command::Renumber {
+            from,
+            delta,
+            dry_run,
+        } => {
+            let params = RenumberParams {
+                from: *from,
+                delta: *delta,
+                dry_run: *dry_run,
+            };
+            renumber::run(&ctx, &params, cli.json)?
+        }
+        Command::RenameMaterial {
+            from,
+            delta,
+            check,
+            dry_run,
+        } => {
+            let params = RenameMaterialParams {
+                from: *from,
+                delta: *delta,
+                check: *check,
+                dry_run: *dry_run,
+            };
+            rename_material::run(&ctx, &params, cli.json)?
+        }
+        Command::BackfillSlugs { dry_run } => {
+            let params = BackfillParams { dry_run: *dry_run };
+            backfill_slugs::run(&ctx, &params, cli.json)?
+        }
+        Command::MigrateMaterial {
+            include_published,
+            dry_run,
+        } => {
+            let params = MigrateParams {
+                include_published: *include_published,
+                dry_run: *dry_run,
+            };
+            migrate_material::run(&ctx, &params, cli.json)?
+        }
+        Command::RebaseReferences { dry_run } => {
+            let params = RebaseParams { dry_run: *dry_run };
+            rebase_references::run(&ctx, &params, cli.json)?
         }
     };
     Ok(rendered)

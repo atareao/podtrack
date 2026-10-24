@@ -115,6 +115,22 @@ pub enum PodtrackError {
     #[error("  ERROR: el destino ya existe: {path}")]
     MaterialDestinationExists { path: String },
 
+    /// `renumber`/`rename-material` con `--delta 0` (exit 1).
+    #[error("ERROR: --delta no puede ser 0.")]
+    DeltaZero,
+
+    /// `renumber` sin episodios en el umbral `--from` (exit 1).
+    #[error("ERROR: No hay episodios con número >= {from}.")]
+    RenumberNoEpisodes { from: i64 },
+
+    /// `renumber` con un delta que solapa con números no afectados (exit 1).
+    #[error("ERROR: Colisión de numeración: el --delta solapa con episodios existentes.")]
+    RenumberCollision,
+
+    /// `rename-material` sin `--from`/`--delta` ni `--check` (exit 1).
+    #[error("ERROR: rename-material requiere --from y --delta (o --check).")]
+    RenameMaterialRequiresArgs,
+
     /// Error de E/S genérico (exit 1).
     #[error("ERROR: {0}")]
     Io(String),
