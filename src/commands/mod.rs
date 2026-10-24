@@ -1,20 +1,45 @@
-//! Comandos de **solo lectura**, reproduciendo el texto del oráculo byte a byte.
+//! Comandos de parrilla: lectura (paridad byte a byte) y escritura.
 
+pub mod add;
 pub mod get;
+pub mod insert;
 pub mod list;
 pub mod list_range;
+pub mod move_cmd;
 pub mod next;
 pub mod next_date;
+pub mod publish;
 pub mod status;
+pub mod update;
 pub mod where_cmd;
 
 use crate::model::{Episode, Status};
 use crate::profile::ResolvedShow;
-use crate::tracker::{Tracker, num_label};
+use crate::tracker::{Tracker, num_label, save_tracker};
 
-/// Resuelve un episodio por número (dígitos) o por slug (`_resolve_episode`).
+/// Guarda el tracker **sin** emitir la confirmación ni los avisos (modo `--json`).
+///
+/// Decisión consciente (no un olvido): en modo `--json` el contrato exige **un
+/// único documento JSON** en `stdout` y nada más, así que tanto la confirmación
+/// `✓ Tracker actualizado: …` como los avisos que en texto irían a `stderr` (p. ej.
+/// la colisión de fechas que emite `save_tracker`) se **descartan** a propósito.
+pub fn save_quiet(
+    tracker_path: &std::path::Path,
+    name: &str,
+    tracker: &Tracker,
+) -> Result<(), crate::error::PodtrackError> {
+    let mut out = Vec::new();
+    let mut err = Vec::new();
+    save_tracker(tracker_path, name, tracker, &mut out, &mut err)
+}
+
+/// Línea literal de `--dry-run` (`_print_dry_run`).
+pub const DRY_RUN_LINE: &str = "  ⚠ DRY-RUN: no se escribe nada (ni tracker ni disco)";
+
+/// Índice del episodio que corresponde a `target` (número o slug), o `None`
+/// (`_resolve_episode`).
 #[must_use]
-pub fn resolve_episode<'a>(tracker: &'a Tracker, target: &str) -> Option<&'a Episode> {
+pub fn resolve_index(tracker: &Tracker, target: &str) -> Option<usize> {
     let trimmed = target.trim();
     if !trimmed.is_empty()
         && trimmed.chars().all(|c| c.is_ascii_digit())
@@ -23,12 +48,18 @@ pub fn resolve_episode<'a>(tracker: &'a Tracker, target: &str) -> Option<&'a Epi
         return tracker
             .episodes
             .iter()
-            .find(|e| e.number.is_some_and(|n| u64::from(n) == number));
+            .position(|e| e.number.is_some_and(|n| u64::from(n) == number));
     }
     tracker
         .episodes
         .iter()
-        .find(|e| e.slug.as_ref().is_some_and(|s| s.as_str() == trimmed))
+        .position(|e| e.slug.as_ref().is_some_and(|s| s.as_str() == trimmed))
+}
+
+/// Resuelve un episodio por número (dígitos) o por slug (`_resolve_episode`).
+#[must_use]
+pub fn resolve_episode<'a>(tracker: &'a Tracker, target: &str) -> Option<&'a Episode> {
+    resolve_index(tracker, target).map(|index| &tracker.episodes[index])
 }
 
 /// Contexto compartido por los comandos de lectura.
@@ -57,6 +88,12 @@ impl Rendered {
             stderr: String::new(),
         }
     }
+}
+
+/// Interpreta un buffer de salida como texto UTF-8 (nunca falla: es texto propio).
+#[must_use]
+pub fn bytes_to_string(buffer: Vec<u8>) -> String {
+    String::from_utf8_lossy(&buffer).into_owned()
 }
 
 /// Celda de la columna «Nº» (ancho 4), con `—` para números nulos y `*` si es

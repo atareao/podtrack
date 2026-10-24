@@ -75,6 +75,46 @@ pub enum PodtrackError {
     )]
     ProfileNoTracker { name: String, slug: String },
 
+    /// Alta con un número ya ocupado (exit 1).
+    #[error("ERROR: El episodio #{number} ya existe.")]
+    AddDuplicate { number: u32 },
+
+    /// Uso incorrecto de un subcomando (exit 2, como `argparse`).
+    #[error("ERROR: Uso: {usage}")]
+    Usage { usage: String },
+
+    /// Número de episodio fuera del rango representable (exit 1).
+    #[error("ERROR: Número de episodio inválido '{value}'.")]
+    InvalidNumber { value: String },
+
+    /// `insert` sobre un número que no existe (exit 1).
+    #[error("ERROR: No existe el episodio #{number}.")]
+    InsertMissing { number: u32 },
+
+    /// `insert --date` que no coincide con el slot (exit 1).
+    #[error("ERROR: La fecha {date} no coincide con el slot de #{before} ({slot}).")]
+    InsertDateMismatch {
+        date: String,
+        before: u32,
+        slot: String,
+    },
+
+    /// `publish` de un episodio ya publicado (exit 1).
+    #[error("ERROR: El episodio #{label} ('{name}') ya está publicado.")]
+    PublishAlreadyPublished { label: String, name: String },
+
+    /// `move --date` a un día no publicable (exit 1).
+    #[error("ERROR: {date} no es un día de publicación del show (lunes o jueves).")]
+    MoveNotPublishDay { date: String },
+
+    /// `move --date` a una fecha ya ocupada (exit 1).
+    #[error("ERROR: Colisión de fecha: #{label} ya emite el {date}.")]
+    MoveCollision { label: String, date: String },
+
+    /// Renombrado de material con un destino ya existente (exit 1).
+    #[error("  ERROR: el destino ya existe: {path}")]
+    MaterialDestinationExists { path: String },
+
     /// Error de E/S genérico (exit 1).
     #[error("ERROR: {0}")]
     Io(String),
@@ -91,6 +131,8 @@ impl PodtrackError {
             | Self::InvalidProfile { .. } => 2,
             // Perfil que no usa tracker.
             Self::ProfileNoTracker { .. } => 3,
+            // Uso incorrecto de un subcomando: `argparse` sale con 2.
+            Self::Usage { .. } => 2,
             // Todo lo demás (tracker ausente, episodio inexistente, estado/slug/fecha
             // inválidos, E/S) es exit 1, como el `sys.exit(1)` del Python.
             _ => 1,

@@ -10,6 +10,7 @@
 pub mod commands;
 pub mod error;
 pub mod json;
+pub mod material;
 pub mod model;
 pub mod profile;
 pub mod tracker;
