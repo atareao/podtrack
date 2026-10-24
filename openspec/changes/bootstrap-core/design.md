@@ -54,6 +54,22 @@ Restricciones que dan forma al diseño:
 
 Cada test construye un `shows/` y un tracker en un directorio temporal (`tempfile`). Esto hace imposible un accidente sobre `/data/notas` y permite fijar el contrato con datos controlados.
 
+## Divergencias conscientes con el oráculo
+
+`podtrack` reproduce byte a byte la salida del oráculo, **salvo** en los puntos siguientes, todos deliberados y anclados en un `SHALL` del spec o en una decisión de diseño. Es la lista que el revisor puede usar como referencia.
+
+| # | Comportamiento | Oráculo | `podtrack` | Ancla |
+|---|---|---|---|---|
+| 1 | `status` de un episodio con valor desconocido (p. ej. `cancelled`) | Lo tolera y lo cuenta como `Sin estado` | **Error de lectura** (exit 1) | spec `tracker-store`: «un `status` fuera de ese conjunto SHALL ser un error» |
+| 2 | Perfil por defecto ausente | Cae en silencio a una ruta legacy | **Error** nombrando la causa | spec `show-profile`: perfil inválido = error |
+| 3 | Perfil sin la clave `tracker` | Lo funde con `tracker: none` (exit 3) | **Error tipado** (exit 2) nombrando la clave | spec `show-profile`: error diciendo qué clave falta |
+| 4 | Escritura del tracker | *In place* | **Atómica** (temp + rename) + backup `.bak` | spec `tracker-store`: backup y atomicidad |
+| 5 | Resolución de episodio | Acepta dígitos Unicode no ASCII (`isdigit()`) y el objetivo vacío casa con un slug vacío | Solo `ASCII`/número y slug no vacío | bordes exóticos; se priorizan los datos canónicos |
+| 6 | Errores de argumentos del CLI | `argparse` | `clap` (mensaje y exit distintos) | decisión D2 |
+| 7 | `next-date` | Días de publicación fijos lunes/jueves; no consulta el perfil | Idéntico | spec `tracker-read` (días del show por defecto) |
+
+> **El punto 1 no rompe la paridad de datos canónicos:** el enum cierra los **cuatro** valores reales (`pending`, `scripted`, `recorded`, `published`); solo diverge ante un valor que el esquema del perfil no admite.
+
 ## Risks / Trade-offs
 
 - **Deriva de paridad.** El Python puede cambiar mientras se porta. *Mitigación:* la suite de paridad se porta en el mismo change y se corre contra fixtures congelados; el `diff` de salidas es el árbitro.

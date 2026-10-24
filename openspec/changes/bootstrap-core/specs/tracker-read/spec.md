@@ -42,7 +42,7 @@ Ningún comando de esta capacidad SHALL escribir en el tracker, crear el materia
 
 ### Requirement: `next-date` calcula la próxima fecha publicable
 
-`next-date` SHALL devolver la próxima fecha de publicación según los días declarados por el perfil (por defecto lunes y jueves).
+`next-date` SHALL devolver la próxima fecha de publicación en lunes o jueves (los días del show por defecto), calculada a partir de la fecha del último episodio de la parrilla o, en su defecto, del inicio de temporada.
 
 #### Scenario: desde un jueves el siguiente es lunes
 - **GIVEN** que hoy es jueves y los días de publicación son lunes y jueves

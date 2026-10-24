@@ -4,7 +4,8 @@
 
 #![allow(dead_code)]
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::process::Command as ProcessCommand;
 
 use assert_cmd::Command;
 use tempfile::TempDir;
@@ -212,4 +213,91 @@ fn walk(root: &std::path::Path) -> Vec<PathBuf> {
     }
     out.sort();
     out
+}
+
+// ── Guardián del oráculo (paridad en vivo) ──────────────────────────────────
+//
+// Los tests que comparan contra `podcast-tracker.py` necesitan Python + PyYAML y
+// el propio script. Cuando no están, el patrón por defecto es **saltar** el test
+// (para no romper el CI, donde no existe la skill). Pero un test que se salta en
+// silencio puede pasar sin comprobar nada: por eso, si `PODTRACK_REQUIRE_ORACLE`
+// está definida y no vacía, el test **falla** con un mensaje claro en vez de
+// saltar. Así el operador exige el guardián con `PODTRACK_REQUIRE_ORACLE=1 cargo test`
+// y obtiene certeza de que la comparación se ejecutó de verdad.
+
+/// ¿Se exige el oráculo (variable `PODTRACK_REQUIRE_ORACLE` no vacía)?
+fn require_oracle_env() -> bool {
+    std::env::var_os("PODTRACK_REQUIRE_ORACLE").is_some_and(|v| !v.is_empty())
+}
+
+/// Ruta del oráculo: `PODTRACK_ORACLE` o el hogar habitual.
+pub fn oracle_path() -> Option<PathBuf> {
+    if let Some(path) = std::env::var_os("PODTRACK_ORACLE") {
+        let path = PathBuf::from(path);
+        return path.is_file().then_some(path);
+    }
+    let home = std::env::var_os("HOME")?;
+    let path = PathBuf::from(home).join(".agents/skills/podcast-srt/podcast-tracker.py");
+    path.is_file().then_some(path)
+}
+
+/// Comprueba que Python y PyYAML están operativos.
+pub fn python_ready() -> bool {
+    ProcessCommand::new("python3")
+        .args(["-c", "import yaml"])
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
+
+/// Resuelve el oráculo si está disponible; si no, **salta** el test (imprimiendo
+/// el motivo) salvo que `PODTRACK_REQUIRE_ORACLE` lo exija, en cuyo caso falla.
+pub fn require_oracle() -> Option<PathBuf> {
+    let (available, reason) = match oracle_path() {
+        Some(module) if python_ready() => (Some(module), String::new()),
+        Some(_) => (
+            None,
+            "python3 + PyYAML no disponibles".to_string(),
+        ),
+        None => (
+            None,
+            "el oráculo Python no está disponible (PODTRACK_ORACLE o ~/.agents/skills/podcast-srt/podcast-tracker.py)"
+                .to_string(),
+        ),
+    };
+
+    if available.is_none() {
+        if require_oracle_env() {
+            panic!("PODTRACK_REQUIRE_ORACLE está activo pero {reason}");
+        }
+        eprintln!("skip: {reason}");
+    }
+    available
+}
+
+/// Cuerpo del harness Python que carga el módulo del oráculo por ruta y deja
+/// fijados `TRACKER_PATH` y `SHOW_NAME` para invocar sus funciones sin `main()`.
+pub const ORACLE_PREAMBLE: &str = r#"import importlib.util, sys
+from pathlib import Path
+spec = importlib.util.spec_from_file_location("pt", sys.argv[1])
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+m.TRACKER_PATH = Path(sys.argv[2])
+m.SHOW_NAME = sys.argv[3]
+"#;
+
+/// Ejecuta un harness Python (fichero) con el módulo, tracker y nombre del show.
+pub fn run_python_harness(
+    harness: &Path,
+    module: &Path,
+    tracker: &Path,
+    name: &str,
+) -> std::process::Output {
+    ProcessCommand::new("python3")
+        .arg(harness)
+        .arg(module)
+        .arg(tracker)
+        .arg(name)
+        .output()
+        .expect("python3")
 }

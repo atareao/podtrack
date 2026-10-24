@@ -74,11 +74,11 @@ pub fn load_tracker(path: &Path) -> Result<Tracker, PodtrackError> {
             reason: e.to_string(),
         })?;
 
-    let mapping = match &value {
-        serde_yaml::Value::Mapping(m) if m.contains_key("episodes") => m,
-        _ => return Err(PodtrackError::TrackerNoEpisodes),
-    };
-    let _ = mapping;
+    // El YAML debe ser un mapeo que declare `episodes`; si no, el oráculo sale con
+    // «El YAML no tiene episodios» (exit 1).
+    if !matches!(&value, serde_yaml::Value::Mapping(m) if m.contains_key("episodes")) {
+        return Err(PodtrackError::TrackerNoEpisodes);
+    }
 
     let raw: RawTracker = serde_yaml::from_value(value).map_err(|e| PodtrackError::Yaml {
         reason: e.to_string(),

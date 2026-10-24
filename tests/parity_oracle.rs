@@ -1,34 +1,18 @@
 //! Guardián de paridad en vivo: compara, comando a comando, la salida del
 //! binario con la del **oráculo** Python sobre el **mismo fixture** (texto +
-//! exit codes). Se salta con elegancia si el oráculo o Python/PyYAML no están
-//! disponibles (p. ej. en CI).
+//! exit codes).
+//!
+//! Cuando el oráculo o Python/PyYAML no están disponibles (p. ej. en CI), el
+//! test **se salta** imprimiendo el motivo. Para que un *skip* no pase en vacío,
+//! definiendo `PODTRACK_REQUIRE_ORACLE=1` el test **falla** si no puede comparar
+//! (ver `common::require_oracle`).
 
 mod common;
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 
 use common::{Fixture, MINI_YAML, MINI_YAML_V2};
-
-/// Ruta del oráculo: `PODTRACK_ORACLE` o el hogar habitual.
-fn oracle_path() -> Option<PathBuf> {
-    if let Some(path) = std::env::var_os("PODTRACK_ORACLE") {
-        let path = PathBuf::from(path);
-        return path.is_file().then_some(path);
-    }
-    let home = std::env::var_os("HOME")?;
-    let path = PathBuf::from(home).join(".agents/skills/podcast-srt/podcast-tracker.py");
-    path.is_file().then_some(path)
-}
-
-/// Comprueba que Python y PyYAML están operativos.
-fn python_ready() -> bool {
-    Command::new("python3")
-        .args(["-c", "import yaml"])
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
-}
 
 const HARNESS: &str = r#"
 import importlib.util, sys
@@ -130,14 +114,9 @@ const SPECS: &[&[&str]] = &[
 ];
 
 fn assert_parity(fx: &Fixture, name: &str) {
-    let Some(module) = oracle_path() else {
-        eprintln!("skip: oráculo no disponible");
+    let Some(module) = common::require_oracle() else {
         return;
     };
-    if !python_ready() {
-        eprintln!("skip: python3 + PyYAML no disponibles");
-        return;
-    }
     let harness = fx.dir.path().join("oracle_harness.py");
     std::fs::write(&harness, HARNESS).expect("harness");
     let python = Path::new("python3");
