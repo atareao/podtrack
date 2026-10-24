@@ -4,10 +4,12 @@
 
 #![allow(dead_code)]
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command as ProcessCommand;
 
 use assert_cmd::Command;
+use podtrack::profile::ResolvedShow;
 use tempfile::TempDir;
 
 /// Tracker mínimo del oráculo (`MINI_YAML`), sin slugs.
@@ -107,6 +109,8 @@ pub struct Fixture {
     pub tracker: PathBuf,
     /// Slug del show.
     pub slug: String,
+    /// Nombre visible del show.
+    pub name: String,
 }
 
 impl Fixture {
@@ -133,12 +137,22 @@ impl Fixture {
             shows,
             tracker,
             slug: slug.to_string(),
+            name: name.to_string(),
         }
     }
 
     /// Construye la fixture con el perfil `atareao-con-linux` (show por defecto).
     pub fn default_show(yaml: &str) -> Self {
         Self::new(yaml, "atareao-con-linux", "atareao con Linux")
+    }
+
+    /// Perfil resuelto equivalente a esta fixture (para invocar la librería).
+    pub fn show(&self) -> ResolvedShow {
+        ResolvedShow {
+            slug: self.slug.clone(),
+            name: self.name.clone(),
+            tracker: self.tracker.clone(),
+        }
     }
 
     /// Un `Command` del binario apuntando a esta fixture.
@@ -150,6 +164,65 @@ impl Fixture {
         cmd.env_remove("XDG_CONFIG_HOME");
         cmd
     }
+}
+
+/// Crea el material de guion numerado de los episodios 100, 101 y 102
+/// (fixture `material` del oráculo).
+pub fn build_material(root: &Path) {
+    for num in [100u32, 101, 102] {
+        let folder = root.join(format!("{num:04}"));
+        std::fs::create_dir_all(&folder).expect("mkdir material");
+        std::fs::write(
+            folder.join(format!("guion-{num:04}.md")),
+            format!("guion {num}\n"),
+        )
+        .expect("write");
+        std::fs::write(
+            folder.join(format!("escaleta-{num:04}.md")),
+            format!("escaleta {num}\n"),
+        )
+        .expect("write");
+        std::fs::write(
+            folder.join(format!("presentacion-{num:04}.typ")),
+            format!("typ {num}\n"),
+        )
+        .expect("write");
+        std::fs::write(
+            folder.join(format!("working-e{num}.md")),
+            format!("working {num}\n"),
+        )
+        .expect("write");
+        let ejemplos = folder.join(format!("ejemplos-{num:04}"));
+        std::fs::create_dir_all(&ejemplos).expect("mkdir ejemplos");
+        std::fs::write(ejemplos.join("demo.sh"), "#!/bin/sh\n").expect("write");
+    }
+}
+
+/// Instantánea del **material numerado** (carpetas `0NNN` y su contenido), sin el
+/// tracker ni sus copias (`_material_snapshot` del oráculo).
+pub fn material_snapshot(root: &Path) -> BTreeMap<String, Vec<u8>> {
+    let mut map = BTreeMap::new();
+    let Ok(entries) = std::fs::read_dir(root) else {
+        return map;
+    };
+    for entry in entries.flatten() {
+        let top = entry.path();
+        let name = entry.file_name().to_string_lossy().to_string();
+        let numeric = !name.is_empty() && name.chars().all(|c| c.is_ascii_digit());
+        if top.is_dir() && numeric {
+            for path in walk(&top) {
+                if path.is_file() {
+                    let rel = path
+                        .strip_prefix(root)
+                        .expect("rel")
+                        .to_string_lossy()
+                        .to_string();
+                    map.insert(rel, std::fs::read(&path).expect("read"));
+                }
+            }
+        }
+    }
+    map
 }
 
 /// Ejecuta el binario esperando éxito y devuelve su `stdout`.
@@ -213,6 +286,34 @@ fn walk(root: &std::path::Path) -> Vec<PathBuf> {
     }
     out.sort();
     out
+}
+
+/// Carga el tracker de la fixture y devuelve también su perfil resuelto.
+pub fn load_ctx(fx: &Fixture) -> (podtrack::tracker::Tracker, ResolvedShow) {
+    (
+        podtrack::tracker::load_tracker(&fx.tracker).expect("load"),
+        fx.show(),
+    )
+}
+
+/// Persiste un tracker en la fixture (usado para preparar escenarios).
+pub fn save_tracker_file(fx: &Fixture, tracker: &podtrack::tracker::Tracker) {
+    let mut out = Vec::new();
+    let mut err = Vec::new();
+    podtrack::tracker::save_tracker(&fx.tracker, &fx.name, tracker, &mut out, &mut err)
+        .expect("save");
+}
+
+/// Primer episodio con el slug dado.
+pub fn by_slug<'a>(
+    tracker: &'a podtrack::tracker::Tracker,
+    slug: &str,
+) -> &'a podtrack::model::Episode {
+    tracker
+        .episodes
+        .iter()
+        .find(|e| e.slug.as_ref().is_some_and(|s| s.as_str() == slug))
+        .expect("slug presente")
 }
 
 // ── Guardián del oráculo (paridad en vivo) ──────────────────────────────────

@@ -10,7 +10,7 @@ use serde_json::{Value, json};
 use crate::commands::Ctx;
 use crate::commands::list::Filters;
 use crate::commands::status::counts;
-use crate::model::Episode;
+use crate::model::{Episode, Status};
 use crate::tracker::{
     DEFAULT_EPISODE_DURATION_MINUTES, calc_next_date, last_published, next_free_number,
     next_public_number, next_to_publish,
@@ -148,6 +148,89 @@ pub fn where_document(ctx: &Ctx<'_>, episode: &Episode, folder: &Path) -> String
             },
             "material": folder.display().to_string(),
             "exists": folder.exists(),
+        }),
+    )
+}
+
+/// Documento JSON del comando `add`.
+#[must_use]
+pub fn add_document(ctx: &Ctx<'_>, episode: &Episode) -> String {
+    document(
+        &ctx.show.slug,
+        json!({ "action": "add", "episode": episode_json(episode) }),
+    )
+}
+
+/// Documento JSON del comando `update`.
+#[must_use]
+pub fn update_document(ctx: &Ctx<'_>, episode: &Episode, from: Status) -> String {
+    document(
+        &ctx.show.slug,
+        json!({
+            "action": "update",
+            "episode": episode_json(episode),
+            "changes": [{ "field": "status", "from": from.as_str(), "to": episode.status.as_str() }],
+        }),
+    )
+}
+
+/// Documento JSON del comando `publish`.
+#[must_use]
+pub fn publish_document(
+    ctx: &Ctx<'_>,
+    episode: &Episode,
+    nulled: &[String],
+    dry_run: bool,
+) -> String {
+    document(
+        &ctx.show.slug,
+        json!({
+            "action": "publish",
+            "episode": episode_json(episode),
+            "number": episode.number,
+            "nulled": nulled,
+            "dry_run": dry_run,
+        }),
+    )
+}
+
+/// Documento JSON del comando `insert`.
+#[must_use]
+pub fn insert_document(
+    ctx: &Ctx<'_>,
+    episode: &Episode,
+    shifts: Vec<Value>,
+    material: Vec<Value>,
+    dry_run: bool,
+) -> String {
+    document(
+        &ctx.show.slug,
+        json!({
+            "action": "insert",
+            "episode": episode_json(episode),
+            "shifts": shifts,
+            "material": material,
+            "dry_run": dry_run,
+        }),
+    )
+}
+
+/// Documento JSON del comando `move`.
+#[must_use]
+pub fn move_document(
+    ctx: &Ctx<'_>,
+    episode: &Episode,
+    from: &str,
+    to: &str,
+    dry_run: bool,
+) -> String {
+    document(
+        &ctx.show.slug,
+        json!({
+            "action": "move",
+            "episode": episode_json(episode),
+            "changes": [{ "field": "date", "from": from, "to": to }],
+            "dry_run": dry_run,
         }),
     )
 }

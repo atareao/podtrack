@@ -4,9 +4,15 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 
+use podtrack::commands::add::{AddParams, parse_add_positionals};
+use podtrack::commands::insert::InsertParams;
 use podtrack::commands::list::Filters;
+use podtrack::commands::move_cmd::MoveParams;
+use podtrack::commands::publish::PublishParams;
+use podtrack::commands::update::UpdateParams;
 use podtrack::commands::{
-    Ctx, Rendered, get, list, list_range, next, next_date, status, where_cmd,
+    Ctx, Rendered, add, get, insert, list, list_range, move_cmd, next, next_date, publish, status,
+    update, where_cmd,
 };
 use podtrack::error::PodtrackError;
 use podtrack::json;
@@ -69,6 +75,70 @@ enum Command {
         /// Número o slug del episodio.
         target: String,
     },
+    /// Añadir un episodio (`scripted`), con número opcional.
+    Add {
+        /// Número (opcional) y título: `add 823 "Título"` o `add "Título"`.
+        #[arg(value_name = "[num] título", num_args = 1..)]
+        items: Vec<String>,
+        /// Slug kebab-case del episodio (opcional).
+        #[arg(long)]
+        slug: Option<String>,
+        /// Fecha de publicación `YYYY-MM-DD` (por defecto, la siguiente disponible).
+        #[arg(long, short = 'd')]
+        date: Option<String>,
+        /// Temporada (por defecto, la actual).
+        #[arg(long, short = 's')]
+        season: Option<u16>,
+    },
+    /// Cambiar el estado de un episodio.
+    Update {
+        /// Número o slug del episodio.
+        target: String,
+        /// Nuevo estado.
+        #[arg(
+            long,
+            short = 's',
+            value_parser = ["pending", "scripted", "recorded", "published"]
+        )]
+        status: String,
+    },
+    /// Publicar un episodio estampando su número público autoritativo.
+    Publish {
+        /// Número o slug del episodio.
+        target: String,
+        /// Previsualizar los cambios sin escribir nada.
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Insertar un episodio en el hueco de otro (desplaza números, fechas y material).
+    Insert {
+        /// Número del episodio ante el que insertar.
+        #[arg(long)]
+        before: u32,
+        /// Título del episodio nuevo.
+        #[arg(long)]
+        title: String,
+        /// Slug kebab-case del episodio (opcional).
+        #[arg(long)]
+        slug: Option<String>,
+        /// Fecha del slot (debe coincidir con la de `--before`).
+        #[arg(long, short = 'd')]
+        date: Option<String>,
+        /// Previsualizar los cambios sin escribir nada.
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Cambiar la fecha de emisión de un episodio.
+    Move {
+        /// Número o slug del episodio.
+        target: String,
+        /// Nueva fecha `YYYY-MM-DD` (lunes o jueves).
+        #[arg(long, short = 'd')]
+        date: String,
+        /// Previsualizar los cambios sin escribir nada.
+        #[arg(long)]
+        dry_run: bool,
+    },
 }
 
 fn main() -> std::process::ExitCode {
@@ -124,6 +194,64 @@ fn run(cli: &Cli) -> anyhow::Result<Rendered> {
         Command::ListRange { start, end } => list_range::run(&ctx, *start, *end, cli.json)?,
         Command::Get { target } => get::run(&ctx, target, cli.json)?,
         Command::Where { target } => where_cmd::run(&ctx, target, cli.json)?,
+        Command::Add {
+            items,
+            slug,
+            date,
+            season,
+        } => {
+            let (number, title) = parse_add_positionals(items)?;
+            let params = AddParams {
+                number,
+                title,
+                date: date.clone(),
+                season: *season,
+                slug: slug.clone(),
+            };
+            add::run(&ctx, &params, cli.json)?
+        }
+        Command::Update { target, status } => {
+            let params = UpdateParams {
+                target: target.clone(),
+                status: status.clone(),
+            };
+            update::run(&ctx, &params, cli.json)?
+        }
+        Command::Publish { target, dry_run } => {
+            let params = PublishParams {
+                target: target.clone(),
+                dry_run: *dry_run,
+            };
+            publish::run(&ctx, &params, cli.json)?
+        }
+        Command::Insert {
+            before,
+            title,
+            slug,
+            date,
+            dry_run,
+        } => {
+            let params = InsertParams {
+                before: *before,
+                title: title.clone(),
+                slug: slug.clone(),
+                date: date.clone(),
+                dry_run: *dry_run,
+            };
+            insert::run(&ctx, &params, cli.json)?
+        }
+        Command::Move {
+            target,
+            date,
+            dry_run,
+        } => {
+            let params = MoveParams {
+                target: target.clone(),
+                date: date.clone(),
+                dry_run: *dry_run,
+            };
+            move_cmd::run(&ctx, &params, cli.json)?
+        }
     };
     Ok(rendered)
 }

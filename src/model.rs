@@ -266,6 +266,26 @@ pub fn today() -> NaiveDate {
     Local::now().date_naive()
 }
 
+/// Parsea una fecha `YYYY-MM-DD` con error claro (`_parse_date` del oráculo).
+pub fn parse_iso(value: &str) -> Result<NaiveDate, PodtrackError> {
+    NaiveDate::parse_from_str(value, "%Y-%m-%d").map_err(|_| PodtrackError::InvalidDate {
+        value: value.to_string(),
+    })
+}
+
+/// Siguiente día publicable **estrictamente** posterior a `day` (`_next_slot`).
+#[must_use]
+pub fn next_slot(day: NaiveDate) -> NaiveDate {
+    let mut candidate = day.succ_opt().unwrap_or(day);
+    while !PUBLISH_DAYS.contains(&candidate.weekday().num_days_from_monday()) {
+        match candidate.succ_opt() {
+            Some(next) => candidate = next,
+            None => break,
+        }
+    }
+    candidate
+}
+
 /// Formatea una fecha con su día de la semana (`fmt_date`). `TBD` → `TBD`.
 #[must_use]
 pub fn fmt_date(date: &Date) -> String {
