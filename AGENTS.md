@@ -44,12 +44,13 @@ just spec-archive <name>       # funde el delta en openspec/specs/
 
 | Change | Alcance |
 |---|---|
-| `bootstrap-core` | crate, modelo tipado, resolución de `--show`, writer YAML canónico y comandos de **solo lectura** (`status`, `next`, `list`, `where`, `get`) — paridad + `--json` |
-| `write-commands` | `add`, `update`, `publish`, `insert`, `move` |
-| `migration-surgery` | `renumber`, `rename-material`, `backfill-slugs`, `migrate-material`, `rebase-references` |
-| `retire-python` | **derribar el andaime**: conmutar los agentes y el `SKILL.md` al binario, y **borrar** `podcast-tracker.py` y `podcast-tracker.test.py` |
+| `bootstrap-core` | **tracker** — crate, modelo tipado, resolución de `--show`, writer YAML canónico y comandos de **solo lectura** (`status`, `next`, `list`, `where`, `get`) — paridad + `--json` |
+| `write-commands` | **tracker** — `add`, `update`, `publish`, `insert`, `move` |
+| `migration-surgery` | **tracker** — `renumber`, `rename-material`, `backfill-slugs`, `migrate-material`, `rebase-references` |
+| `srt-stage` | **clasificador SRT** — portar `srt-stage.py` al binario (etapas `raw`/`final`; hoy lo usan 4 agentes) |
+| `retire-python` | **derribar el andaime** — conmutar agentes y `SKILL.md` al binario y **borrar** los tres `.py` de la skill |
 
-Los agentes del pipeline (`~/.config/opencode/agents/`) solo se reapuntan al binario **cuando las tres primeras fases estén verdes**. Hasta entonces, el Python sigue siendo el que corre. La cuarta fase es la que borra el Python: **el éxito del proyecto se mide por que ese fichero ya no exista.**
+Los agentes del pipeline (`~/.config/opencode/agents/`) solo se reapuntan al binario **cuando las cuatro primeras fases estén verdes**. Hasta entonces, el Python sigue siendo el que corre. La última fase es la que borra el Python: **el éxito del proyecto se mide por que no quede ningún `.py` en la skill del podcast.**
 
 ## Git Flow y convenciones
 

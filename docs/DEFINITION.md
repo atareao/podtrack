@@ -13,7 +13,7 @@ El producto tiene **dos objetivos en tensión**, y este SRS los ordena:
 
 La paridad manda. La modernización no puede romper a ningún consumidor.
 
-**El objetivo final es desterrar Python.** El script `podcast-tracker.py` es el *andaime* que garantiza la paridad durante la migración, y su destino es **ser borrado** junto con su suite, en cuanto el binario lo sustituya por completo. Un podtrack que conviva para siempre con el Python es un fracaso del proyecto.
+**El objetivo final es desterrar Python.** El script `podcast-tracker.py` es el *andaime* que garantiza la paridad durante la migración, y su destino es **ser borrado** junto con su suite, en cuanto el binario lo sustituya por completo. Un podtrack que conviva para siempre con el Python es un fracaso del proyecto. El binario absorbe también la **clasificación de etapas del SRT** (`srt-stage.py`), para que la skill del podcast pueda quedarse sin un solo fichero Python (fase `srt-stage`).
 
 ### Qué NO es
 
@@ -171,13 +171,24 @@ Esto elimina el mayor riesgo de un port a Rust (que `serde_yaml` reordene claves
 4. `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test` y `cargo doc` limpios.
 5. Ningún test ni ejecución real toca `/data/notas`.
 
-## 12. Retirada del Python (fase `retire-python`)
+## 12. Retirada de Python (fase `retire-python`)
 
-El port no termina cuando el binario funciona: termina cuando **el Python desaparece**.
+El port no termina cuando el binario funciona: termina cuando **no queda Python**. El objetivo es **Python cero** en `~/.agents/skills/podcast-srt/`.
 
-1. Conmutar el `SKILL.md` de `podcast-srt` y los agentes que invocan `podcast-tracker.py` (planificador y coordinador, como mínimo) para llamar al binario `podtrack`.
-2. Verificar en producción un ciclo completo (una publicación real) sin el Python.
-3. **Borrar** `~/.agents/skills/podcast-srt/podcast-tracker.py` y su suite `.test.py`, y limpiar `__pycache__`/`.ruff_cache`.
-4. Dejar constancia en `~/.agents/openspec` de que la capacidad pasó al binario.
+La skill tiene hoy exactamente tres ficheros Python, y **los tres caen**:
 
-`srt-stage.py` **no entra aquí**: es otra capacidad (clasificación de etapas del SRT) y su retirada, si se quiere, es un proyecto aparte — candidata a un subcomando futuro (`podtrack srt-stage`).
+| Fichero | Lo sustituye | Fase de port |
+|---|---|---|
+| `podcast-tracker.py` | los subcomandos de la parrilla | `bootstrap-core` + `write-commands` + `migration-surgery` |
+| `podcast-tracker.test.py` | la suite de paridad del binario | `bootstrap-core` (port) |
+| `srt-stage.py` | el subcomando de clasificación de etapas del SRT | `srt-stage` |
+
+Pasos de la fase:
+
+1. Portar `srt-stage.py` al binario (fase `srt-stage`) con paridad de contrato, antes de tocar nada.
+2. Conmutar el `SKILL.md` de `podcast-srt` y los agentes que hoy invocan los scripts (planificador, coordinador, procesador de capítulos y notas, como mínimo) para llamar a `podtrack`.
+3. Verificar en producción un ciclo completo (una publicación real) sin Python.
+4. **Borrar** los tres `.py`, limpiar `__pycache__`/`.ruff_cache` y la configuración huérfana de `pytest`/`ruff`.
+5. Dejar constancia en `~/.agents/openspec` de que las capacidades pasaron al binario.
+
+**Criterio de cierre:** `grep -r '\.py' ~/.agents/skills/podcast-srt/` no devuelve nada.
