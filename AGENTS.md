@@ -14,7 +14,7 @@ No es un cliente de podcasts: no se suscribe a feeds, no descarga ni reproduce a
 
 ## Fuente de verdad: `docs/DEFINITION.md`
 
-El SRS del proyecto. Manda sobre este fichero cuando haya conflicto. Y por encima de él, para el **comportamiento**, manda la implementación de referencia:
+El SRS del proyecto. Manda sobre este fichero cuando haya conflicto. Y por encima de él, para el **comportamiento**, manda la implementación de referencia **mientras dure el port**:
 
 | Fuente | Para qué |
 |---|---|
@@ -24,7 +24,9 @@ El SRS del proyecto. Manda sobre este fichero cuando haya conflicto. Y por encim
 | `~/.agents/openspec/specs/{episode-identity,episode-material-layout,episode-scheduling}` | Las capacidades ya especificadas del dominio. |
 | `~/.agents/skills/podcast-srt/shows/*.yaml` + `shows/README.md` | Esquema y perfiles de show. |
 
-**Regla de oro:** ante cualquier duda de comportamiento, la respuesta la da el Python, no la intuición. Este proyecto es un **port de paridad** primero y una mejora después.
+**Regla de oro durante el port:** ante cualquier duda de comportamiento, la respuesta la da el Python, no la intuición. Este proyecto es un **port de paridad** primero y una mejora después.
+
+**Pero el Python es *andaime*, no cimiento.** Existe para garantizar la paridad mientras se construye el reemplazo, y **se derriba** al terminar: `podcast-tracker.py` y su suite se borran, y los agentes pasan a invocar el binario. Que hoy sea el oráculo no significa que sobreviva mañana: el objetivo final del proyecto es **no tener Python**.
 
 ## Protocolo SDD (OpenSpec)
 
@@ -45,8 +47,9 @@ just spec-archive <name>       # funde el delta en openspec/specs/
 | `bootstrap-core` | crate, modelo tipado, resolución de `--show`, writer YAML canónico y comandos de **solo lectura** (`status`, `next`, `list`, `where`, `get`) — paridad + `--json` |
 | `write-commands` | `add`, `update`, `publish`, `insert`, `move` |
 | `migration-surgery` | `renumber`, `rename-material`, `backfill-slugs`, `migrate-material`, `rebase-references` |
+| `retire-python` | **derribar el andaime**: conmutar los agentes y el `SKILL.md` al binario, y **borrar** `podcast-tracker.py` y `podcast-tracker.test.py` |
 
-Los agentes del pipeline (`~/.config/opencode/agents/`) solo se reapuntan al binario **cuando las tres fases estén verdes**. Hasta entonces, el Python sigue siendo el que corre.
+Los agentes del pipeline (`~/.config/opencode/agents/`) solo se reapuntan al binario **cuando las tres primeras fases estén verdes**. Hasta entonces, el Python sigue siendo el que corre. La cuarta fase es la que borra el Python: **el éxito del proyecto se mide por que ese fichero ya no exista.**
 
 ## Git Flow y convenciones
 

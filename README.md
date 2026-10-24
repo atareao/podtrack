@@ -16,7 +16,7 @@
 
 `podtrack` gobierna **los metadatos y el layout** del material de un podcast: qué episodios existen, cuándo salen, en qué estado están y dónde vive su material de guion. Es un binario único, sin runtime de Python, pensado para que el resto del pipeline (agentes de guion, grabación y publicación) lo invoque muchas veces por episodio.
 
-Es un **port de paridad** del script `podcast-tracker.py`, así que su contrato de línea de comandos es idéntico —y además ofrece, de forma *opt-in*, una salida `--json` para consumidores programáticos.
+Nace como **port de paridad** del script `podcast-tracker.py` (Python), con su mismo contrato de línea de comandos —y además ofrece, de forma *opt-in*, una salida `--json` para consumidores programáticos. Su razón de ser es **desterrar Python**: cuando el binario lo sustituya por completo, el script se retira.
 
 ### La idea en una frase
 
