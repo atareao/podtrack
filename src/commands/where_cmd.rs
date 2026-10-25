@@ -12,14 +12,14 @@ pub fn run(ctx: &Ctx<'_>, target: &str, json_mode: bool) -> Result<Rendered, Pod
             target: target.to_string(),
         })?;
 
-    let slug = episode.slug_str().unwrap_or_default();
-    if slug.is_empty() {
-        return Err(PodtrackError::EpisodeWithoutSlug {
+    // `where` no informa de una ruta que no se pueda construir sin `slug`, **sea
+    // cual sea la plantilla**: sin slug es el mismo caso tratado que la línea base
+    // (`EpisodeWithoutSlug`, exit 1), y así `where` y `get` no pueden discrepar.
+    let folder = ctx
+        .material(episode)?
+        .ok_or_else(|| PodtrackError::EpisodeWithoutSlug {
             label: num_label(episode.number),
-        });
-    }
-
-    let folder = ctx.show.scripts_root().join(slug);
+        })?;
     if json_mode {
         return Ok(Rendered::stdout(json::where_document(
             ctx, episode, &folder,

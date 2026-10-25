@@ -77,6 +77,35 @@ pub struct Ctx<'a> {
     pub show: &'a ResolvedShow,
 }
 
+impl Ctx<'_> {
+    /// Carpeta de material de un episodio por la **regla única**
+    /// ([`ResolvedShow::material_dir`]), o `None` si el episodio **no tiene slug**.
+    ///
+    /// Un episodio sin slug **no tiene ruta de material** en ninguna superficie de
+    /// lectura: el texto muestra `—`, el JSON emite `null` y `status` omite la
+    /// línea. Es la cláusula de la línea base que conservan los deltas de
+    /// `tracker-read`/`json-output`; **no** se delega en `material_dir`, que solo
+    /// conoce la plantilla. Con `dir: "episodio-{n:02d}"` y un episodio sin slug el
+    /// resultado es, por tanto, `None` (no `EpisodeWithoutNumber`): la ausencia de
+    /// slug manda.
+    ///
+    /// # Errors
+    ///
+    /// Cualquier error de `material_dir` con un episodio **con** slug
+    /// (`EpisodeWithoutNumber`, `MaterialDirNotRelative`, …).
+    pub fn material(
+        &self,
+        episode: &Episode,
+    ) -> Result<Option<std::path::PathBuf>, crate::error::PodtrackError> {
+        if episode.slug_str().is_none() {
+            return Ok(None);
+        }
+        self.show
+            .material_dir(episode.slug_str(), episode.number)
+            .map(Some)
+    }
+}
+
 /// Salida de un comando: texto de `stdout`, avisos de `stderr` y código de salida.
 #[derive(Debug, Default, Clone)]
 pub struct Rendered {

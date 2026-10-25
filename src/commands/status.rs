@@ -49,7 +49,7 @@ pub fn counts(tracker: &Tracker) -> Counts {
 /// Ejecuta `status`.
 pub fn run(ctx: &Ctx<'_>, json_mode: bool) -> Result<Rendered, PodtrackError> {
     if json_mode {
-        return Ok(Rendered::stdout(json::status_document(ctx)));
+        return Ok(Rendered::stdout(json::status_document(ctx)?));
     }
 
     let tracker = ctx.tracker;
@@ -106,7 +106,7 @@ pub fn run(ctx: &Ctx<'_>, json_mode: bool) -> Result<Rendered, PodtrackError> {
         weekday_es(next_date.weekday())
     ));
     if let Some(ep) = next_to_publish(tracker) {
-        for line in next_to_publish_block(ep, &ctx.show.scripts_root()) {
+        for line in next_to_publish_block(ctx, ep)? {
             out.push_str(&line);
             out.push('\n');
         }
@@ -137,23 +137,26 @@ pub fn run(ctx: &Ctx<'_>, json_mode: bool) -> Result<Rendered, PodtrackError> {
 
 /// Líneas del bloque «Siguiente a publicar» (`_next_to_publish_block`).
 ///
-/// Un episodio sin slug muestra `—` y **no** inventa ruta.
-#[must_use]
+/// La ruta sale de la **regla única** ([`Ctx::material`]): un episodio sin slug
+/// muestra `—` y **no** inventa ruta (se omite la línea `ruta:`), igual que su
+/// documento `--json` deja `material` a `null`. Cualquier otro error del layout se
+/// propaga.
+///
+/// # Errors
+///
+/// Cualquier error de `material_dir` con un episodio **con** slug.
 pub fn next_to_publish_block(
+    ctx: &Ctx<'_>,
     episode: &crate::model::Episode,
-    scripts_root: &std::path::Path,
-) -> Vec<String> {
+) -> Result<Vec<String>, PodtrackError> {
     let slug = episode.slug_str().unwrap_or_default();
     let numero = num_label(episode.number);
     let mut lines = vec![
         format!("  ▶ Siguiente a publicar: #{} «{}»", numero, episode.title),
         format!("      slug:  {}", if slug.is_empty() { "—" } else { slug }),
     ];
-    if !slug.is_empty() {
-        lines.push(format!(
-            "      ruta:  {}",
-            scripts_root.join(slug).display()
-        ));
+    if let Some(path) = ctx.material(episode)? {
+        lines.push(format!("      ruta:  {}", path.display()));
     }
-    lines
+    Ok(lines)
 }

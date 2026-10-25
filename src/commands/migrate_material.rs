@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 use crate::commands::{Ctx, DRY_RUN_LINE, Rendered, bytes_to_string};
 use crate::error::PodtrackError;
 use crate::json;
-use crate::material::{apply_slug_renames, collect_slug_renames, relative, slug_collisions};
+use crate::material::{apply_slug_renames, collect_slug_renames_into, relative, slug_collisions};
 use crate::model::{Status, sort_episodes};
 
 /// Parámetros de `migrate-material`.
@@ -71,7 +71,11 @@ pub fn run(
             continue;
         }
 
-        let pairs = collect_slug_renames(&root, &src, number, &slug);
+        // D8: el destino de la carpeta es el de la **regla única** (`where`/`get`/
+        // `open`), no `<root>/<slug>` cableado. Los nombres internos siguen
+        // reescribiéndose al slug dentro de `collect_slug_renames_into`.
+        let dest = ctx.show.material_dir(Some(&slug), Some(number))?;
+        let pairs = collect_slug_renames_into(&src, number, &slug, &dest);
         let problems = slug_collisions(&pairs);
         if !problems.is_empty() {
             had_collision = true;

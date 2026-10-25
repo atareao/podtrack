@@ -10,6 +10,7 @@ use serde_json::{Value, json};
 use crate::commands::Ctx;
 use crate::commands::list::Filters;
 use crate::commands::status::counts;
+use crate::error::PodtrackError;
 use crate::model::Episode;
 use crate::tracker::{
     DEFAULT_EPISODE_DURATION_MINUTES, calc_next_date, last_published, next_free_number,
@@ -30,25 +31,27 @@ pub fn error_document(message: &str) -> String {
 }
 
 /// Documento JSON del comando `status`.
-#[must_use]
-pub fn status_document(ctx: &Ctx<'_>) -> String {
+///
+/// # Errors
+///
+/// Cualquier error de la regla única de material distinto de `EpisodeWithoutSlug`.
+pub fn status_document(ctx: &Ctx<'_>) -> Result<String, PodtrackError> {
     let tracker = ctx.tracker;
     let stats = counts(tracker);
     let next_date = calc_next_date(tracker);
     let next_ep = next_to_publish(tracker);
-    let next_to_publish = next_ep.map(|ep| {
-        json!({
+    let next_to_publish = match next_ep {
+        Some(ep) => Some(json!({
             "number": ep.number,
             "slug": ep.slug_str(),
             "date": ep.date.to_iso(),
-            "material": ep.slug_str().map(|s| {
-                ctx.show.scripts_root().join(s).display().to_string()
-            }),
-        })
-    });
+            "material": ctx.material(ep)?.map(|p| p.display().to_string()),
+        })),
+        None => None,
+    };
     let last = last_published(tracker);
 
-    document(
+    Ok(document(
         &ctx.show.slug,
         json!({
             "season": tracker.season,
@@ -72,7 +75,7 @@ pub fn status_document(ctx: &Ctx<'_>) -> String {
             })),
             "next_to_publish": next_to_publish,
         }),
-    )
+    ))
 }
 
 /// Documento JSON del comando `next`.
@@ -137,18 +140,23 @@ pub fn list_range_document(ctx: &Ctx<'_>, start: u64, end: u64, episodes: &[&Epi
 }
 
 /// Documento JSON del comando `get`.
-#[must_use]
-pub fn get_document(ctx: &Ctx<'_>, episode: &Episode) -> String {
+///
+/// # Errors
+///
+/// Cualquier error de la regla única de material distinto de `EpisodeWithoutSlug`
+/// (que deja `material` a `null`).
+pub fn get_document(ctx: &Ctx<'_>, episode: &Episode) -> Result<String, PodtrackError> {
     // `material` es aditivo y propio de `get`: se inyecta aquí, **no** en el helper
     // compartido `episode_fields` (lo usan `list`, `list-range` y los comandos de
     // escritura). Al trabajar sobre el mapa directamente, la clave no puede
     // descartarse en silencio.
-    let material = episode
-        .slug_str()
-        .map(|s| ctx.show.scripts_root().join(s).display().to_string());
+    let material = ctx.material(episode)?.map(|p| p.display().to_string());
     let mut fields = episode_fields(episode);
     fields.insert("material".to_string(), json!(material));
-    document(&ctx.show.slug, json!({ "episode": Value::Object(fields) }))
+    Ok(document(
+        &ctx.show.slug,
+        json!({ "episode": Value::Object(fields) }),
+    ))
 }
 
 /// Documento JSON del comando `where`.
