@@ -4,7 +4,6 @@
 //! directorio junto al ejecutable → `~/.config/podtrack/shows/`. Sin `--show` se
 //! usa `PODTRACK_SHOW` y, si no, el show por defecto compilado.
 
-use std::collections::BTreeMap;
 use std::path::{Component, Path, PathBuf};
 
 use serde::Deserialize;
@@ -192,14 +191,20 @@ impl ShowResolver {
         let scripts_dir = profile
             .episodes
             .as_ref()
-            .and_then(|e| e.scripts.as_ref())
-            .and_then(|s| s.dir.clone());
+            .and_then(|e| e.get("scripts"))
+            .and_then(|s| s.get("dir"))
+            .and_then(yaml_scalar_str)
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
         let presentation = profile
             .episodes
             .as_ref()
-            .and_then(|e| e.scripts.as_ref())
-            .and_then(|s| s.files.as_ref())
-            .and_then(|f| f.get("presentacion").cloned());
+            .and_then(|e| e.get("scripts"))
+            .and_then(|s| s.get("files"))
+            .and_then(|f| f.get("presentacion"))
+            .and_then(yaml_scalar_str)
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
 
         match profile.tracker {
             None | Some(serde_yaml::Value::Null) => Err(PodtrackError::ProfileMissingTrackerKey {
@@ -271,24 +276,25 @@ struct RawProfile {
     name: Option<String>,
     #[serde(default)]
     tracker: Option<serde_yaml::Value>,
+    /// Bloque `episodes` **sin tipar**: se navega por clave en `load`, de forma
+    /// **laxa**, para no reinterpretar el esquema del perfil ni romper la carga
+    /// ante variaciones de tipo (`files.futuro: [a, b]`, `dir: {slug}` como *flow
+    /// mapping*, …). Igual que `tracker`, solo interesa su contenido puntual.
     #[serde(default)]
-    episodes: Option<RawEpisodes>,
+    episodes: Option<serde_yaml::Value>,
 }
 
-/// Bloque `episodes` del perfil (solo lo que `open` necesita).
-#[derive(Deserialize)]
-struct RawEpisodes {
-    #[serde(default)]
-    scripts: Option<RawScripts>,
-}
-
-/// Bloque `episodes.scripts`: `dir` (carpeta de material) y `files` (entregables).
-#[derive(Deserialize)]
-struct RawScripts {
-    #[serde(default)]
-    dir: Option<String>,
-    #[serde(default)]
-    files: Option<BTreeMap<String, String>>,
+/// Extrae un escalar de texto de un `Value` YAML (`None` si no es escalar).
+///
+/// La lectura del perfil es **laxa y por clave**: un valor no escalar (secuencia,
+/// mapping, nulo) se trata como **ausente**, nunca como error.
+fn yaml_scalar_str(value: &serde_yaml::Value) -> Option<String> {
+    match value {
+        serde_yaml::Value::String(s) => Some(s.clone()),
+        serde_yaml::Value::Number(n) => Some(n.to_string()),
+        serde_yaml::Value::Bool(b) => Some(b.to_string()),
+        _ => None,
+    }
 }
 
 fn scalar_to_string(value: &serde_yaml::Value) -> String {
@@ -382,6 +388,10 @@ pub fn render_material_template(
 
 /// Sustituye **un** marcador (`{…}`) por su valor, o lo deja literal si es
 /// desconocido. Marcadores soportados: `slug`, `n`, `n:0Nd`.
+///
+/// En `n:0Nd`, el ancho `N` debe ser un `usize` **≤ 32**; un ancho no parseable o
+/// mayor se considera marcador **desconocido** y se devuelve literal (evita
+/// reservar una cantidad absurda de memoria en `{n:010000000000d}`).
 fn render_marker(
     marker: &str,
     slug: Option<&str>,
@@ -402,13 +412,18 @@ fn render_marker(
             }),
         _ => {
             // `{n:0Nd}`: `0` + dígitos + `d`. Cualquier otra forma es desconocida.
+            // Un ancho **absurdo** (no parseable a `usize` o `> 32`, p. ej.
+            // `{n:010000000000d}`) también se trata como marcador desconocido, para
+            // no intentar reservar una cantidad disparatada de memoria: se devuelve
+            // literal.
             if let Some(rest) = marker.strip_prefix("n:")
                 && let Some(inner) = rest.strip_prefix('0')
                 && let Some(digits) = inner.strip_suffix('d')
                 && !digits.is_empty()
                 && digits.chars().all(|c| c.is_ascii_digit())
+                && let Ok(width) = digits.parse::<usize>()
+                && width <= 32
             {
-                let width: usize = digits.parse().unwrap_or(0);
                 return number.map(|n| format!("{n:0width$}")).ok_or_else(|| {
                     PodtrackError::EpisodeWithoutNumber {
                         label: label.to_string(),

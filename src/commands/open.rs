@@ -46,7 +46,7 @@ pub fn run(
             target: target.to_string(),
         })?;
 
-    let slug_opt = episode.slug_str().filter(|s| !s.is_empty());
+    let slug_opt = episode.slug_str();
     let label = num_label(episode.number);
 
     let template = ctx
@@ -73,7 +73,7 @@ pub fn run(
 
     if !path.is_file() {
         return Err(PodtrackError::PresentationNotFound {
-            slug: slug_opt.unwrap_or_default().to_string(),
+            slug: slug_opt.unwrap_or(target).to_string(),
             path,
         });
     }
