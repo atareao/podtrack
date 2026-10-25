@@ -307,6 +307,26 @@ fn absolutize(path: &Path, base_dir: &Path) -> std::io::Result<PathBuf> {
     Ok(normalize_lexically(&base.join(path)))
 }
 
+/// Renderiza una plantilla de material del perfil: `{slug}`, `{n}`, `{n:0Nd}`.
+///
+/// Sustituye `{slug}` por el slug y `{n}` / `{n:0Nd}` por el número (con relleno
+/// opcional a N dígitos). Falta el valor → error tipado; marcador desconocido →
+/// literal. `label` es la etiqueta del episodio para el mensaje de error
+/// (`num_label`).
+///
+/// **RED:** stub deliberadamente incompleto; la implementación real llega en GREEN.
+pub fn render_material_template(
+    template: &str,
+    slug: Option<&str>,
+    number: Option<u32>,
+    label: &str,
+) -> Result<String, PodtrackError> {
+    let _ = (template, slug, number, label);
+    Err(PodtrackError::Io(
+        "TODO: render_material_template no implementado".to_string(),
+    ))
+}
+
 fn config_dir() -> Option<PathBuf> {
     let base = std::env::var_os("XDG_CONFIG_HOME")
         .filter(|v| !v.is_empty())
@@ -321,7 +341,7 @@ fn config_dir() -> Option<PathBuf> {
 
 #[cfg(test)]
 mod tests {
-    use super::{ResolvedShow, ShowResolver, absolutize, normalize_lexically};
+    use super::{ResolvedShow, ShowResolver, absolutize, normalize_lexically, render_material_template};
     use crate::error::PodtrackError;
     use std::path::{Path, PathBuf};
 
@@ -474,6 +494,32 @@ mod tests {
         assert!(
             matches!(err, PodtrackError::ProfileNoTracker { .. }),
             "esperado ProfileNoTracker, obtenido: {err:?}"
+        );
+    }
+
+    #[test]
+    fn render_rellena_el_numero_con_padding() {
+        assert_eq!(
+            render_material_template("episodio-{n:02d}", None, Some(7), "7").expect("render"),
+            "episodio-07"
+        );
+    }
+
+    #[test]
+    fn render_sin_slug_es_error_tipado() {
+        let err = render_material_template("{slug}", None, Some(1), "1").expect_err("sin slug");
+        assert!(
+            matches!(err, PodtrackError::EpisodeWithoutSlug { .. }),
+            "err: {err:?}"
+        );
+    }
+
+    #[test]
+    fn render_sin_numero_es_error_tipado() {
+        let err = render_material_template("{n}", Some("x"), None, "x").expect_err("sin número");
+        assert!(
+            matches!(err, PodtrackError::EpisodeWithoutNumber { .. }),
+            "err: {err:?}"
         );
     }
 
