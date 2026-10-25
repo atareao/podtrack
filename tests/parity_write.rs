@@ -1028,3 +1028,110 @@ fn dry_run_no_crea_backup_ni_toca_material() {
     assert_eq!(material_snapshot(&fx.root), material_before);
     assert!(!fx.root.join("podcast-tracker.yaml.bak").exists());
 }
+
+// ─── insert: derivación del slug (change `insert-derives-slug`) ──────
+
+#[test]
+fn insert_deriva_el_slug_del_titulo() {
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    build_material(&fx.root);
+    let (tracker, show) = load_ctx(&fx);
+    let ctx = Ctx {
+        tracker: &tracker,
+        show: &show,
+    };
+    let params = InsertParams {
+        before: 101,
+        title: "Cómo montar un NAS".to_string(),
+        slug: None,
+        date: None,
+        dry_run: false,
+    };
+    insert::run(&ctx, &params, false).expect("insert");
+    let reloaded = load_tracker(&fx.tracker).expect("reload");
+    let ep = reloaded
+        .episodes
+        .iter()
+        .find(|e| e.number == Some(101))
+        .expect("101");
+    assert_eq!(
+        ep.slug.as_ref().map(Slug::as_str),
+        Some("como-montar-un-nas")
+    );
+}
+
+#[test]
+fn insert_sufija_el_slug_derivado_si_colisiona() {
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let (tracker, show) = load_ctx(&fx);
+    let ctx = Ctx {
+        tracker: &tracker,
+        show: &show,
+    };
+    // `sin-numero` ya existe en el fixture → el derivado debe sufijarse.
+    let params = InsertParams {
+        before: 202,
+        title: "Sin número".to_string(),
+        slug: None,
+        date: None,
+        dry_run: false,
+    };
+    insert::run(&ctx, &params, false).expect("insert");
+    let reloaded = load_tracker(&fx.tracker).expect("reload");
+    let ep = reloaded
+        .episodes
+        .iter()
+        .find(|e| e.number == Some(202))
+        .expect("202");
+    assert_eq!(ep.slug.as_ref().map(Slug::as_str), Some("sin-numero-2"));
+}
+
+#[test]
+fn insert_titulo_sin_slug_utilizable_lo_deja_sin_slug() {
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    let (tracker, show) = load_ctx(&fx);
+    let ctx = Ctx {
+        tracker: &tracker,
+        show: &show,
+    };
+    let params = InsertParams {
+        before: 101,
+        title: "¡¡¡".to_string(),
+        slug: None,
+        date: None,
+        dry_run: false,
+    };
+    insert::run(&ctx, &params, false).expect("insert");
+    let reloaded = load_tracker(&fx.tracker).expect("reload");
+    let ep = reloaded
+        .episodes
+        .iter()
+        .find(|e| e.number == Some(101))
+        .expect("101");
+    assert_eq!(ep.slug, None);
+}
+
+#[test]
+fn insert_slug_explicito_no_se_sufija_aunque_colisione() {
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let (tracker, show) = load_ctx(&fx);
+    let ctx = Ctx {
+        tracker: &tracker,
+        show: &show,
+    };
+    let params = InsertParams {
+        before: 202,
+        title: "Sin número".to_string(),
+        slug: Some("sin-numero".to_string()),
+        date: None,
+        dry_run: false,
+    };
+    insert::run(&ctx, &params, false).expect("insert");
+    let reloaded = load_tracker(&fx.tracker).expect("reload");
+    let ep = reloaded
+        .episodes
+        .iter()
+        .find(|e| e.number == Some(202))
+        .expect("202");
+    assert_eq!(ep.slug.as_ref().map(Slug::as_str), Some("sin-numero"));
+}

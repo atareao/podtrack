@@ -322,9 +322,27 @@ pub fn slugify(texto: &str) -> String {
     out.trim_matches('-').to_string()
 }
 
+/// Slug libre a partir de `base`, sufijando `-2`, `-3`, … si ya está en `used`
+/// (`_unique_slug` del oráculo). El orden de `used` no importa.
+#[must_use]
+pub fn unique_slug<'a>(used: impl IntoIterator<Item = &'a str>, base: &str) -> String {
+    let used: Vec<&str> = used.into_iter().collect();
+    if !used.contains(&base) {
+        return base.to_string();
+    }
+    let mut suffix = 2u32;
+    loop {
+        let candidate = format!("{base}-{suffix}");
+        if !used.contains(&candidate.as_str()) {
+            return candidate;
+        }
+        suffix += 1;
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{Date, Episode, Slug, Status, slugify, sort_episodes};
+    use super::{Date, Episode, Slug, Status, slugify, sort_episodes, unique_slug};
 
     fn ep(number: Option<u32>, date: &str) -> Episode {
         Episode {
@@ -367,6 +385,17 @@ mod tests {
         assert_eq!(slugify("Ñandú & Cía: ¡vamos!"), "nandu-cia-vamos");
         assert_eq!(slugify("A/B__C--D"), "a-b-c-d");
         assert_eq!(slugify("Versión 2.0 (final)"), "version-2-0-final");
+    }
+
+    #[test]
+    fn unique_slug_sufija_solo_si_colisiona() {
+        let used = ["a", "b-2", "c"];
+        assert_eq!(unique_slug(used, "b"), "b"); // 'b' no está en used
+        assert_eq!(unique_slug(used, "a"), "a-2"); // 'a' ocupado → -2
+        assert_eq!(unique_slug(used, "b-2"), "b-2-2"); // se mira el candidato, no el prefijo
+        assert_eq!(unique_slug(["x"], "x"), "x-2");
+        assert_eq!(unique_slug(["x", "x-2"], "x"), "x-3");
+        assert_eq!(unique_slug(std::iter::empty::<&str>(), "libre"), "libre");
     }
 
     #[test]
