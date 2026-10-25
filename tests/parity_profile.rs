@@ -2,8 +2,10 @@
 
 mod common;
 
+use std::path::PathBuf;
+
 use assert_cmd::Command;
-use common::{Fixture, MINI_YAML};
+use common::{B4_YAML, Fixture, MINI_YAML, MINI_YAML_V2};
 use podtrack::profile::ShowResolver;
 use tempfile::TempDir;
 
@@ -255,4 +257,179 @@ fn show_acepta_una_ruta_absoluta_al_perfil() {
     );
     let out = String::from_utf8(output.stdout).expect("utf8");
     assert!(out.contains("Perfil Absoluto"), "salida: {out}");
+}
+
+// ── `profile-absolute-paths`: el tracker del perfil se resuelve a absoluto ──
+
+/// Declaración de `tracker:` **relativa** al directorio del propio perfil.
+const REL_TRACKER: &str = "../guiones/podcast-tracker.yaml";
+
+/// Fixture con un perfil que declara `tracker:` relativo. Si `tracker_yaml` es
+/// `Some`, se crea además el fichero apuntado en `guiones/`.
+struct RelFixture {
+    dir: TempDir,
+    shows: PathBuf,
+}
+
+impl RelFixture {
+    fn new(tracker_decl: &str, tracker_yaml: Option<&str>) -> Self {
+        let dir = TempDir::new().expect("tmp");
+        let shows = dir.path().join("shows");
+        std::fs::create_dir_all(&shows).expect("mkdir shows");
+        std::fs::write(
+            shows.join("demo.yaml"),
+            format!("slug: demo\nname: Show Demo\ntracker: {tracker_decl}\n"),
+        )
+        .expect("write profile");
+        if let Some(yaml) = tracker_yaml {
+            let guiones = dir.path().join("guiones");
+            std::fs::create_dir_all(&guiones).expect("mkdir guiones");
+            std::fs::write(guiones.join("podcast-tracker.yaml"), yaml).expect("write tracker");
+        }
+        Self { dir, shows }
+    }
+
+    fn cmd(&self) -> Command {
+        let mut cmd = Command::cargo_bin("podtrack").expect("bin podtrack");
+        cmd.env("PODTRACK_SHOWS_DIR", &self.shows);
+        cmd.env("PODTRACK_SHOW", "demo");
+        cmd.env("HOME", self.dir.path());
+        cmd.env_remove("XDG_CONFIG_HOME");
+        cmd
+    }
+
+    /// Raíz de guiones: `<tmp>/guiones` (padre absoluto del tracker relativo).
+    fn guiones(&self) -> PathBuf {
+        self.dir.path().join("guiones")
+    }
+
+    fn run_ok(&self, args: &[&str]) -> String {
+        let output = self.cmd().args(args).output().expect("run");
+        assert!(
+            output.status.success(),
+            "se esperaba éxito para {args:?}; stderr: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout).expect("utf8")
+    }
+}
+
+#[test]
+fn where_con_tracker_relativo_imprime_ruta_absoluta() {
+    let fx = RelFixture::new(REL_TRACKER, Some(MINI_YAML_V2));
+    let out = fx.run_ok(&["where", "200"]);
+    let esperado = fx.guiones().join("primer-episodio");
+    assert_eq!(
+        out.trim(),
+        format!("{} no existe", esperado.display()),
+        "salida: {out}"
+    );
+}
+
+#[test]
+fn get_con_tracker_relativo_imprime_ruta_absoluta() {
+    let fx = RelFixture::new(REL_TRACKER, Some(MINI_YAML_V2));
+    let out = fx.run_ok(&["get", "200"]);
+    let esperado = format!(
+        "  {:<10} {}",
+        "Ruta:",
+        fx.guiones().join("primer-episodio").display()
+    );
+    assert!(
+        out.lines().any(|l| l == esperado.as_str()),
+        "falta `Ruta:` absoluta; salida:\n{out}"
+    );
+}
+
+#[test]
+fn get_json_con_tracker_relativo_lleva_material_absoluto() {
+    let fx = RelFixture::new(REL_TRACKER, Some(MINI_YAML_V2));
+    let out = fx.run_ok(&["get", "200", "--json"]);
+    let doc: serde_json::Value = serde_json::from_str(&out).expect("json");
+    let material = doc["episode"]["material"].as_str().expect("material");
+    assert_eq!(
+        material,
+        fx.guiones().join("primer-episodio").display().to_string()
+    );
+}
+
+#[test]
+fn status_con_tracker_relativo_imprime_ruta_absoluta() {
+    let fx = RelFixture::new(REL_TRACKER, Some(B4_YAML));
+    let out = fx.run_ok(&["status"]);
+    let esperado = format!("ruta:  {}", fx.guiones().join("provisional-uno").display());
+    assert!(out.contains(&esperado), "salida:\n{out}");
+}
+
+#[test]
+fn tracker_relativo_inexistente_nombra_la_ruta_absoluta() {
+    let fx = RelFixture::new("no/existe.yaml", None);
+    let output = fx.cmd().args(["status"]).output().expect("run");
+    assert_eq!(output.status.code(), Some(1), "tracker ausente → exit 1");
+    let err = String::from_utf8(output.stderr).expect("utf8");
+    let absoluta = fx.shows.join("no/existe.yaml");
+    assert!(
+        err.contains(&absoluta.display().to_string()),
+        "el error debe nombrar la ruta absoluta ({absoluta:?}): {err}"
+    );
+    // La resolución es puramente léxica: NO crea nada (ni el directorio del
+    // `no/`, ni `guiones/`, que en esta fixture no existe de partida).
+    assert!(
+        !fx.shows.join("no").exists(),
+        "no debe crearse el directorio `no/`"
+    );
+    assert!(!fx.guiones().exists(), "no debe crearse `guiones/`");
+}
+
+#[test]
+fn scripts_root_con_tracker_sin_directorio_no_cae_al_directorio_actual() {
+    // Scenario «`scripts_root` nunca cae al directorio actual»: el GIVEN es un
+    // `tracker:` sin componente de directorio. La base es el directorio del
+    // perfil, así que el tracker vive en el propio `shows/`.
+    let fx = RelFixture::new("podcast-tracker.yaml", None);
+    std::fs::write(fx.shows.join("podcast-tracker.yaml"), MINI_YAML_V2).expect("write tracker");
+
+    let out = fx.run_ok(&["where", "200"]);
+    let ruta = out
+        .trim()
+        .strip_suffix(" no existe")
+        .expect("sufijo « no existe»");
+    let esperada = fx.shows.join("primer-episodio");
+
+    assert!(
+        ruta.starts_with('/'),
+        "debe ser absoluta (`/` inicial): {ruta}"
+    );
+    assert!(!ruta.starts_with("./"), "no debe empezar por `./`: {ruta}");
+    assert!(!ruta.contains("/./"), "sin componentes `.`: {ruta}");
+    assert!(!ruta.contains("shows/../"), "sin `..` de escape: {ruta}");
+    assert_eq!(ruta, esperada.display().to_string(), "salida: {out}");
+    assert!(
+        !ruta.contains(env!("CARGO_MANIFEST_DIR")),
+        "no debe ser el directorio de trabajo del repo: {ruta}"
+    );
+}
+
+#[test]
+fn tracker_absoluto_limpio_se_conserva_identico() {
+    // Control de no-regresión: la normalización de un absoluto limpio es la
+    // identidad, así que la salida no cambia un byte respecto de la declaración.
+    let fx = RelFixture::new(REL_TRACKER, Some(MINI_YAML_V2));
+    let tracker = fx.guiones().join("podcast-tracker.yaml");
+    std::fs::write(
+        fx.shows.join("demo.yaml"),
+        format!(
+            "slug: demo\nname: Show Demo\ntracker: {}\n",
+            tracker.display()
+        ),
+    )
+    .expect("rewrite profile");
+    let out = fx.run_ok(&["where", "200"]);
+    assert_eq!(
+        out.trim(),
+        format!(
+            "{} no existe",
+            fx.guiones().join("primer-episodio").display()
+        )
+    );
 }
