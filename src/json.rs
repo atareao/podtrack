@@ -112,7 +112,10 @@ pub fn list_document(ctx: &Ctx<'_>, filters: &Filters, episodes: &[&Episode]) ->
                 "season": filters.season,
                 "last": filters.last,
             },
-            "episodes": episodes.iter().map(|e| episode_json(e)).collect::<Vec<_>>(),
+            "episodes": episodes
+                .iter()
+                .map(|e| Value::Object(episode_fields(e)))
+                .collect::<Vec<_>>(),
         }),
     )
 }
@@ -125,7 +128,10 @@ pub fn list_range_document(ctx: &Ctx<'_>, start: u64, end: u64, episodes: &[&Epi
         json!({
             "start": start,
             "end": end,
-            "episodes": episodes.iter().map(|e| episode_json(e)).collect::<Vec<_>>(),
+            "episodes": episodes
+                .iter()
+                .map(|e| Value::Object(episode_fields(e)))
+                .collect::<Vec<_>>(),
         }),
     )
 }
@@ -133,7 +139,20 @@ pub fn list_range_document(ctx: &Ctx<'_>, start: u64, end: u64, episodes: &[&Epi
 /// Documento JSON del comando `get`.
 #[must_use]
 pub fn get_document(ctx: &Ctx<'_>, episode: &Episode) -> String {
-    document(&ctx.show.slug, json!({ "episode": episode_json(episode) }))
+    // `material` es aditivo y propio de `get`: se inyecta aquí, **no** en el helper
+    // compartido `episode_fields` (lo usan `list`, `list-range` y los comandos de
+    // escritura). Al trabajar sobre el mapa directamente, la clave no puede
+    // descartarse en silencio.
+    let material = episode.slug.as_ref().map(|s| {
+        ctx.show
+            .scripts_root()
+            .join(s.as_str().trim())
+            .display()
+            .to_string()
+    });
+    let mut fields = episode_fields(episode);
+    fields.insert("material".to_string(), json!(material));
+    document(&ctx.show.slug, json!({ "episode": Value::Object(fields) }))
 }
 
 /// Documento JSON del comando `where`.
@@ -157,7 +176,7 @@ pub fn where_document(ctx: &Ctx<'_>, episode: &Episode, folder: &Path) -> String
 pub fn add_document(ctx: &Ctx<'_>, episode: &Episode) -> String {
     document(
         &ctx.show.slug,
-        json!({ "action": "add", "episode": episode_json(episode) }),
+        json!({ "action": "add", "episode": Value::Object(episode_fields(episode)) }),
     )
 }
 
@@ -176,7 +195,7 @@ pub fn update_document(
         &ctx.show.slug,
         json!({
             "action": "update",
-            "episode": episode_json(episode),
+            "episode": Value::Object(episode_fields(episode)),
             "changes": changes_json,
         }),
     )
@@ -194,7 +213,7 @@ pub fn publish_document(
         &ctx.show.slug,
         json!({
             "action": "publish",
-            "episode": episode_json(episode),
+            "episode": Value::Object(episode_fields(episode)),
             "number": episode.number,
             "nulled": nulled,
             "dry_run": dry_run,
@@ -215,7 +234,7 @@ pub fn insert_document(
         &ctx.show.slug,
         json!({
             "action": "insert",
-            "episode": episode_json(episode),
+            "episode": Value::Object(episode_fields(episode)),
             "shifts": shifts,
             "material": material,
             "dry_run": dry_run,
@@ -236,7 +255,7 @@ pub fn move_document(
         &ctx.show.slug,
         json!({
             "action": "move",
-            "episode": episode_json(episode),
+            "episode": Value::Object(episode_fields(episode)),
             "changes": [{ "field": "date", "from": from, "to": to }],
             "dry_run": dry_run,
         }),
@@ -374,15 +393,24 @@ pub fn srt_stage_document(show: &str, results: &[Value], expect: Option<&str>, o
     document(show, Value::Object(payload))
 }
 
-fn episode_json(episode: &Episode) -> Value {
-    json!({
-        "number": episode.number,
-        "slug": episode.slug.as_ref().map(|s| s.as_str()),
-        "season": episode.season,
-        "date": episode.date.to_iso(),
-        "title": episode.title,
-        "status": episode.status.as_str(),
-    })
+/// Campos del objeto `episode` compartido por los documentos de episodio.
+///
+/// Devuelve el **mapa** (no un `Value`) para que quien lo consuma pueda añadir
+/// campos —como el `material` exclusivo de `get`— sin un `if let` que descarte
+/// la clave en silencio. `serde_json` ordena las claves alfabéticamente, así que
+/// el JSON emitido es idéntico al de antes.
+fn episode_fields(episode: &Episode) -> serde_json::Map<String, Value> {
+    let mut fields = serde_json::Map::new();
+    fields.insert("number".to_string(), json!(episode.number));
+    fields.insert(
+        "slug".to_string(),
+        json!(episode.slug.as_ref().map(|s| s.as_str())),
+    );
+    fields.insert("season".to_string(), json!(episode.season));
+    fields.insert("date".to_string(), json!(episode.date.to_iso()));
+    fields.insert("title".to_string(), json!(episode.title));
+    fields.insert("status".to_string(), json!(episode.status.as_str()));
+    fields
 }
 
 fn document(show: &str, payload: Value) -> String {
