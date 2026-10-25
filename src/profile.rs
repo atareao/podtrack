@@ -44,7 +44,63 @@ impl ResolvedShow {
             .parent()
             .map_or_else(|| self.tracker.clone(), Path::to_path_buf)
     }
+
+    /// Carpeta de material de un episodio: el **punto único** de derivación.
+    ///
+    /// Todas las superficies del binario que deriven la carpeta de material de un
+    /// episodio —las que **informan** de ella (`where`, `get`, `status`, sus
+    /// documentos `--json`) y las que **operan** sobre el material
+    /// (`rebase-references`, `collect_slug_renames` de `migrate-material`) y
+    /// `open`— SHALL pasar por aquí, para que la regla de resolución sea **una
+    /// sola** (spec `show-profile`). Ningún subcomando SHALL volver a cablear el
+    /// slug por su cuenta.
+    ///
+    /// La regla es `<scripts_root>/<dir>`, con `dir` = `episodes.scripts.dir`
+    /// **renderizado** (`{slug}`, `{n}`, `{n:0Nd}`); si el perfil no declara `dir`
+    /// o lo declara vacío, `dir` por defecto es `{slug}` (mismo fallback que usaba
+    /// `open`).
+    ///
+    /// El `dir` renderizado SHALL ser **relativo**: si es absoluto o contiene un
+    /// componente `..`, la raíz de material no es una convención sino una frontera
+    /// y se devuelve [`PodtrackError::MaterialDirNotRelative`] en vez de resolver
+    /// una ruta fuera de ella.
+    ///
+    /// # Errors
+    ///
+    /// - `EpisodeWithoutSlug` — el layout usa `{slug}` y el episodio no tiene slug.
+    /// - `EpisodeWithoutNumber` — el layout usa `{n}`/`{n:0Nd}` y el episodio no
+    ///   tiene número.
+    /// - `MaterialDirNotRelative` — el `dir` renderizado es absoluto o contiene un
+    ///   componente `..` (defecto de configuración del perfil).
+    pub fn material_dir(
+        &self,
+        slug: Option<&str>,
+        number: Option<u32>,
+    ) -> Result<PathBuf, PodtrackError> {
+        let template = self
+            .scripts_dir
+            .as_deref()
+            .filter(|d| !d.is_empty())
+            .unwrap_or(DEFAULT_SCRIPTS_DIR);
+        let label = render_episode_label(slug, number);
+        let dir = render_material_template(template, slug, number, &label)?;
+
+        // D5: el `dir` renderizado es una frontera, no una convención. Se comprueba
+        // **antes** de unirlo a la raíz, para no resolver nunca fuera de ella.
+        let dir_path = Path::new(&dir);
+        if dir_path.is_absolute() || dir_path.components().any(|c| c == Component::ParentDir) {
+            return Err(PodtrackError::MaterialDirNotRelative {
+                show: self.slug.clone(),
+                dir,
+            });
+        }
+        Ok(self.scripts_root().join(dir_path))
+    }
 }
+
+/// Carpeta de material asumida si el perfil no declara `episodes.scripts.dir`
+/// (mismo fallback que usaba `open`).
+const DEFAULT_SCRIPTS_DIR: &str = "{slug}";
 
 /// Resolutor de perfiles con la cascada de búsqueda, inyectable para tests.
 #[derive(Debug, Clone)]
@@ -351,12 +407,26 @@ fn absolutize(path: &Path, base_dir: &Path) -> std::io::Result<PathBuf> {
     Ok(normalize_lexically(&base.join(path)))
 }
 
+/// Etiqueta de un episodio para los mensajes de error del render: el `slug` si lo
+/// tiene (es lo útil cuando falta el número) y, si no, el número (`—` si tampoco).
+///
+/// Es la etiqueta que [`render_material_template`] recibe en `label`: un
+/// `EpisodeWithoutSlug` (slug ausente) nombra el número, como la línea base; un
+/// `EpisodeWithoutNumber` (número ausente) nombra el slug, en vez del `—` inútil.
+#[must_use]
+pub fn render_episode_label(slug: Option<&str>, number: Option<u32>) -> String {
+    match slug.filter(|s| !s.is_empty()) {
+        Some(slug) => slug.to_string(),
+        None => crate::tracker::num_label(number),
+    }
+}
+
 /// Renderiza una plantilla de material del perfil: `{slug}`, `{n}`, `{n:0Nd}`.
 ///
 /// Sustituye `{slug}` por el slug y `{n}` / `{n:0Nd}` por el número (con relleno
 /// opcional a N dígitos). Falta el valor → error tipado; marcador desconocido →
 /// literal. `label` es la etiqueta del episodio para el mensaje de error
-/// (`num_label`).
+/// (normalmente [`render_episode_label`]).
 pub fn render_material_template(
     template: &str,
     slug: Option<&str>,
@@ -450,7 +520,8 @@ fn config_dir() -> Option<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::{
-        ResolvedShow, ShowResolver, absolutize, normalize_lexically, render_material_template,
+        ResolvedShow, ShowResolver, absolutize, normalize_lexically, render_episode_label,
+        render_material_template,
     };
     use crate::error::PodtrackError;
     use std::path::{Path, PathBuf};
@@ -462,6 +533,17 @@ mod tests {
             name: "Demo".to_string(),
             tracker: PathBuf::from(tracker),
             scripts_dir: None,
+            presentation: None,
+        }
+    }
+
+    /// `ResolvedShow` de conveniencia con una plantilla de `scripts.dir` dada.
+    fn resolved_with_dir(tracker: &str, dir: Option<&str>) -> ResolvedShow {
+        ResolvedShow {
+            slug: "demo".to_string(),
+            name: "Demo".to_string(),
+            tracker: PathBuf::from(tracker),
+            scripts_dir: dir.map(str::to_string),
             presentation: None,
         }
     }
@@ -631,6 +713,110 @@ mod tests {
         let err = render_material_template("{n}", Some("x"), None, "x").expect_err("sin número");
         assert!(
             matches!(err, PodtrackError::EpisodeWithoutNumber { .. }),
+            "err: {err:?}"
+        );
+    }
+
+    #[test]
+    fn render_episode_label_prefiere_el_slug_y_cae_al_numero() {
+        // Con slug, la etiqueta es el slug (nombre útil si falta el número).
+        assert_eq!(
+            render_episode_label(Some("episodio-siete"), Some(7)),
+            "episodio-siete"
+        );
+        assert_eq!(
+            render_episode_label(Some("episodio-siete"), None),
+            "episodio-siete"
+        );
+        // Sin slug, cae al número; sin ninguno de los dos, a `—`.
+        assert_eq!(render_episode_label(None, Some(7)), "7");
+        assert_eq!(render_episode_label(Some(""), Some(7)), "7");
+        assert_eq!(render_episode_label(None, None), "—");
+    }
+
+    // ── `material_dir`: regla única de la carpeta de material ──────────────────
+
+    #[test]
+    fn material_dir_con_dir_slug_renderiza_el_slug() {
+        let show = resolved_with_dir("/x/y.yaml", Some("{slug}"));
+        assert_eq!(
+            show.material_dir(Some("la-memoria-de-valet"), Some(843))
+                .expect("material_dir"),
+            PathBuf::from("/x/la-memoria-de-valet")
+        );
+    }
+
+    #[test]
+    fn material_dir_con_dir_numerico_renderiza_con_padding() {
+        let show = resolved_with_dir("/x/y.yaml", Some("episodio-{n:02d}"));
+        assert_eq!(
+            show.material_dir(Some("episodio-siete"), Some(7))
+                .expect("material_dir"),
+            PathBuf::from("/x/episodio-07")
+        );
+    }
+
+    #[test]
+    fn material_dir_sin_dir_cae_al_slug() {
+        let sin_dir = resolved_with_dir("/x/y.yaml", None);
+        assert_eq!(
+            sin_dir
+                .material_dir(Some("la-memoria-de-valet"), Some(843))
+                .expect("material_dir"),
+            PathBuf::from("/x/la-memoria-de-valet")
+        );
+
+        let dir_vacio = resolved_with_dir("/x/y.yaml", Some(""));
+        assert_eq!(
+            dir_vacio
+                .material_dir(Some("la-memoria-de-valet"), Some(843))
+                .expect("material_dir"),
+            PathBuf::from("/x/la-memoria-de-valet")
+        );
+    }
+
+    #[test]
+    fn material_dir_rechaza_un_dir_absoluto() {
+        let show = resolved_with_dir("/x/y.yaml", Some("/etc"));
+        let err = show
+            .material_dir(Some("la-memoria-de-valet"), Some(843))
+            .expect_err("un dir absoluto debe rechazarse");
+        assert!(
+            matches!(err, PodtrackError::MaterialDirNotRelative { .. }),
+            "err: {err:?}"
+        );
+    }
+
+    #[test]
+    fn material_dir_rechaza_un_dir_con_parentdir() {
+        let show = resolved_with_dir("/x/y.yaml", Some("../../fuera"));
+        let err = show
+            .material_dir(Some("la-memoria-de-valet"), Some(843))
+            .expect_err("un dir con '..' debe rechazarse");
+        assert!(
+            matches!(err, PodtrackError::MaterialDirNotRelative { .. }),
+            "err: {err:?}"
+        );
+    }
+
+    #[test]
+    fn material_dir_con_plantilla_numerica_sin_numero_es_error() {
+        let show = resolved_with_dir("/x/y.yaml", Some("episodio-{n:02d}"));
+        let err = show
+            .material_dir(Some("episodio-siete"), None)
+            .expect_err("sin número");
+        assert!(
+            matches!(err, PodtrackError::EpisodeWithoutNumber { .. }),
+            "err: {err:?}"
+        );
+    }
+
+    #[test]
+    fn material_dir_con_plantilla_de_slug_sin_slug_es_error() {
+        let show = resolved_with_dir("/x/y.yaml", Some("episodio-{slug}"));
+        let err = show.material_dir(None, Some(7)).expect_err("sin slug");
+        assert!(
+            matches!(err, PodtrackError::EpisodeWithoutSlug { .. }),
             "err: {err:?}"
         );
     }

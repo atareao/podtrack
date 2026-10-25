@@ -2,7 +2,7 @@
 
 Este proyecto sigue **Git Flow** con versionado semántico. Igual que el resto de proyectos del entorno, se usa **siempre**: ninguna feature se commitea directamente en `main` ni en `development`.
 
-**Estado actual:** remoto en `github.com/atareao/podtrack` (público), ramas `main` y `development`, y pipeline de GitHub Actions en verde. Pendiente: crear los secretos `GH_PAT` y `CARGO_REGISTRY_TOKEN`.
+**Estado actual:** remoto en `github.com/atareao/podtrack` (público), ramas `main` y `development`, pipeline de GitHub Actions en verde y release automatizada operativa: los secretos `GH_PAT` y `CARGO_REGISTRY_TOKEN` están creados y el crate se publica en crates.io en cada release (última: `v0.5.0`).
 
 ## Ramas
 
@@ -52,16 +52,22 @@ Están automatizadas: **un merge a `main` es una release**. No se etiqueta a man
    - **crate** a crates.io;
    - **GitHub Release** con las notas del changelog.
 
-### Requisitos antes de la primera release
+### Secretos de release (ya configurados)
 
 | Secreto | Para qué |
 |---|---|
 | `GH_PAT` | PAT con `contents: write`. Lo necesita `release-prepare` en el checkout: un tag empujado con el `GITHUB_TOKEN` por defecto **no** dispara `release.yml`. |
 | `CARGO_REGISTRY_TOKEN` | Token de API de crates.io para el job `publish` de `release.yml`. |
 
-### Por qué el crate no se publica todavía
+Ambos secretos existen ya en el repositorio: no hay nada que configurar antes de una release.
 
-`Cargo.toml` lleva `publish = false` a propósito. `cargo publish` se niega a publicar mientras esté ahí y el job `publish` lee esa línea para saltarse solo. La razón: crates.io **no permite borrar** una versión publicada, solo yank, así que sin la guarda la primera release dejaría un `0.1.0` de `hello world` ahí para siempre. **Borra esa línea cuando el crate merezca publicarse.**
+### Publicación del crate
+
+El crate se publica en crates.io en cada release. Hasta `v0.4.x`, `Cargo.toml` llevaba
+`publish = false` a propósito —para que la primera release no dejara un `0.1.0` provisional
+publicado para siempre (crates.io **no permite borrar** una versión, solo yank)— y el job
+`publish` de `release.yml` leía esa línea para saltarse solo. La guarda se retiró al preparar los
+metadatos de publicación y, desde entonces, cada tag `vX.Y.Z` publica la versión.
 
 ## Conventional Commits con gitmoji
 

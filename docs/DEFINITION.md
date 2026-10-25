@@ -112,10 +112,25 @@ Por `date` ascendente; `number` solo desempata. **El número no ordena la parril
 | `renumber` | cirugía | Renumera un rango con delta. |
 | `rename-material` | cirugía | Renombra el material derivado (`0NNN`/`NNN`/`eNNN`/`episodio-NNN`) tras renumerar. |
 | `backfill-slugs` | cirugía | Rellena `slug` donde falte. |
-| `migrate-material` | cirugía | Migra el material al layout por slug (colisión-segura; solo no publicados por defecto). |
-| `rebase-references` | cirugía | Reescribe referencias estructurales entre guiones. |
+| `migrate-material` | cirugía | Migra el material a la carpeta de la regla única del perfil (por defecto, `{slug}`) (colisión-segura; solo no publicados por defecto). |
+| `rebase-references` | cirugía | Reescribe referencias estructurales entre guiones. Resuelve la carpeta con la regla única y salta los episodios sin carpeta resoluble. |
 
 `insert`, `move`, `renumber`, `rename-material`, `backfill-slugs`, `migrate-material`, `rebase-references` y `open` aceptan `--dry-run`.
+
+### 6.1 Resolución de la carpeta de material
+
+La carpeta de material de un episodio tiene **una sola definición** en el binario
+(`ResolvedShow::material_dir`, en `src/profile.rs`): `<scripts.root>/<episodes.scripts.dir
+renderizado>`. El `dir` admite `{slug}`, `{n}` y `{n:0Nd}`; si el perfil no lo declara (o lo declara
+vacío) vale `{slug}`. La usan por igual las superficies de lectura (`where`, `get`, `status` y sus
+documentos `--json`), `open` y las cirugías que escriben material (`migrate-material`,
+`rebase-references`), de modo que lo que se informa y lo que se escribe no pueden divergir.
+
+Un `dir` que, ya renderizado, sea **absoluto** o contenga `..` es un error de configuración
+(`MaterialDirNotRelative`, código de salida **2**): la raíz de material es una frontera, no una
+convención. Y un episodio **sin `slug`** no tiene ruta de material en ninguna superficie: el texto
+muestra `—` (en `status` se omite la línea), el JSON emite `null`, `where` lo trata como caso
+tratado y `rebase-references` lo salta.
 
 ## 7. Contrato de salida
 
@@ -150,21 +165,21 @@ El fichero se reescribe entero en cada operación, con **formato fijo** (no roun
 
 Esto elimina el mayor riesgo de un port a Rust (que `serde_yaml` reordene claves o pierda comentarios): **el formato ya está canonizado en origen**. El writer se reimplementa a mano, sin `serde` para escribir.
 
-## 9. Decisiones abiertas
+## 9. Decisiones de diseño (cerradas)
 
 | ID | Decisión | Estado |
 |---|---|---|
-| D1 | ¿Cómo se declara el show por defecto sin `--show`? (variable de entorno / fichero de config / constante compilada) | Propuesta: variable de entorno `PODTRACK_SHOW`, con `atareao-con-linux` como último recurso. |
-| D2 | ¿Dónde busca el binario los `shows/*.yaml`? ¿Junto al binario, vía `XDG_CONFIG_HOME`, o ruta configurable? | Propuesta: resolutor en cascada (env → junto al binario → `~/.config/podtrack/shows/`). |
-| D3 | ¿Se mantiene `--dry-run` con semántica idéntica (no escribe nada, imprime qué haría)? | Sí. |
-| D4 | ¿El `--json` se publica ya en `bootstrap-core` para los comandos de lectura, o al final? | Propuesta: en `bootstrap-core`, para los de lectura. |
+| D1 | ¿Cómo se declara el show por defecto sin `--show`? (variable de entorno / fichero de config / constante compilada) | **Cerrada** — variable de entorno `PODTRACK_SHOW`; sin ella, `atareao-con-linux` compilado (`DEFAULT_SHOW`). |
+| D2 | ¿Dónde busca el binario los `shows/*.yaml`? ¿Junto al binario, vía `XDG_CONFIG_HOME`, o ruta configurable? | **Cerrada** — resolutor en cascada: `PODTRACK_SHOWS_DIR` → directorio junto al ejecutable → `~/.config/podtrack/shows/`. |
+| D3 | ¿Se mantiene `--dry-run` con semántica idéntica (no escribe nada, imprime qué haría)? | **Cerrada** — sí: `--dry-run` no escribe nada e imprime qué haría. |
+| D4 | ¿El `--json` se publica ya en `bootstrap-core` para los comandos de lectura, o al final? | **Cerrada** — en `bootstrap-core`, para los comandos de lectura (`schema_version: 1`). |
 
 ## 10. No-objetivos
 
 - **No** se toca el material de guion ni el contenido del tracker durante el port (los tests corren sobre fixtures temporales; jamás sobre `/data/notas`).
 - **No** se reescribe el esquema del perfil de show.
 - **No** se reapuntan los agentes hasta que las tres primeras fases estén verdes.
-- **No** se publica el crate (`publish = false` hasta que merezca la pena).
+- **No** se retiene la publicación del crate: la guarda `publish = false` se retiró al preparar los metadatos de publicación, y desde entonces cada release publica en crates.io (última: `v0.5.0`).
 - **No** hay TUI ni servidor: solo CLI.
 
 ## 11. Criterios de aceptación (global)
@@ -179,7 +194,7 @@ Esto elimina el mayor riesgo de un port a Rust (que `serde_yaml` reordene claves
 
 El port no termina cuando el binario funciona: termina cuando **no queda Python**. El objetivo es **Python cero** en `~/.agents/skills/podcast-srt/`.
 
-La skill tiene hoy exactamente tres ficheros Python, y **los tres caen**:
+La skill tenía exactamente tres ficheros Python, y **los tres cayeron**:
 
 | Fichero | Lo sustituye | Fase de port |
 |---|---|---|
@@ -187,12 +202,16 @@ La skill tiene hoy exactamente tres ficheros Python, y **los tres caen**:
 | `podcast-tracker.test.py` | la suite de paridad del binario | `bootstrap-core` (port) |
 | `srt-stage.py` | el subcomando de clasificación de etapas del SRT | `srt-stage` |
 
-Pasos de la fase:
+Pasos de la fase (todos completados):
 
 1. Portar `srt-stage.py` al binario (fase `srt-stage`) con paridad de contrato, antes de tocar nada.
 2. Conmutar el `SKILL.md` de `podcast-srt` y los agentes que hoy invocan los scripts (planificador, coordinador, procesador de capítulos y notas, como mínimo) para llamar a `podtrack`.
 3. Verificar en producción un ciclo completo (una publicación real) sin Python.
 4. **Borrar** los tres `.py`, limpiar `__pycache__`/`.ruff_cache` y la configuración huérfana de `pytest`/`ruff`.
 5. Dejar constancia en `~/.agents/openspec` de que las capacidades pasaron al binario.
+
+**Estado: cerrada.** Los tres `.py` están borrados y `~/.agents/skills/podcast-srt/` quedó solo
+con `shows/` y `SKILL.md`; los agentes del pipeline invocan `podtrack`. La constancia del traspaso
+de capacidades vive en `~/.agents/openspec/specs/podtrack-tooling/spec.md`.
 
 **Criterio de cierre:** `grep -r '\.py' ~/.agents/skills/podcast-srt/` no devuelve nada.

@@ -89,6 +89,9 @@ SHALL salir con `0`. Es la vía determinista de verificar la resolución sin abr
 - `LauncherNotFound` — `typshow` no está en el `PATH` — código **1**.
 - `EpisodeWithoutSlug` — el layout necesita `{slug}` y el episodio no tiene — código **1**.
 - `EpisodeWithoutNumber` — el layout necesita `{n}` y el episodio no tiene número — código **1**.
+- `MaterialDirNotRelative` — el `episodes.scripts.dir` renderizado es **absoluto** o contiene un
+  componente `..` — código **2**. `open` lo **hereda** de la regla única de resolución de material
+  (`ResolvedShow::material_dir`), la misma que usan `where`/`get`/`status`.
 
 #### Scenario: el `.typ` declarado no existe
 - **GIVEN** un perfil que declara una presentación
@@ -100,9 +103,15 @@ SHALL salir con `0`. Es la vía determinista de verificar la resolución sin abr
 
 #### Scenario: no se lanza nada si la resolución falla
 - **GIVEN** cualquier fallo de resolución (presentación no declarada, `.typ` inexistente, falta de
-  slug/número)
+  slug/número, `dir` no relativo)
 - **WHEN** se invoca `open <target>`
 - **THEN** typshow NO SHALL ejecutarse
+
+#### Scenario: `dir` no relativo
+- **GIVEN** un perfil con `episodes.scripts.dir: "/etc"` que declara la presentación
+- **WHEN** se invoca `open <target> --dry-run`
+- **THEN** SHALL salir con `2`
+- **AND** NO SHALL lanzar typshow
 
 ### Requirement: `--json` aditivo de `open`
 

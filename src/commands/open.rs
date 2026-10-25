@@ -11,17 +11,13 @@ use std::process::{Command, Stdio};
 use crate::commands::{Ctx, Rendered, resolve_episode};
 use crate::error::PodtrackError;
 use crate::json;
-use crate::profile::render_material_template;
-use crate::tracker::num_label;
+use crate::profile::{render_episode_label, render_material_template};
 
 /// Lanzador de la presentación: se busca en el `PATH` (sin override).
 pub const LAUNCHER: &str = "typshow";
 
 /// Línea literal que acompaña a la ruta en `--dry-run` (no se lanza nada).
 pub const DRY_RUN_NO_LAUNCH: &str = "  ⚠ DRY-RUN: no se lanza nada";
-
-/// Carpeta de material asumida si el perfil no declara `scripts.dir`.
-const DEFAULT_SCRIPTS_DIR: &str = "{slug}";
 
 /// Ejecuta `open`: resuelve la ruta de la fuente `.typ` de la presentación y, si
 /// no es `--dry-run`, lanza `typshow` en segundo plano.
@@ -47,7 +43,7 @@ pub fn run(
         })?;
 
     let slug_opt = episode.slug_str();
-    let label = num_label(episode.number);
+    let label = render_episode_label(slug_opt, episode.number);
 
     let template = ctx
         .show
@@ -58,18 +54,14 @@ pub fn run(
             show: ctx.show.slug.clone(),
         })?;
 
-    let dir_template = ctx
-        .show
-        .scripts_dir
-        .as_deref()
-        .filter(|d| !d.is_empty())
-        .unwrap_or(DEFAULT_SCRIPTS_DIR);
-
-    let dir_name = render_material_template(dir_template, slug_opt, episode.number, &label)?;
+    // La carpeta sale de la **regla única** de material (spec `show-profile`),
+    // compartida con `where`/`get`/`status`: así `open` y la lectura no pueden
+    // divergir. Hereda además el endurecimiento D5 (un `dir` no relativo es error).
+    let dir = ctx.show.material_dir(slug_opt, episode.number)?;
     let file_name = render_material_template(template, slug_opt, episode.number, &label)?;
     let file_name = Path::new(&file_name).with_extension("typ");
 
-    let path = ctx.show.scripts_root().join(&dir_name).join(file_name);
+    let path = dir.join(file_name);
 
     if !path.is_file() {
         return Err(PodtrackError::PresentationNotFound {
