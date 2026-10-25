@@ -1,0 +1,6 @@
+slug: nostages
+name: Show sin etapas
+episodes:
+  root: @@ROOT@@
+  srt_glob: "*.srt"
+tracker: none

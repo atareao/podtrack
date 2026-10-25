@@ -350,6 +350,22 @@ pub fn rebase_references_document(
     )
 }
 
+// ── srt-stage (fase 4) ──────────────────────────────────────────────
+
+/// Documento JSON del comando `srt-stage`.
+///
+/// No hay `Ctx` (no se opera sobre una parrilla): se pasa el slug ya resuelto.
+#[must_use]
+pub fn srt_stage_document(show: &str, results: &[Value], expect: Option<&str>, ok: bool) -> String {
+    let mut payload = serde_json::Map::new();
+    payload.insert("results".to_string(), Value::Array(results.to_vec()));
+    if let Some(expect) = expect {
+        payload.insert("expect".to_string(), json!(expect));
+        payload.insert("ok".to_string(), json!(ok));
+    }
+    document(show, Value::Object(payload))
+}
+
 fn episode_json(episode: &Episode) -> Value {
     json!({
         "number": episode.number,

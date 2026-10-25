@@ -1,0 +1,11 @@
+1
+00:00:00,000 --> 00:00:26,400
+INTRO
+
+2
+00:00:26,400 --> 00:00:29,920
+Bienvenidos al octavo episodio de la era de los artistros
+
+3
+00:00:29,920 --> 00:00:33,000
+Seguimos.

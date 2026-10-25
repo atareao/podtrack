@@ -1,0 +1,2 @@
+Esto es un fichero de texto suelto,
+sin ninguna línea de tiempos.

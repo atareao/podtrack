@@ -409,6 +409,50 @@ m.TRACKER_PATH = Path(sys.argv[2])
 m.SHOW_NAME = sys.argv[3]
 "#;
 
+/// Harness para `srt-stage.py`: fija `SHOWS_DIR`, llama a `main()` y propaga su
+/// código de salida (`m.main()` lo devuelve, no llama a `sys.exit`).
+pub const SRT_MAIN_HARNESS: &str = r#"import importlib.util, sys
+from pathlib import Path
+spec = importlib.util.spec_from_file_location("pt", sys.argv[1])
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+m.SHOWS_DIR = Path(sys.argv[2])
+sys.argv = ["srt-stage.py"] + sys.argv[3:]
+sys.exit(m.main())
+"#;
+
+/// Ruta del oráculo `srt-stage.py`: `PODTRACK_ORACLE_SRT` o junto al tracker.
+pub fn oracle_srt_path() -> Option<PathBuf> {
+    if let Some(path) = std::env::var_os("PODTRACK_ORACLE_SRT") {
+        let path = PathBuf::from(path);
+        return path.is_file().then_some(path);
+    }
+    let tracker = oracle_path()?;
+    let path = tracker.parent()?.join("srt-stage.py");
+    path.is_file().then_some(path)
+}
+
+/// Resuelve el oráculo `srt-stage.py`; si no está, salta (o falla con
+/// `PODTRACK_REQUIRE_ORACLE`).
+pub fn require_oracle_srt() -> Option<PathBuf> {
+    let (available, reason) = match oracle_srt_path() {
+        Some(module) if python_ready() => (Some(module), String::new()),
+        Some(_) => (None, "python3 + PyYAML no disponibles".to_string()),
+        None => (
+            None,
+            "el oráculo srt-stage.py no está disponible (PODTRACK_ORACLE_SRT o junto a podcast-tracker.py)"
+                .to_string(),
+        ),
+    };
+    if available.is_none() {
+        if require_oracle_env() {
+            panic!("PODTRACK_REQUIRE_ORACLE está activo pero {reason}");
+        }
+        eprintln!("skip: {reason}");
+    }
+    available
+}
+
 /// Ejecuta un harness Python (fichero) con el módulo, tracker y nombre del show.
 pub fn run_python_harness(
     harness: &Path,

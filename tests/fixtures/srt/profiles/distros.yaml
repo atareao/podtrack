@@ -1,0 +1,22 @@
+slug: distros
+name: La Era de las Distros
+episodes:
+  root: @@ROOT@@
+  srt_glob: "episodio-{n:02d}/*.srt"
+  srt_stages:
+    order: [raw, final]
+    raw:
+      label: "SRT bruto (grabación, sin intro)"
+      detect: not_intro
+      deliverables: [intro]
+    final:
+      label: "SRT final (intro unido; marcas del audio publicado)"
+      detect: starts_with_intro
+      canonical_name: "episodio-{n:02d}.srt"
+      deliverables: [articulo, chapters]
+      intro_pattern: 'bienvenid[oa]s? al (?:\S+ ){0,2}episodio[^.!?]{0,40}?(?:era|edad) de l[oa]s? (?:distros?|distrus|artistros)'
+      intro_anchor_chars: 12
+      intro_block_min_seconds: 20.0
+      intro_block_max_start: 1.0
+      intro_marker: "INTRO"
+tracker: none

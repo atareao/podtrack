@@ -131,6 +131,32 @@ pub enum PodtrackError {
     #[error("ERROR: rename-material requiere --from y --delta (o --check).")]
     RenameMaterialRequiresArgs,
 
+    /// `srt-stage`: perfil inexistente (exit 2; mensaje propio de `srt-stage.py`).
+    #[error(
+        "ERROR: No existe el perfil de podcast '{slug}'.\n       Se esperaba el fichero {expected}\n       Perfiles disponibles: {available}"
+    )]
+    SrtProfileNotFound {
+        slug: String,
+        expected: String,
+        available: String,
+    },
+
+    /// `srt-stage`: perfil ilegible (exit 2).
+    #[error("ERROR: No se pudo leer el perfil {path}: {reason}")]
+    SrtProfileUnreadable { path: String, reason: String },
+
+    /// `srt-stage`: mensaje literal ya formateado (etapas, argumentos) (exit 2).
+    #[error("{message}")]
+    SrtStageError { message: String },
+
+    /// `srt-stage`: fichero sin estructura de cues (exit 2).
+    #[error("ERROR: El fichero {path} no parece un SRT: sin cues.")]
+    SrtNoCues { path: String },
+
+    /// `srt-stage`: SRT ilegible (exit 2).
+    #[error("ERROR: No se pudo leer el SRT {path}: {reason}")]
+    SrtRead { path: String, reason: String },
+
     /// Error de E/S genérico (exit 1).
     #[error("ERROR: {0}")]
     Io(String),
@@ -145,6 +171,12 @@ impl PodtrackError {
             Self::ProfileNotFound { .. }
             | Self::ProfileMissingTrackerKey { .. }
             | Self::InvalidProfile { .. } => 2,
+            // `srt-stage`: perfil/SRT/argumentos inválidos (contrato de la fase 4).
+            Self::SrtProfileNotFound { .. }
+            | Self::SrtProfileUnreadable { .. }
+            | Self::SrtStageError { .. }
+            | Self::SrtNoCues { .. }
+            | Self::SrtRead { .. } => 2,
             // Perfil que no usa tracker.
             Self::ProfileNoTracker { .. } => 3,
             // Uso incorrecto de un subcomando: `argparse` sale con 2.

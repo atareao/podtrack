@@ -1,0 +1,7 @@
+1
+00:00:00,000 --> 00:00:26,000
+Bienvenidos al episodio de hoy, un programa sobre Linux
+
+2
+00:00:26,000 --> 00:00:30,000
+Empezamos.
