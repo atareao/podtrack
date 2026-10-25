@@ -97,7 +97,7 @@ enum Command {
         #[arg(long, short = 's')]
         season: Option<u16>,
     },
-    /// Cambiar el estado de un episodio.
+    /// Cambiar el estado y/o el título de un episodio.
     Update {
         /// Número o slug del episodio.
         target: String,
@@ -105,9 +105,13 @@ enum Command {
         #[arg(
             long,
             short = 's',
-            value_parser = ["pending", "scripted", "recorded", "published"]
+            value_parser = ["pending", "scripted", "recorded", "published"],
+            required_unless_present = "title"
         )]
-        status: String,
+        status: Option<String>,
+        /// Nuevo título.
+        #[arg(long, required_unless_present = "status")]
+        title: Option<String>,
     },
     /// Publicar un episodio estampando su número público autoritativo.
     Publish {
@@ -295,10 +299,15 @@ fn run(cli: &Cli) -> anyhow::Result<Rendered> {
             };
             add::run(&ctx, &params, cli.json)?
         }
-        Command::Update { target, status } => {
+        Command::Update {
+            target,
+            status,
+            title,
+        } => {
             let params = UpdateParams {
                 target: target.clone(),
                 status: status.clone(),
+                title: title.clone(),
             };
             update::run(&ctx, &params, cli.json)?
         }
