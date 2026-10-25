@@ -1,4 +1,13 @@
 # Changelog
+## [0.3.0] - 2026-10-25
+
+### Documentation
+
+- *(openspec)* Archiva el change update-title
+
+### Features
+
+- *(update)* `--title` cambia el título del episodio (#13)
 ## [0.2.1] - 2026-10-25
 
 ### Bug Fixes
@@ -8,6 +17,10 @@
 ### Documentation
 
 - *(openspec)* Archiva el change insert-derives-slug
+
+### Miscellaneous Tasks
+
+- Release v0.2.1
 ## [0.2.0] - 2026-10-25
 
 ### Documentation
