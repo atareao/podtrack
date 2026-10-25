@@ -99,8 +99,10 @@ fn run_podtrack(fx: &Fixture, harness_dir: &Path, args: &[&str]) -> Outcome {
 }
 
 /// Especificaciones deterministas (sin dependencia del reloj de pared).
+// `status` se omite a propósito desde el change `status-upcoming-window`:
+// su ventana final diverge del oráculo por diseño (último publicado + 7 próximos
+// en vez de los 8 últimos por parrilla). El resto de comandos siguen en paridad.
 const SPECS: &[&[&str]] = &[
-    &["status"],
     &["next"],
     &["list"],
     &["list", "--status", "published"],
