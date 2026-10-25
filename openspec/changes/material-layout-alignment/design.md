@@ -45,9 +45,9 @@ Y el único que renderiza es `open` (`src/commands/open.rs:63-72`).
 
 `material_dir(&self, slug: Option<&str>, number: Option<u32>) -> Result<PathBuf, PodtrackError>`
 devuelve `scripts_root().join(render(dir_template, slug, number, &label))`, donde `dir_template` es
-`scripts_dir` si no está vacío y `"{slug}"` en caso contrario. La etiqueta (`{episode}`) se construye
-dentro con el mismo `num_label` que usa `open`; si hace falta, ese helper se mueve a un punto
-compartido.
+`scripts_dir` si no está vacío y `"{slug}"` en caso contrario. La etiqueta (`label`) se construye
+dentro con `render_episode_label` (el `slug` si lo hay, si no el número); solo alimenta los mensajes
+de error, **no** es un marcador de la plantilla.
 
 **Por qué**: es el único modo de que el bug no vuelva por un séptimo punto de llamada.
 
@@ -81,6 +81,15 @@ verdad y no una convención. Afecta igual a `open`, que hoy no lo comprueba.
 
 `EpisodeWithoutSlug` y `EpisodeWithoutNumber` ya existen —los introdujo `open-presentation`— y
 describen exactamente los casos de render. No se inventan variantes nuevas para eso.
+
+### D7 — Detalles de borde
+
+- El **render corre antes** de la comprobación de relatividad: con un `dir` absoluto *y* un episodio
+  sin número gana `EpisodeWithoutNumber` (exit 1), porque el marcador `{n}` es el que primero falla.
+- `where --json` sin `slug` emite el **documento de error** (exit ≠ 0), no `material: null`: `where`
+  nunca informa de una ruta que no puede construir; es intencional y lo fija `tracker-read`.
+- `{episode}` **no** es un marcador de la plantilla de material (el render solo sustituye `{slug}`,
+  `{n}` y `{n:0Nd}`); la etiqueta del episodio solo alimenta los mensajes de error.
 
 ## Risks / Trade-offs
 

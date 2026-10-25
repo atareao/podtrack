@@ -73,6 +73,27 @@ episodes:
 /// Número del episodio de fixture sin slug (mismo `#7`).
 const NO_SLUG_NUMBER: u32 = 7;
 
+/// Tracker de fixture con un único episodio **con slug y sin número**
+/// (`number: null`), no publicado. Es un estado que el propio binario produce:
+/// `backfill-slugs` asigna slug a episodios sin número.
+const TRACKER_YAML_NO_NUMBER: &str = "\
+season: 1
+season_start: 2026-01-01
+episode_duration_minutes: 25
+publish_days: [Monday]
+
+episodes:
+  - number: null
+    slug: episodio-sin-numero
+    season: 1
+    date: 2026-01-05
+    title: \"Sin número\"
+    status: scripted
+";
+
+/// Slug del episodio de fixture con slug pero sin número.
+const NO_NUMBER_SLUG: &str = "episodio-sin-numero";
+
 /// Resultado de una ejecución del binario.
 struct Outcome {
     code: i32,
@@ -104,6 +125,13 @@ impl Harness {
 
     /// Fixture con el `episodes.scripts.dir` y el tracker dados.
     fn with_tracker(dir_template: &str, tracker_yaml: &str) -> Self {
+        let scripts = format!("  scripts:\n    dir: \"{dir_template}\"\n");
+        Self::with_scripts(&scripts, tracker_yaml)
+    }
+
+    /// Fixture con un bloque `episodes.scripts` **completo** (ya indentado a dos
+    /// espacios, p. ej. con `files.presentacion` para `open`) y el tracker dado.
+    fn with_scripts(scripts_block: &str, tracker_yaml: &str) -> Self {
         let dir = TempDir::new().expect("tempdir");
         let root = dir.path().join("guiones");
         std::fs::create_dir_all(&root).expect("mkdir guiones");
@@ -113,7 +141,7 @@ impl Harness {
         let shows = dir.path().join("shows");
         std::fs::create_dir_all(&shows).expect("mkdir shows");
         let profile = format!(
-            "slug: {SHOW}\nname: {NAME}\ntracker: {tracker}\nepisodes:\n  scripts:\n    dir: \"{dir_template}\"\n",
+            "slug: {SHOW}\nname: {NAME}\ntracker: {tracker}\nepisodes:\n{scripts_block}",
             tracker = tracker.display(),
         );
         std::fs::write(shows.join(format!("{SHOW}.yaml")), profile).expect("write profile");
@@ -418,6 +446,185 @@ fn where_sin_slug_con_plantilla_numerica_es_caso_tratado() {
     assert!(
         !out.stdout.contains(&numeric_folder()),
         "`where` no debe imprimir la ruta sin slug; stdout:\n{}",
+        out.stdout
+    );
+}
+
+// ── C1. plantilla numérica + episodio con slug pero SIN número ──────────────
+//
+// Estado que el propio binario produce (`backfill-slugs` asigna slug a episodios
+// sin número): con `dir: "episodio-{n:02d}"` la ruta no es resoluble, así que la
+// lectura sale con 1 y **nombra el episodio** (por su slug, no por `—`).
+
+#[test]
+fn get_con_plantilla_numerica_y_sin_numero_falla_nombrando_el_episodio() {
+    let h = Harness::with_tracker("episodio-{n:02d}", TRACKER_YAML_NO_NUMBER);
+
+    let out = h.run(&["get", NO_NUMBER_SLUG]);
+    assert_eq!(out.code, 1, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("no tiene número"),
+        "stderr: {}",
+        out.stderr
+    );
+    assert!(
+        out.stderr.contains(NO_NUMBER_SLUG),
+        "el mensaje debe nombrar el episodio {NO_NUMBER_SLUG:?}: {}",
+        out.stderr
+    );
+    assert!(
+        out.stdout.trim().is_empty(),
+        "no se inventa ninguna ruta; stdout:\n{}",
+        out.stdout
+    );
+}
+
+#[test]
+fn status_con_plantilla_numerica_y_sin_numero_falla_nombrando_el_episodio() {
+    let h = Harness::with_tracker("episodio-{n:02d}", TRACKER_YAML_NO_NUMBER);
+
+    let out = h.run(&["status"]);
+    assert_eq!(out.code, 1, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains("no tiene número"),
+        "stderr: {}",
+        out.stderr
+    );
+    assert!(
+        out.stderr.contains(NO_NUMBER_SLUG),
+        "el mensaje debe nombrar el episodio {NO_NUMBER_SLUG:?}: {}",
+        out.stderr
+    );
+}
+
+#[test]
+fn get_json_con_plantilla_numerica_y_sin_numero_emite_documento_de_error() {
+    let h = Harness::with_tracker("episodio-{n:02d}", TRACKER_YAML_NO_NUMBER);
+
+    let out = h.run(&["get", NO_NUMBER_SLUG, "--json"]);
+    assert_ne!(out.code, 0, "stdout: {}", out.stdout);
+    assert!(
+        out.stdout.trim().is_empty(),
+        "sin texto en stdout: {}",
+        out.stdout
+    );
+    let doc: serde_json::Value = serde_json::from_str(out.stderr.trim()).expect("stderr es JSON");
+    let msg = doc["error"].as_str().expect("clave error");
+    assert!(msg.contains("no tiene número"), "error: {msg}");
+    assert!(
+        msg.contains(NO_NUMBER_SLUG),
+        "el error debe nombrar el episodio {NO_NUMBER_SLUG:?}: {msg}"
+    );
+}
+
+// ── C2. rebase-references con plantilla numérica ────────────────────────────
+
+#[test]
+fn rebase_references_con_plantilla_numerica_y_sin_numero_no_aborta() {
+    // I-1: un episodio con slug y sin número NO puede abortar la cirugía entera;
+    // se salta, como los publicados/sin-slug/carpetas inexistentes.
+    let h = Harness::with_tracker("episodio-{n:02d}", TRACKER_YAML_NO_NUMBER);
+
+    let out = h.run(&["rebase-references"]);
+    assert_eq!(out.code, 0, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.trim().is_empty(),
+        "sin errores en stderr: {}",
+        out.stderr
+    );
+    assert!(
+        out.stdout.contains("Rebase de hooks"),
+        "stdout:\n{}",
+        out.stdout
+    );
+}
+
+#[test]
+fn rebase_references_con_plantilla_numerica_visita_la_carpeta_renderizada() {
+    let h = Harness::new("episodio-{n:02d}");
+    // Material en la carpeta **renderizada** (`episodio-07/`), con un hook.
+    let folder = h.material(&numeric_folder());
+    std::fs::create_dir_all(&folder).expect("mkdir material");
+    let hook = folder.join("guion.md");
+    std::fs::write(&hook, "## Próximo episodio: 844 — Algo\n").expect("write hook");
+
+    let out = h.run(&["rebase-references"]);
+    assert_eq!(out.code, 0, "stderr: {}", out.stderr);
+
+    let content = std::fs::read_to_string(&hook).expect("read hook");
+    assert!(
+        content.contains("Próximo episodio: Algo"),
+        "el hook debe quedar sin número (se visitó episodio-07/): {content}"
+    );
+    assert!(!content.contains("844"), "contenido: {content}");
+}
+
+// ── C3. `open` hereda el endurecimiento D5 ──────────────────────────────────
+
+#[test]
+fn open_con_dir_absoluto_sale_con_dos_y_no_lanza() {
+    let scripts = "  scripts:\n    dir: \"/etc\"\n    files:\n      presentacion: \"presentacion-{slug}.pdf\"\n";
+    let h = Harness::with_scripts(scripts, TRACKER_YAML);
+
+    let out = h.run(&["open", EP_SLUG, "--dry-run"]);
+    assert_eq!(out.code, 2, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains(SHOW),
+        "stderr debe nombrar el perfil {SHOW:?}: {}",
+        out.stderr
+    );
+    assert!(
+        out.stdout.trim().is_empty(),
+        "no debe resolver ni imprimir ninguna ruta: {}",
+        out.stdout
+    );
+}
+
+// ── C4. migrate-material real: la cirugía escribe donde lee ─────────────────
+
+#[test]
+fn migrate_material_real_renombra_a_la_carpeta_renderizada() {
+    let h = Harness::new("episodio-{n:02d}");
+    h.write_material(&legacy_folder()); // `<raíz>/0007/notas.md`
+
+    let out = h.run(&["migrate-material", "--include-published"]);
+    assert_eq!(out.code, 0, "stderr: {}", out.stderr);
+
+    let dest = h.material(&numeric_folder());
+    assert!(
+        dest.is_dir(),
+        "debe existir la carpeta renderizada {dest:?}"
+    );
+    assert!(
+        dest.join("notas.md").is_file(),
+        "el contenido viaja con la carpeta"
+    );
+    assert!(
+        !h.material(&legacy_folder()).exists(),
+        "la carpeta legacy 0007/ ya no debe existir"
+    );
+    assert!(
+        !h.material(EP_SLUG).exists(),
+        "NO debe crear la carpeta por slug"
+    );
+}
+
+// ── C5. endurecimiento `..` a nivel CLI ─────────────────────────────────────
+
+#[test]
+fn dir_con_parentdir_hace_que_where_salga_con_dos() {
+    let h = Harness::new("../../fuera");
+
+    let out = h.run(&["where", EP_SLUG]);
+    assert_eq!(out.code, 2, "stderr: {}", out.stderr);
+    assert!(
+        out.stderr.contains(SHOW),
+        "stderr debe nombrar el perfil {SHOW:?}: {}",
+        out.stderr
+    );
+    assert!(
+        out.stdout.trim().is_empty(),
+        "no debe resolver ninguna ruta fuera de la raíz: {}",
         out.stdout
     );
 }

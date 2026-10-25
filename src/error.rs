@@ -201,9 +201,14 @@ pub enum PodtrackError {
     #[error("ERROR: No se encuentra el lanzador '{launcher}' en el PATH.")]
     LauncherNotFound { launcher: String },
 
-    /// `open`: el layout necesita `{n}` y el episodio no tiene número (exit 1).
+    /// El layout necesita `{n}` y el episodio no tiene número (exit 1).
+    ///
+    /// Lo introdujo `open`, pero el change `material-layout-alignment` lo reapunta a
+    /// `where`/`get`/`status`/`rebase-references` (texto y JSON), donde el dato
+    /// irresoluble es la **carpeta de material**; la presentación vive dentro de
+    /// ella, así que el mensaje también es cierto para `open`.
     #[error(
-        "ERROR: El episodio '{label}' no tiene número; no se puede resolver la ruta de su presentación."
+        "ERROR: El episodio '{label}' no tiene número; no se puede resolver la ruta de su material."
     )]
     EpisodeWithoutNumber { label: String },
 

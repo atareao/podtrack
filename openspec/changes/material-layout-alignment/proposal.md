@@ -47,6 +47,10 @@ Ninguna.
 - `json-output`: el campo de ruta de los documentos `--json` de `where`/`get` sigue la misma regla.
 - `material-slug-migration`: el destino de la carpeta migrada pasa de `<scripts_root>/<slug>` a
   `<scripts_root>/<dir>`.
+- `reference-rebase`: la carpeta de cada episodio se resuelve con la regla única y se saltan los
+  episodios cuya carpeta no sea resoluble (plantilla numérica y episodio sin número).
+- `presentation-open`: `open` hereda el error tipado `MaterialDirNotRelative` (código 2) de la regla
+  única.
 
 ## Impact
 

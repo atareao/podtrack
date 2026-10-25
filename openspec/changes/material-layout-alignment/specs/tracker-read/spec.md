@@ -31,6 +31,13 @@ tratado.
 - **WHEN** se invoca `podtrack where <episodio>`
 - **THEN** SHALL imprimir `<raíz de material>/episodio-07`
 
+#### Scenario: sin slug es un caso tratado, no `material: null`
+- **GIVEN** un episodio sin `slug`
+- **WHEN** se invoca `podtrack where <número> --json`
+- **THEN** SHALL salir con un código distinto de cero
+- **AND** `stderr` SHALL ser un documento de error (`{"error": …}`)
+- **AND** NO SHALL emitirse `material: null` en `stdout`
+
 ### Requirement: `get` muestra el detalle de un episodio
 
 `get` SHALL aceptar un número o un `slug` y SHALL mostrar el detalle del episodio correspondiente. Un

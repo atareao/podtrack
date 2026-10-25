@@ -73,7 +73,14 @@ pub fn run(
         if slug.is_empty() {
             continue;
         }
-        let folder = ctx.show.material_dir(Some(slug.as_str()), episode.number)?;
+        let folder = match ctx.show.material_dir(Some(slug.as_str()), episode.number) {
+            Ok(folder) => folder,
+            // Plantilla numérica y episodio sin número: no hay carpeta que rebasar,
+            // se salta —como los publicados, los sin slug y las carpetas
+            // inexistentes— en vez de abortar todo el comando.
+            Err(PodtrackError::EpisodeWithoutNumber { .. }) => continue,
+            Err(e) => return Err(e),
+        };
         if !folder.is_dir() {
             continue;
         }

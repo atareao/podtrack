@@ -224,12 +224,15 @@ pub fn collect_slug_renames_into(
 }
 
 /// Planifica la migración del material `0NNN/` de un episodio a `<raíz>/<slug>`
-/// (compatibilidad con la caracterización de `migration-surgery`).
+/// (**compatibilidad** con la caracterización de `migration-surgery`).
 ///
-/// Es la forma histórica de [`collect_slug_renames_into`] con el destino cableado
-/// a `<root>/<slug>`: la usan los tests de `material_renumber`. La vía de
-/// producción (`migrate-material`) pasa el destino **ya resuelto** por
-/// `ResolvedShow::material_dir`, para que lea y cirugía coincidan.
+/// **No es la vía de producción**: `migrate-material` usa
+/// [`collect_slug_renames_into`], que recibe el destino **ya resuelto** por
+/// `ResolvedShow::material_dir` (regla única) para que la lectura y la cirugía
+/// coincidan. Este envoltorio cablea el destino a `<root>/<slug>` y solo lo usan
+/// los tests de `material_renumber`; se mantiene por compatibilidad y se oculta de
+/// la documentación pública.
+#[doc(hidden)]
 #[must_use]
 pub fn collect_slug_renames(
     root: &Path,

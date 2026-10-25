@@ -11,7 +11,7 @@ subcomandos —los que informan de la ruta y los que operan sobre el material—
 
 El binario SHALL resolver la carpeta de material de un episodio con **una sola** regla, compartida
 por todos los subcomandos: `<raíz de material>/<dir>`, donde `<dir>` es `episodes.scripts.dir` del
-perfil **renderizado** con los valores del episodio (`{slug}`, `{n}`, `{n:0Nd}`, `{episode}`). Si el
+perfil **renderizado** con los valores del episodio (`{slug}`, `{n}`, `{n:0Nd}`). Si el
 perfil no declara `episodes.scripts.dir` o lo declara vacío, el binario SHALL asumir `{slug}`. La
 raíz de material SHALL ser el directorio padre del tracker resuelto
 (`ResolvedShow::scripts_root()`).

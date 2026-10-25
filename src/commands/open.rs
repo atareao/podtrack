@@ -11,8 +11,7 @@ use std::process::{Command, Stdio};
 use crate::commands::{Ctx, Rendered, resolve_episode};
 use crate::error::PodtrackError;
 use crate::json;
-use crate::profile::render_material_template;
-use crate::tracker::num_label;
+use crate::profile::{render_episode_label, render_material_template};
 
 /// Lanzador de la presentación: se busca en el `PATH` (sin override).
 pub const LAUNCHER: &str = "typshow";
@@ -44,7 +43,7 @@ pub fn run(
         })?;
 
     let slug_opt = episode.slug_str();
-    let label = num_label(episode.number);
+    let label = render_episode_label(slug_opt, episode.number);
 
     let template = ctx
         .show

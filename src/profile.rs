@@ -56,9 +56,9 @@ impl ResolvedShow {
     /// slug por su cuenta.
     ///
     /// La regla es `<scripts_root>/<dir>`, con `dir` = `episodes.scripts.dir`
-    /// **renderizado** (`{slug}`, `{n}`, `{n:0Nd}`, `{episode}`); si el perfil no
-    /// declara `dir` o lo declara vacío, `dir` por defecto es `{slug}` (mismo
-    /// fallback que usaba `open`).
+    /// **renderizado** (`{slug}`, `{n}`, `{n:0Nd}`); si el perfil no declara `dir`
+    /// o lo declara vacío, `dir` por defecto es `{slug}` (mismo fallback que usaba
+    /// `open`).
     ///
     /// El `dir` renderizado SHALL ser **relativo**: si es absoluto o contiene un
     /// componente `..`, la raíz de material no es una convención sino una frontera
@@ -82,7 +82,7 @@ impl ResolvedShow {
             .as_deref()
             .filter(|d| !d.is_empty())
             .unwrap_or(DEFAULT_SCRIPTS_DIR);
-        let label = crate::tracker::num_label(number);
+        let label = render_episode_label(slug, number);
         let dir = render_material_template(template, slug, number, &label)?;
 
         // D5: el `dir` renderizado es una frontera, no una convención. Se comprueba
@@ -407,12 +407,26 @@ fn absolutize(path: &Path, base_dir: &Path) -> std::io::Result<PathBuf> {
     Ok(normalize_lexically(&base.join(path)))
 }
 
+/// Etiqueta de un episodio para los mensajes de error del render: el `slug` si lo
+/// tiene (es lo útil cuando falta el número) y, si no, el número (`—` si tampoco).
+///
+/// Es la etiqueta que [`render_material_template`] recibe en `label`: un
+/// `EpisodeWithoutSlug` (slug ausente) nombra el número, como la línea base; un
+/// `EpisodeWithoutNumber` (número ausente) nombra el slug, en vez del `—` inútil.
+#[must_use]
+pub fn render_episode_label(slug: Option<&str>, number: Option<u32>) -> String {
+    match slug.filter(|s| !s.is_empty()) {
+        Some(slug) => slug.to_string(),
+        None => crate::tracker::num_label(number),
+    }
+}
+
 /// Renderiza una plantilla de material del perfil: `{slug}`, `{n}`, `{n:0Nd}`.
 ///
 /// Sustituye `{slug}` por el slug y `{n}` / `{n:0Nd}` por el número (con relleno
 /// opcional a N dígitos). Falta el valor → error tipado; marcador desconocido →
 /// literal. `label` es la etiqueta del episodio para el mensaje de error
-/// (`num_label`).
+/// (normalmente [`render_episode_label`]).
 pub fn render_material_template(
     template: &str,
     slug: Option<&str>,
@@ -506,7 +520,8 @@ fn config_dir() -> Option<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::{
-        ResolvedShow, ShowResolver, absolutize, normalize_lexically, render_material_template,
+        ResolvedShow, ShowResolver, absolutize, normalize_lexically, render_episode_label,
+        render_material_template,
     };
     use crate::error::PodtrackError;
     use std::path::{Path, PathBuf};
@@ -700,6 +715,23 @@ mod tests {
             matches!(err, PodtrackError::EpisodeWithoutNumber { .. }),
             "err: {err:?}"
         );
+    }
+
+    #[test]
+    fn render_episode_label_prefiere_el_slug_y_cae_al_numero() {
+        // Con slug, la etiqueta es el slug (nombre útil si falta el número).
+        assert_eq!(
+            render_episode_label(Some("episodio-siete"), Some(7)),
+            "episodio-siete"
+        );
+        assert_eq!(
+            render_episode_label(Some("episodio-siete"), None),
+            "episodio-siete"
+        );
+        // Sin slug, cae al número; sin ninguno de los dos, a `—`.
+        assert_eq!(render_episode_label(None, Some(7)), "7");
+        assert_eq!(render_episode_label(Some(""), Some(7)), "7");
+        assert_eq!(render_episode_label(None, None), "—");
     }
 
     // ── `material_dir`: regla única de la carpeta de material ──────────────────
