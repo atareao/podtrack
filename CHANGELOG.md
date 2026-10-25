@@ -1,4 +1,9 @@
 # Changelog
+## [0.4.1] - 2026-10-25
+
+### Bug Fixes
+
+- *(profile)* Recorta el tracker del perfil y unifica la lectura del slug
 ## [0.4.0] - 2026-10-25
 
 ### Bug Fixes
@@ -8,6 +13,10 @@
 ### Features
 
 - *(get)* Muestra el slug y la ruta del material del episodio
+
+### Miscellaneous Tasks
+
+- Release v0.4.0
 ## [0.3.0] - 2026-10-25
 
 ### Documentation
