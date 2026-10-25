@@ -61,9 +61,36 @@ pub enum PodtrackError {
     #[error("ERROR: El perfil '{slug}' ({path}) no declara la clave 'tracker'.")]
     ProfileMissingTrackerKey { slug: String, path: PathBuf },
 
-    /// Perfil ilegible o mal formado (exit 2).
+    /// Perfil **mal formado** (contenido inválido: el YAML no parsea) (exit 2).
+    ///
+    /// Causa de **contenido**, distinta de la de lectura
+    /// (`ProfileUnreadable`) y de la ruta del tracker irresoluble
+    /// (`ProfileTrackerUnresolvable`).
     #[error("ERROR: El perfil '{slug}' ({path}) no es válido: {reason}")]
     InvalidProfile {
+        slug: String,
+        path: PathBuf,
+        reason: String,
+    },
+
+    /// Perfil ilegible: el fichero no se pudo leer (exit 2).
+    ///
+    /// Causa de **lectura** —permisos, la ruta es un directorio, un enlace roto—,
+    /// distinta del contenido mal formado (`InvalidProfile`) y de la ruta del
+    /// tracker irresoluble (`ProfileTrackerUnresolvable`).
+    #[error("ERROR: No se pudo leer el perfil '{slug}' ({path}): {reason}")]
+    ProfileUnreadable {
+        slug: String,
+        path: PathBuf,
+        reason: String,
+    },
+
+    /// Perfil que se lee y parsea, pero cuya ruta de `tracker:` no se puede
+    /// resolver a absoluta (exit 2).
+    #[error(
+        "ERROR: El perfil '{slug}' ({path}): no se pudo resolver la ruta del tracker: {reason}"
+    )]
+    ProfileTrackerUnresolvable {
         slug: String,
         path: PathBuf,
         reason: String,
@@ -173,7 +200,9 @@ impl PodtrackError {
             // Perfil explícito inexistente / inválido.
             Self::ProfileNotFound { .. }
             | Self::ProfileMissingTrackerKey { .. }
-            | Self::InvalidProfile { .. } => 2,
+            | Self::InvalidProfile { .. }
+            | Self::ProfileUnreadable { .. }
+            | Self::ProfileTrackerUnresolvable { .. } => 2,
             // `srt-stage`: perfil/SRT/argumentos inválidos (contrato de la fase 4).
             Self::SrtProfileNotFound { .. }
             | Self::SrtProfileUnreadable { .. }
@@ -221,6 +250,31 @@ mod tests {
             }
             .exit_code(),
             3
+        );
+    }
+
+    #[test]
+    fn los_errores_de_perfil_nuevos_salen_con_dos() {
+        let ilegible = PodtrackError::ProfileUnreadable {
+            slug: "x".into(),
+            path: PathBuf::from("/p"),
+            reason: "Is a directory".into(),
+        };
+        assert_eq!(ilegible.exit_code(), 2);
+        let msg = ilegible.to_string();
+        assert!(msg.contains("No se pudo leer el perfil"), "mensaje: {msg}");
+        assert!(!msg.contains("no es válido"), "mensaje: {msg}");
+
+        let irresoluble = PodtrackError::ProfileTrackerUnresolvable {
+            slug: "x".into(),
+            path: PathBuf::from("/p"),
+            reason: "cwd".into(),
+        };
+        assert_eq!(irresoluble.exit_code(), 2);
+        let msg = irresoluble.to_string();
+        assert!(
+            msg.contains("no se pudo resolver la ruta del tracker"),
+            "mensaje: {msg}"
         );
     }
 }

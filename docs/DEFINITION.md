@@ -44,6 +44,7 @@ Todo se resuelve por show. `--show <slug>` es **obligatorio en todas las invocac
 - El valor de `tracker:` se interpreta **recortado de espacios envolventes** antes de resolverlo: un `tracker: " /ruta/tracker.yaml "` entrecomillado resuelve a la misma ruta que `tracker: /ruta/tracker.yaml`. Un `tracker:` que quede vacío o valga `none` tras el recorte se trata como ausente (`slug-str-and-tracker-trim`).
 - **Sin `--show`** se usa el show por defecto. En el Python se llama `atareao-con-linux`; aquí debe poder configurarse (ver §9, decisión D1).
 - El esquema del perfil está en `shows/README.md` y **no se reinterpreta**: si el perfil está mal, el binario falla con un error claro, no improvisa.
+- Los fallos de resolución del perfil se reportan con una causa **disjunta**: perfil **ilegible** (no se pudo leer el fichero) —«No se pudo leer el perfil»—, perfil **mal formado** (el YAML no parsea) —«no es válido»— y ruta del **tracker irresoluble** —«no se pudo resolver la ruta del tracker»—. Los tres salen con el código de perfil inválido (`2`) (`profile-error-taxonomy`).
 
 ## 4. Modelo de datos
 
