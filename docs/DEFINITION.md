@@ -40,6 +40,7 @@ La paridad manda. La modernización no puede romper a ningún consumidor.
 Todo se resuelve por show. `--show <slug>` es **obligatorio en todas las invocaciones** salvo que exista un show por defecto.
 
 - El perfil vive en `shows/<slug>.yaml`, **junto al binario** (mismo criterio que hoy junto al script), y declara `tracker:` (ruta del YAML de estado), `episodes.*` (generación, layout, temporadas, material) y el nombre del show.
+- La ruta del `tracker:` se resuelve siempre a **absoluta y normalizada léxicamente** (`profile-absolute-paths`): si el perfil la declara absoluta se usa tal cual; si la declara **relativa**, se resuelve contra el **directorio del propio fichero de perfil**. De ahí sale `<scripts.root>` —su directorio padre—, y por tanto las rutas de material de `status`, `get` y `where` también son absolutas, declare el perfil lo que declare.
 - **Sin `--show`** se usa el show por defecto. En el Python se llama `atareao-con-linux`; aquí debe poder configurarse (ver §9, decisión D1).
 - El esquema del perfil está en `shows/README.md` y **no se reinterpreta**: si el perfil está mal, el binario falla con un error claro, no improvisa.
 
