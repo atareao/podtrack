@@ -13,4 +13,5 @@ pub mod json;
 pub mod material;
 pub mod model;
 pub mod profile;
+pub mod rebase;
 pub mod tracker;

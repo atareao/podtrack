@@ -235,6 +235,121 @@ pub fn move_document(
     )
 }
 
+// ── Cirugía (fase 3) ────────────────────────────────────────────────
+
+/// Documento JSON del comando `renumber`.
+#[must_use]
+pub fn renumber_document(
+    ctx: &Ctx<'_>,
+    from: i64,
+    delta: i64,
+    changes: &[Value],
+    dry_run: bool,
+) -> String {
+    document(
+        &ctx.show.slug,
+        json!({
+            "action": "renumber",
+            "from": from,
+            "delta": delta,
+            "changes": Value::Array(changes.to_vec()),
+            "dry_run": dry_run,
+        }),
+    )
+}
+
+/// Documento JSON del comando `rename-material`.
+#[must_use]
+pub fn rename_material_document(
+    ctx: &Ctx<'_>,
+    check: bool,
+    changes: &[Value],
+    orphans: &[Value],
+    from: Option<i64>,
+    delta: Option<i64>,
+    dry_run: bool,
+) -> String {
+    document(
+        &ctx.show.slug,
+        json!({
+            "action": "rename-material",
+            "check": check,
+            "from": from,
+            "delta": delta,
+            "changes": Value::Array(changes.to_vec()),
+            "orphans": Value::Array(orphans.to_vec()),
+            "dry_run": dry_run,
+        }),
+    )
+}
+
+/// Documento JSON del comando `backfill-slugs`.
+#[must_use]
+pub fn backfill_slugs_document(
+    ctx: &Ctx<'_>,
+    changes: &[Value],
+    skipped: &[Value],
+    assigned: usize,
+    total: usize,
+    dry_run: bool,
+) -> String {
+    document(
+        &ctx.show.slug,
+        json!({
+            "action": "backfill-slugs",
+            "changes": Value::Array(changes.to_vec()),
+            "skipped": Value::Array(skipped.to_vec()),
+            "assigned": assigned,
+            "total": total,
+            "dry_run": dry_run,
+        }),
+    )
+}
+
+/// Documento JSON del comando `migrate-material`.
+#[must_use]
+pub fn migrate_material_document(
+    ctx: &Ctx<'_>,
+    migrations: &[Value],
+    collisions: &[Value],
+    skipped: &[Value],
+    include_published: bool,
+    dry_run: bool,
+) -> String {
+    document(
+        &ctx.show.slug,
+        json!({
+            "action": "migrate-material",
+            "include_published": include_published,
+            "migrations": Value::Array(migrations.to_vec()),
+            "collisions": Value::Array(collisions.to_vec()),
+            "skipped": Value::Array(skipped.to_vec()),
+            "dry_run": dry_run,
+        }),
+    )
+}
+
+/// Documento JSON del comando `rebase-references`.
+#[must_use]
+pub fn rebase_references_document(
+    ctx: &Ctx<'_>,
+    rewritten: &[Value],
+    no_title: &[Value],
+    prose: Value,
+    dry_run: bool,
+) -> String {
+    document(
+        &ctx.show.slug,
+        json!({
+            "action": "rebase-references",
+            "rewritten": Value::Array(rewritten.to_vec()),
+            "no_title": Value::Array(no_title.to_vec()),
+            "prose": prose,
+            "dry_run": dry_run,
+        }),
+    )
+}
+
 fn episode_json(episode: &Episode) -> Value {
     json!({
         "number": episode.number,

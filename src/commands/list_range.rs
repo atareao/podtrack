@@ -42,8 +42,5 @@ pub fn run(
         episodes.len()
     ));
     show_episodes(&episodes, true, &mut out, &mut err);
-    Ok(Rendered {
-        stdout: out,
-        stderr: err,
-    })
+    Ok(Rendered::new(out, err))
 }

@@ -5,7 +5,10 @@ mod common;
 use std::path::Path;
 
 use common::{Fixture, MINI_YAML};
-use podtrack::material::{apply_renames, plan_number_renames, renamed_component};
+use podtrack::material::{
+    apply_renames, apply_slug_renames, collect_slug_renames, orphan_numeric_dirs,
+    plan_number_renames, renamed_component, slug_collisions, slug_component,
+};
 
 /// Construye un material con los tokens reales del árbol de guiones.
 fn build(root: &Path, num: u32) -> std::path::PathBuf {
@@ -168,4 +171,125 @@ fn orden_anidado_de_mas_profundo_a_menos_y_tokens_reescritos() {
     assert!(dest.join("zdir/deep/e844-deep.md").exists());
     assert!(dest.join("zdir/deep/08430-largo.md").exists());
     assert!(!fx.root.join("0843").exists());
+}
+
+// ── por slug (fase 3) ───────────────────────────────────────────────
+
+#[test]
+fn slug_component_reescribe_las_formas_de_numero() {
+    assert_eq!(slug_component("0843", 843, "mi-episodio"), "mi-episodio");
+    assert_eq!(
+        slug_component("e843-articulo.md", 843, "mi-episodio"),
+        "mi-episodio-articulo.md"
+    );
+    assert_eq!(
+        slug_component("0843-notas.md", 843, "mi-episodio"),
+        "mi-episodio-notas.md"
+    );
+    assert_eq!(
+        slug_component("843-notas.md", 843, "mi-episodio"),
+        "mi-episodio-notas.md"
+    );
+    // `episodio-NNN` conserva la palabra.
+    assert_eq!(
+        slug_component("episodio-843-guion.md", 843, "mi-episodio"),
+        "episodio-mi-episodio-guion.md"
+    );
+    // No toca secuencias de dígitos más largas.
+    assert_eq!(slug_component("08430", 843, "mi-episodio"), "08430");
+}
+
+#[test]
+fn collect_slug_renames_termina_en_la_carpeta_del_episodio() {
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    common::build_slug_material(&fx.root, 843);
+    let src = fx.root.join("0843");
+
+    let pairs = collect_slug_renames(&fx.root, &src, 843, "mi-episodio");
+    // El plan termina en la carpeta del episodio (`0843` → `mi-episodio`).
+    let last = pairs.last().expect("last");
+    assert_eq!(last.0, src);
+    assert_eq!(last.1, fx.root.join("mi-episodio"));
+    // Los tokens internos se reescriben (destino intermedio, dentro de `0843`).
+    assert!(
+        pairs
+            .iter()
+            .any(|(_, dst)| dst.ends_with("0843/guion-mi-episodio.md"))
+    );
+    assert!(
+        pairs
+            .iter()
+            .any(|(_, dst)| dst.ends_with("0843/investigacion-mi-episodio.md"))
+    );
+    assert!(
+        pairs
+            .iter()
+            .any(|(_, dst)| dst.ends_with("0843/ejemplos-mi-episodio"))
+    );
+    // El contenido sin número no aparece en el plan.
+    assert!(!pairs.iter().any(|(src, _)| src.ends_with("datos.db")));
+    assert!(
+        !pairs
+            .iter()
+            .any(|(src, _)| src.ends_with("presentacion.typ"))
+    );
+
+    // Aplicado, el árbol final queda con tokens por slug y contenido intacto.
+    let mut out = Vec::new();
+    apply_slug_renames(&pairs, &fx.root, &mut out).expect("apply");
+    assert!(!fx.root.join("0843").exists());
+    let dest = fx.root.join("mi-episodio");
+    assert!(dest.join("guion-mi-episodio.md").exists());
+    assert!(dest.join("investigacion-mi-episodio.md").exists());
+    assert!(dest.join("notas-mi-episodio.md").exists());
+    assert!(dest.join("episodio-mi-episodio.md").exists());
+    assert!(dest.join("ADR-episodio-mi-episodio.md").exists());
+    assert!(dest.join("ejemplos-mi-episodio/demo.sh").exists());
+    assert!(dest.join("datos.db").exists());
+    assert!(dest.join("presentacion.typ").exists());
+    assert!(dest.join("template/base.typ").exists());
+}
+
+#[test]
+fn slug_collisions_detecta_convergencia_y_destino_existente() {
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    let root = fx.root.join("0843");
+    std::fs::create_dir_all(&root).expect("mkdir");
+    std::fs::write(root.join("e843-x.md"), "x\n").expect("write");
+    std::fs::write(root.join("0843-x.md"), "x\n").expect("write");
+
+    let pairs = collect_slug_renames(&fx.root, &root, 843, "dup");
+    let problems = slug_collisions(&pairs);
+    assert!(
+        problems.iter().any(|p| p.contains("varios orígenes")),
+        "problemas: {problems:?}"
+    );
+
+    // Destino ya existente.
+    let fx2 = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    let root2 = fx2.root.join("0843");
+    std::fs::create_dir_all(&root2).expect("mkdir");
+    std::fs::write(root2.join("guion-0843.md"), "x\n").expect("write");
+    std::fs::create_dir_all(fx2.root.join("dup")).expect("mkdir dest");
+    let pairs2 = collect_slug_renames(&fx2.root, &root2, 843, "dup");
+    let problems2 = slug_collisions(&pairs2);
+    assert!(
+        problems2.iter().any(|p| p.contains("el destino ya existe")),
+        "problemas: {problems2:?}"
+    );
+}
+
+#[test]
+fn orphan_numeric_dirs_lista_solo_cuatro_digitos_sin_episodio() {
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    for name in ["0100", "0150", "08430", "notas"] {
+        std::fs::create_dir_all(fx.root.join(name)).expect("mkdir");
+    }
+    let tracker = podtrack::tracker::load_tracker(&fx.tracker).expect("load");
+    let numbers: std::collections::HashSet<u32> =
+        tracker.episodes.iter().filter_map(|e| e.number).collect();
+
+    let orphans = orphan_numeric_dirs(&fx.root, &numbers);
+    // 0100 está en el tracker; 08430 no casa `\d{4}`; notas tampoco.
+    assert_eq!(orphans, vec![("0150".to_string(), 150)]);
 }

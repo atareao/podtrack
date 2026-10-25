@@ -79,8 +79,5 @@ pub fn run(ctx: &Ctx<'_>, params: &MoveParams, json_mode: bool) -> Result<Render
         save_tracker(&ctx.show.tracker, &ctx.show.name, &work, &mut out, &mut err)?;
     }
 
-    Ok(Rendered {
-        stdout: bytes_to_string(out),
-        stderr: bytes_to_string(err),
-    })
+    Ok(Rendered::new(bytes_to_string(out), bytes_to_string(err)))
 }

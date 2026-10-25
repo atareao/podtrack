@@ -1,14 +1,19 @@
 //! Comandos de parrilla: lectura (paridad byte a byte) y escritura.
 
 pub mod add;
+pub mod backfill_slugs;
 pub mod get;
 pub mod insert;
 pub mod list;
 pub mod list_range;
+pub mod migrate_material;
 pub mod move_cmd;
 pub mod next;
 pub mod next_date;
 pub mod publish;
+pub mod rebase_references;
+pub mod rename_material;
+pub mod renumber;
 pub mod status;
 pub mod update;
 pub mod where_cmd;
@@ -70,23 +75,44 @@ pub struct Ctx<'a> {
     pub show: &'a ResolvedShow,
 }
 
-/// Salida de un comando: texto de `stdout` y avisos de `stderr`.
+/// Salida de un comando: texto de `stdout`, avisos de `stderr` y código de salida.
 #[derive(Debug, Default, Clone)]
 pub struct Rendered {
     /// Texto que va a `stdout`.
     pub stdout: String,
     /// Texto que va a `stderr` (avisos).
     pub stderr: String,
+    /// Código de salida del comando (0 salvo que el contrato exija otro, p. ej.
+    /// `migrate-material` con colisión o `rebase-references` con hook sin título).
+    pub exit_code: i32,
 }
 
 impl Rendered {
-    /// Construye una salida solo con `stdout`.
+    /// Construye una salida solo con `stdout` (código 0).
     #[must_use]
     pub fn stdout(text: String) -> Self {
         Self {
             stdout: text,
             stderr: String::new(),
+            exit_code: 0,
         }
+    }
+
+    /// Construye una salida con `stdout` y `stderr` (código 0).
+    #[must_use]
+    pub fn new(stdout: String, stderr: String) -> Self {
+        Self {
+            stdout,
+            stderr,
+            exit_code: 0,
+        }
+    }
+
+    /// Fija el código de salida.
+    #[must_use]
+    pub fn with_code(mut self, code: i32) -> Self {
+        self.exit_code = code;
+        self
     }
 }
 

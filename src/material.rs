@@ -167,6 +167,143 @@ pub fn relative(root: &Path, path: &Path) -> String {
     relative_to(path, root)
 }
 
+// ── Renombrado por slug (fase 3: `migrate-material`) ────────────────
+
+/// Reescribe los tokens de número de un nombre **al slug** del episodio
+/// (`_slug_component`).
+///
+/// Reconoce `episodio-NNN`, `eNNN`, `0NNN` y `NNN` (sin ceros) y los normaliza a
+/// `slug`; `episodio-NNN` conserva la palabra (`episodio-<slug>`). Las demás
+/// variantes del número colapsan al mismo destino (la migración lo reporta como
+/// colisión). Los tokens van acotados por límites alfanuméricos.
+#[must_use]
+pub fn slug_component(name: &str, number: u32, slug: &str) -> String {
+    let mut result = name.to_string();
+    for (old_token, new_token) in [
+        (format!("episodio-{number}"), format!("episodio-{slug}")),
+        (format!("e{number}"), slug.to_string()),
+        (format!("{number:04}"), slug.to_string()),
+        (number.to_string(), slug.to_string()),
+    ] {
+        result = replace_token(&result, &old_token, &new_token);
+    }
+    result
+}
+
+/// Planifica la migración del material `0NNN/` de un episodio a `<slug>/`
+/// (`_collect_slug_renames`).
+///
+/// Pares (origen, destino) de más profundo a menos, con la carpeta del episodio al
+/// final. El contenido sin número no aparece en el plan: viaja con la carpeta.
+#[must_use]
+pub fn collect_slug_renames(
+    root: &Path,
+    src: &Path,
+    number: u32,
+    slug: &str,
+) -> Vec<(PathBuf, PathBuf)> {
+    let mut descendants = Vec::new();
+    collect_descendants(src, &mut descendants);
+    descendants.sort_by_key(|path| std::cmp::Reverse(path.components().count()));
+
+    let mut pairs = Vec::new();
+    for path in descendants {
+        let name = file_name_of(&path);
+        let new_name = slug_component(&name, number, slug);
+        if new_name != name {
+            let parent = path.parent().map_or_else(PathBuf::new, Path::to_path_buf);
+            pairs.push((path, parent.join(new_name)));
+        }
+    }
+    pairs.push((src.to_path_buf(), root.join(slug)));
+    pairs
+}
+
+/// Problemas de destino del plan: destinos existentes o convergentes
+/// (`_slug_collisions`).
+#[must_use]
+pub fn slug_collisions(pairs: &[(PathBuf, PathBuf)]) -> Vec<String> {
+    let mut problems = Vec::new();
+    // Mapa ordenado por inserción: destino → orígenes.
+    let mut by_dest: Vec<(PathBuf, Vec<PathBuf>)> = Vec::new();
+    for (src, dst) in pairs {
+        if let Some(entry) = by_dest.iter_mut().find(|(dest, _)| dest == dst) {
+            entry.1.push(src.clone());
+        } else {
+            by_dest.push((dst.clone(), vec![src.clone()]));
+        }
+        if dst.exists() && dst != src {
+            problems.push(format!("el destino ya existe: {}", file_name_of(dst)));
+        }
+    }
+    for (dst, sources) in &by_dest {
+        if sources.len() > 1 {
+            let mut names: Vec<String> = sources.iter().map(|s| file_name_of(s)).collect();
+            names.sort();
+            problems.push(format!(
+                "varios orígenes colisionan en {}: {}",
+                file_name_of(dst),
+                names.join(", ")
+            ));
+        }
+    }
+    problems
+}
+
+/// Aplica un plan de migración por slug reportando cada renombrado
+/// (`_apply_slug_renames`). Las colisiones se detectan **antes** con
+/// [`slug_collisions`], así que aquí no se comprueba el destino.
+pub fn apply_slug_renames(
+    pairs: &[(PathBuf, PathBuf)],
+    root: &Path,
+    out: &mut Vec<u8>,
+) -> Result<(), PodtrackError> {
+    for (src, dst) in pairs {
+        fs::rename(src, dst).map_err(|e| PodtrackError::Io(e.to_string()))?;
+        out.extend_from_slice(
+            format!(
+                "      · {}  →  {}\n",
+                relative_to(src, root),
+                relative_to(dst, root)
+            )
+            .as_bytes(),
+        );
+    }
+    Ok(())
+}
+
+/// Carpetas numéricas `\d{4}` del árbol de guiones cuyo número no está en el
+/// tracker (`_rename_material_check`), ordenadas por nombre.
+#[must_use]
+pub fn orphan_numeric_dirs(
+    root: &Path,
+    tracker_numbers: &std::collections::HashSet<u32>,
+) -> Vec<(String, u32)> {
+    if !root.is_dir() {
+        return Vec::new();
+    }
+    let mut names: Vec<String> = read_dir_order(root)
+        .into_iter()
+        .filter_map(|path| path.file_name().map(|n| n.to_string_lossy().into_owned()))
+        .collect();
+    names.sort();
+    names
+        .into_iter()
+        .filter_map(|name| {
+            let number = exact_four_digits(&name)?;
+            (!tracker_numbers.contains(&number)).then_some((name, number))
+        })
+        .collect()
+}
+
+fn exact_four_digits(name: &str) -> Option<u32> {
+    if name.len() == 4 && name.bytes().all(|b| b.is_ascii_digit()) {
+        name.parse::<u32>().ok()
+    } else {
+        None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{plan_number_renames, renamed_component};

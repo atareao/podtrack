@@ -212,8 +212,8 @@ pub fn run(
         save_tracker(&ctx.show.tracker, &ctx.show.name, &work, &mut out, &mut err)?;
     }
 
-    Ok(Rendered {
-        stdout: crate::commands::bytes_to_string(out),
-        stderr: crate::commands::bytes_to_string(err),
-    })
+    Ok(Rendered::new(
+        crate::commands::bytes_to_string(out),
+        crate::commands::bytes_to_string(err),
+    ))
 }

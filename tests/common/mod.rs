@@ -424,3 +424,121 @@ pub fn run_python_harness(
         .output()
         .expect("python3")
 }
+
+/// Harness que carga el módulo del oráculo, apunta `SHOWS_DIR` al fixture y llama
+/// a `main()` con los argumentos (mismo camino que producción):
+/// `harness.py <module> <shows_dir> <args…>`.
+pub const MAIN_HARNESS: &str = r#"import importlib.util, sys
+from pathlib import Path
+spec = importlib.util.spec_from_file_location("pt", sys.argv[1])
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+m.SHOWS_DIR = Path(sys.argv[2])
+sys.argv = ["podcast-tracker.py"] + sys.argv[3:]
+m.main()
+"#;
+
+/// Resultado de una ejecución: código de salida, `stdout` y `stderr`.
+pub struct Outcome {
+    /// Código de salida (`-1` si el proceso no terminó normalmente).
+    pub code: i32,
+    /// Texto de `stdout`.
+    pub stdout: String,
+    /// Texto de `stderr`.
+    pub stderr: String,
+}
+
+/// Ejecuta el oráculo con el harness de `main()`.
+pub fn run_oracle_main(module: &Path, harness: &Path, shows: &Path, args: &[&str]) -> Outcome {
+    let output = ProcessCommand::new("python3")
+        .arg(harness)
+        .arg(module)
+        .arg(shows)
+        .args(args)
+        .output()
+        .expect("python3");
+    Outcome {
+        code: output.status.code().unwrap_or(-1),
+        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+    }
+}
+
+/// Ejecuta el binario `podtrack` contra la fixture.
+pub fn run_podtrack(fx: &Fixture, args: &[&str]) -> Outcome {
+    let output = ProcessCommand::new(env!("CARGO_BIN_EXE_podtrack"))
+        .args(args)
+        .env("PODTRACK_SHOWS_DIR", &fx.shows)
+        .env("PODTRACK_SHOW", &fx.slug)
+        .env("HOME", fx.dir.path())
+        .env_remove("XDG_CONFIG_HOME")
+        .output()
+        .expect("podtrack");
+    Outcome {
+        code: output.status.code().unwrap_or(-1),
+        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+    }
+}
+
+/// Recrea el `guiones/` de la fixture desde cero: tracker + `setup`.
+pub fn reset_root(fx: &Fixture, yaml: &str, setup: &dyn Fn(&Fixture)) {
+    let _ = std::fs::remove_dir_all(&fx.root);
+    std::fs::create_dir_all(&fx.root).expect("mkdir root");
+    std::fs::write(&fx.tracker, yaml).expect("write tracker");
+    setup(fx);
+}
+
+/// Contraste en vivo completo contra el oráculo: mismo fixture, misma ruta de
+/// tracker, mismo argv; compara `stdout`, `stderr`, *exit code* y **árbol
+/// completo**. Se salta si el oráculo no está; con `PODTRACK_REQUIRE_ORACLE`, falla.
+pub fn assert_oracle_parity(yaml: &str, args: &[&str], setup: &dyn Fn(&Fixture)) {
+    let Some(module) = require_oracle() else {
+        return;
+    };
+    let fx = Fixture::new(yaml, "demo", "Show de prueba");
+    let harness = fx.dir.path().join("oracle_main.py");
+    std::fs::write(&harness, MAIN_HARNESS).expect("harness");
+
+    reset_root(&fx, yaml, setup);
+    let oracle = run_oracle_main(&module, &harness, &fx.shows, args);
+    let oracle_tree = snapshot(&fx.root);
+
+    reset_root(&fx, yaml, setup);
+    let lib = run_podtrack(&fx, args);
+    let lib_tree = snapshot(&fx.root);
+
+    assert_eq!(oracle.stdout, lib.stdout, "stdout difiere para {args:?}");
+    assert_eq!(oracle.stderr, lib.stderr, "stderr difiere para {args:?}");
+    assert_eq!(oracle.code, lib.code, "exit code difiere para {args:?}");
+    assert_eq!(
+        oracle_tree, lib_tree,
+        "árbol resultante difiere para {args:?}"
+    );
+}
+
+/// Material numerado con todas las formas de número que migra a slug
+/// (`_build_material` del oráculo, Fase B3).
+pub fn build_slug_material(root: &Path, num: u32) {
+    let folder = root.join(format!("{num:04}"));
+    std::fs::create_dir_all(&folder).expect("mkdir folder");
+    for name in [
+        format!("guion-{num:04}.md"),
+        format!("investigacion-e{num}.md"),
+        format!("notas-{num}.md"),
+        format!("episodio-{num}.md"),
+        format!("ADR-episodio-{num}.md"),
+    ] {
+        std::fs::write(folder.join(name), "x\n").expect("write");
+    }
+    let ejemplos = folder.join(format!("ejemplos-{num:04}"));
+    std::fs::create_dir_all(&ejemplos).expect("mkdir ejemplos");
+    std::fs::write(ejemplos.join("demo.sh"), "x\n").expect("write");
+    // Contenido sin número: no se renombra, viaja con la carpeta.
+    std::fs::create_dir_all(folder.join("template")).expect("mkdir template");
+    std::fs::write(folder.join("template/base.typ"), "x\n").expect("write");
+    std::fs::create_dir_all(folder.join("assets")).expect("mkdir assets");
+    for name in ["datos.db", "presentacion.typ", "cosas.bak"] {
+        std::fs::write(folder.join(name), "x\n").expect("write");
+    }
+}
