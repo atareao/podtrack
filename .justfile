@@ -234,8 +234,7 @@ spec-archive change_name:
 
 # ── Planes y documentación (convención fija del repo) ─────────────────────
 # Un plan por trabajo en plans/PLAN-NNN.md; al cerrarlo se RENOMBRA (nunca se
-# borra) a -COMPLETED o -PENDING. Un documento por feature en
-# docs/FEATURE-NNN-<slug>.md. Ver AGENTS.md.
+# borra) a -COMPLETED o -PENDING.
 
 # Lista los planes con su estado
 plans:
@@ -303,35 +302,6 @@ plan-pending num:
         mv "${file}" "plans/PLAN-${n}-PENDING.md"
     fi
     echo "✅ plans/PLAN-${n}-PENDING.md"
-
-# Crea el stub del documento de la siguiente feature entregada
-feature-new slug:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    shopt -s nullglob
-    next=1
-    for f in docs/FEATURE-*.md; do
-        n="${f#docs/FEATURE-}"
-        n="${n%%-*}"
-        [[ "${n}" =~ ^[0-9]+$ ]] || continue
-        if (( 10#${n} >= next )); then
-            next=$(( 10#${n} + 1 ))
-        fi
-    done
-    path="$(printf 'docs/FEATURE-%03d-%s.md' "${next}" "{{ slug }}")"
-    if [ -e "${path}" ]; then
-        echo "❌ ${path} ya existe."
-        exit 1
-    fi
-    {
-        printf '# FEATURE-%03d — %s\n\n' "${next}" "{{ slug }}"
-        printf '## Qué entrega\n\n'
-        printf '## Contratos (tipos, endpoints, esquema)\n\n'
-        printf '## Decisiones\n\n'
-        printf '## Deuda pendiente\n'
-    } > "${path}"
-    echo "✅ ${path}"
-    echo "   Plan asociado: $(just plan-new)"
 
 # ── Limpieza ───────────────────────────────────────────────────────────────
 

@@ -116,11 +116,10 @@ git commit -m "🎨 style: apply formatting"
 | `release-prepare.yml` | push a `main` | versión, changelog y tag |
 | `release.yml` | tag `v*` | crate a crates.io y GitHub Release |
 
-## Planes y features
+## Planes
 
 - Un plan por trabajo en `plans/PLAN-NNN.md`; al terminar `plans/PLAN-NNN-COMPLETED.md`, si se aparca `plans/PLAN-NNN-PENDING.md`.
-- Un documento por feature entregada en `docs/FEATURE-NNN-<slug>.md`.
-- Automatizado en el `.justfile`: `just plans`, `just plan-new`, `just plan-done N`, `just plan-pending N` y `just feature-new <slug>`.
+- Automatizado en el `.justfile`: `just plans`, `just plan-new`, `just plan-done N` y `just plan-pending N`.
 - Convención completa: [AGENTS.md](./AGENTS.md).
 
 ## Resumen visual
