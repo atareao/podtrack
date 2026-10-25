@@ -2,7 +2,7 @@
 
 mod common;
 
-use common::{B4_YAML, Fixture, MINI_YAML};
+use common::{B4_YAML, Fixture, MINI_YAML, MINI_YAML_V2};
 use serde_json::Value;
 
 #[test]
@@ -70,4 +70,88 @@ fn error_con_json_es_json_en_stderr() {
     );
     let doc: Value = serde_json::from_str(err.trim()).expect("stderr es JSON");
     assert!(doc["error"].as_str().is_some(), "clave error: {err}");
+}
+
+#[test]
+fn get_json_expone_el_material_del_episodio() {
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["get", "200", "--json"]);
+    let doc: Value = serde_json::from_str(&out).expect("JSON válido");
+
+    assert_eq!(doc["schema_version"], Value::from(1));
+    assert_eq!(doc["episode"]["slug"], Value::from("primer-episodio"));
+    let material = doc["episode"]["material"]
+        .as_str()
+        .expect("material string");
+    assert!(
+        material.ends_with("primer-episodio"),
+        "material: {material}"
+    );
+}
+
+#[test]
+fn get_json_sin_slug_deja_material_nulo() {
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["get", "202", "--json"]);
+    let doc: Value = serde_json::from_str(&out).expect("JSON válido");
+
+    let episode = doc["episode"].as_object().expect("episode objeto");
+    assert!(episode.contains_key("material"), "falta la clave material");
+    assert!(episode["slug"].is_null(), "slug: {}", episode["slug"]);
+    assert!(
+        episode["material"].is_null(),
+        "material: {}",
+        episode["material"]
+    );
+}
+
+#[test]
+fn get_json_sin_numero_expone_material_por_slug() {
+    // `sin-numero` tiene `number: null` pero SÍ tiene slug: su `material` no es `null`.
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["get", "sin-numero", "--json"]);
+    let doc: Value = serde_json::from_str(&out).expect("JSON válido");
+
+    assert!(
+        doc["episode"]["number"].is_null(),
+        "number: {}",
+        doc["episode"]["number"]
+    );
+    assert_eq!(doc["episode"]["slug"], Value::from("sin-numero"));
+    let material = doc["episode"]["material"]
+        .as_str()
+        .expect("material string");
+    assert!(material.ends_with("sin-numero"), "material: {material}");
+}
+
+#[test]
+fn el_material_es_exclusivo_de_get() {
+    // Blindaje de D5: `material` NO debe arrastrarse al `episode` de los otros
+    // comandos que comparten `episode_fields`.
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["list", "--json"]);
+    let doc: Value = serde_json::from_str(&out).expect("JSON válido");
+    let primero = doc["episodes"]
+        .as_array()
+        .expect("episodes array")
+        .iter()
+        .find(|e| e["slug"].as_str() == Some("primer-episodio"))
+        .expect("episodio `primer-episodio`")
+        .clone();
+    let obj = primero.as_object().expect("episode objeto");
+    assert!(
+        !obj.contains_key("material"),
+        "`list --json` no debe exponer `material`: {primero}"
+    );
+
+    // Y tampoco en un comando de escritura (`add --json`).
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["add", "Cuarto", "--json"]);
+    let doc: Value = serde_json::from_str(&out).expect("JSON válido");
+    let obj = doc["episode"].as_object().expect("episode objeto");
+    assert!(
+        !obj.contains_key("material"),
+        "`add --json` no debe exponer `material`: {}",
+        doc["episode"]
+    );
 }
