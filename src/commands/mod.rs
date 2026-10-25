@@ -14,6 +14,7 @@ pub mod publish;
 pub mod rebase_references;
 pub mod rename_material;
 pub mod renumber;
+pub mod srt_stage;
 pub mod status;
 pub mod update;
 pub mod where_cmd;

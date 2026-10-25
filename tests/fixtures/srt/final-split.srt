@@ -1,0 +1,11 @@
+1
+00:00:00,000 --> 00:00:29,160
+Bienvenidos al cuarto episodio
+
+2
+00:00:29,160 --> 00:00:33,480
+de la era de las distros. En los capítulos anteriores hemos analizado el impacto.
+
+3
+00:00:33,480 --> 00:00:39,000
+Seguimos.

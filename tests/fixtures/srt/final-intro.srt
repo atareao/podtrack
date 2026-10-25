@@ -1,0 +1,7 @@
+1
+00:00:00,000 --> 00:00:26,000
+Bienvenidos al primer episodio de la era de las distros
+
+2
+00:00:26,000 --> 00:00:30,000
+Durante casi dos décadas las distribuciones linux fueron clave.

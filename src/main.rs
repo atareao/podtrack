@@ -14,6 +14,7 @@ use podtrack::commands::publish::PublishParams;
 use podtrack::commands::rebase_references::RebaseParams;
 use podtrack::commands::rename_material::RenameMaterialParams;
 use podtrack::commands::renumber::RenumberParams;
+use podtrack::commands::srt_stage::{SrtStageParams, run as run_srt_stage};
 use podtrack::commands::update::UpdateParams;
 use podtrack::commands::{
     Ctx, Rendered, add, backfill_slugs, get, insert, list, list_range, migrate_material, move_cmd,
@@ -193,6 +194,18 @@ enum Command {
         #[arg(long)]
         dry_run: bool,
     },
+    /// Clasificar la etapa (raw/final) de los SRT de un podcast.
+    SrtStage {
+        /// Ruta a un SRT concreto: clasifica ese fichero.
+        #[arg(long, value_name = "RUTA")]
+        srt: Option<String>,
+        /// Número de episodio: clasifica todos sus SRT.
+        #[arg(long, value_name = "NN")]
+        episode: Option<i64>,
+        /// Exigir que el conjunto contenga esa etapa (`raw` o `final`).
+        #[arg(long, value_parser = ["raw", "final"])]
+        expect: Option<String>,
+    },
 }
 
 fn main() -> std::process::ExitCode {
@@ -222,6 +235,24 @@ fn main() -> std::process::ExitCode {
 
 fn run(cli: &Cli) -> anyhow::Result<Rendered> {
     let resolver = ShowResolver::from_env(exe_dir());
+
+    // `srt-stage` no opera sobre la parrilla: resuelve el perfil **sin exigir
+    // `tracker`** (spec `show-profile`), así que se despacha antes de cargarlo.
+    if let Command::SrtStage {
+        srt,
+        episode,
+        expect,
+    } = &cli.command
+    {
+        let params = SrtStageParams {
+            show: cli.show.clone(),
+            srt: srt.clone(),
+            episode: *episode,
+            expect: expect.clone(),
+        };
+        return Ok(run_srt_stage(&resolver, &params, cli.json)?);
+    }
+
     let show = resolver.resolve(cli.show.as_deref())?;
     let tracker = tracker::load_tracker(&show.tracker)?;
     let ctx = Ctx {
@@ -349,6 +380,10 @@ fn run(cli: &Cli) -> anyhow::Result<Rendered> {
         Command::RebaseReferences { dry_run } => {
             let params = RebaseParams { dry_run: *dry_run };
             rebase_references::run(&ctx, &params, cli.json)?
+        }
+        // `srt-stage` se despacha antes de cargar el tracker; no llega aquí.
+        Command::SrtStage { .. } => {
+            anyhow::bail!("srt-stage se despacha antes de cargar el tracker")
         }
     };
     Ok(rendered)

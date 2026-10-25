@@ -28,6 +28,8 @@ unicode-normalization = "0.1"
 # Reconocimiento de los hooks «Próximo episodio» y de la prosa numérica
 # (`rebase-references`), con los mismos patrones que el oráculo.
 regex = "1"
+# Localización de los SRT de un episodio con `episodes.srt_glob` (`srt-stage`).
+glob = "0.3"
 anyhow = "1.0"
 thiserror = "2.0"
 

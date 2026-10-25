@@ -83,6 +83,33 @@ impl ShowResolver {
         dirs
     }
 
+    /// Primer fichero `shows/<slug>.yaml` **existente** en la cascada.
+    ///
+    /// Es la vía que usan los comandos que **no** operan sobre una parrilla
+    /// (`srt-stage`): localiza el perfil sin exigir la clave `tracker`.
+    #[must_use]
+    pub fn find_profile(&self, slug: &str) -> Option<PathBuf> {
+        self.candidate_dirs()
+            .into_iter()
+            .map(|dir| dir.join(format!("{slug}.yaml")))
+            .find(|path| path.is_file())
+    }
+
+    /// Primer candidato de la cascada (exista o no), para los mensajes de error.
+    #[must_use]
+    pub fn first_candidate(&self, slug: &str) -> PathBuf {
+        self.candidate_dirs().into_iter().next().map_or_else(
+            || PathBuf::from(format!("{slug}.yaml")),
+            |dir| dir.join(format!("{slug}.yaml")),
+        )
+    }
+
+    /// Perfiles disponibles (`*.yaml`) en los directorios candidatos, sin repetir.
+    #[must_use]
+    pub fn available_profiles(&self) -> String {
+        self.available()
+    }
+
     /// Resuelve el perfil pedido (o el por defecto).
     ///
     /// La cascada se aplica cuando `--show` **no** es una ruta absoluta; una ruta
