@@ -5,11 +5,14 @@ use chrono::Datelike;
 use crate::commands::{Ctx, Rendered, show_episodes};
 use crate::error::PodtrackError;
 use crate::json;
-use crate::model::{Status, sort_episodes, weekday_es};
+use crate::model::{Status, weekday_es};
 use crate::tracker::{
     DEFAULT_EPISODE_DURATION_MINUTES, Tracker, calc_next_date, last_published, next_to_publish,
     num_label,
 };
+
+/// Próximos a publicar que se muestran en la ventana final de `status`.
+const WINDOW_UPCOMING: usize = 7;
 
 /// Totales por estado (más «unknown», siempre 0 con el enum cerrado).
 #[derive(Debug, Default, Clone, Copy)]
@@ -110,11 +113,24 @@ pub fn run(ctx: &Ctx<'_>, json_mode: bool) -> Result<Rendered, PodtrackError> {
     }
     out.push_str(&format!("{}\n\n", "=".repeat(65)));
 
-    out.push_str("  Últimos 8 episodios:\n");
-    let mut ordered = tracker.episodes.clone();
-    sort_episodes(&mut ordered);
-    let tail: Vec<&crate::model::Episode> = ordered.iter().rev().take(8).collect();
-    show_episodes(&tail, true, &mut out, &mut err);
+    // Ventana final: el último publicado seguido de los próximos a publicar.
+    // Deliberadamente distinta del oráculo retirado (change `status-upcoming-window`):
+    // responde a «¿qué está publicado y qué toca publicar?», no a «qué es lo último
+    // de la parrilla». El publicado va primero y sin marca; los próximos, en orden
+    // ascendente de fecha y con la marca provisional.
+    out.push_str("  Último publicado y próximos a publicar:\n");
+    let mut window: Vec<&crate::model::Episode> = Vec::new();
+    if let Some(ep) = last {
+        window.push(ep);
+    }
+    let mut upcoming: Vec<&crate::model::Episode> = tracker
+        .episodes
+        .iter()
+        .filter(|e| e.status != Status::Published)
+        .collect();
+    upcoming.sort_by_key(|e| e.sort_key());
+    window.extend(upcoming.into_iter().take(WINDOW_UPCOMING));
+    show_episodes(&window, true, &mut out, &mut err);
 
     Ok(Rendered::new(out, err))
 }
