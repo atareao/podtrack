@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 use crate::commands::{Ctx, DRY_RUN_LINE, Rendered, bytes_to_string, save_quiet};
 use crate::error::PodtrackError;
 use crate::json;
-use crate::model::{Slug, slugify};
+use crate::model::{Slug, slugify, unique_slug};
 use crate::tracker::{num_label, save_tracker};
 
 /// Parámetros de `backfill-slugs`.
@@ -13,22 +13,6 @@ use crate::tracker::{num_label, save_tracker};
 pub struct BackfillParams {
     /// Previsualizar sin escribir.
     pub dry_run: bool,
-}
-
-/// Slug libre a partir de `base`, sufijando `-2`, `-3`, … si colisiona
-/// (`_unique_slug`).
-fn unique_slug(used: &[String], base: &str) -> String {
-    if !used.iter().any(|u| u == base) {
-        return base.to_string();
-    }
-    let mut suffix = 2u32;
-    loop {
-        let candidate = format!("{base}-{suffix}");
-        if !used.iter().any(|u| u == &candidate) {
-            return candidate;
-        }
-        suffix += 1;
-    }
 }
 
 /// Ejecuta `backfill-slugs`.
@@ -73,7 +57,7 @@ pub fn run(
             skipped.push(json!({ "number": work.episodes[index].number }));
             continue;
         }
-        let slug = unique_slug(&used, &base);
+        let slug = unique_slug(used.iter().map(String::as_str), &base);
         used.push(slug.clone());
         work.episodes[index].slug = Some(Slug::parse(&slug)?);
         assigned += 1;
