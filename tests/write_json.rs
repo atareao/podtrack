@@ -67,6 +67,18 @@ fn update_json_emite_el_cambio() {
 }
 
 #[test]
+fn update_json_titulo_expone_el_cambio() {
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["update", "101", "--title", "Nuevo título", "--json"]);
+    let doc = parse(&out);
+    assert_eq!(doc["action"], Value::from("update"));
+    assert_eq!(doc["episode"]["title"], Value::from("Nuevo título"));
+    assert_eq!(doc["changes"][0]["field"], Value::from("title"));
+    assert_eq!(doc["changes"][0]["from"], Value::from("Segundo"));
+    assert_eq!(doc["changes"][0]["to"], Value::from("Nuevo título"));
+}
+
+#[test]
 fn insert_json_expone_desplazamientos_y_material() {
     let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
     let out = common::run_ok(

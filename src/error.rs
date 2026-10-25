@@ -80,6 +80,9 @@ pub enum PodtrackError {
     AddDuplicate { number: u32 },
 
     /// Uso incorrecto de un subcomando (exit 2, como `argparse`).
+    #[error("ERROR: El título no puede estar vacío.")]
+    EmptyTitle,
+
     #[error("ERROR: Uso: {usage}")]
     Usage { usage: String },
 
