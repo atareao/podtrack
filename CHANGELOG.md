@@ -1,4 +1,13 @@
 # Changelog
+## [0.2.1] - 2026-10-25
+
+### Bug Fixes
+
+- *(insert)* Deriva el slug del título cuando falta `--slug` (#11)
+
+### Documentation
+
+- *(openspec)* Archiva el change insert-derives-slug
 ## [0.2.0] - 2026-10-25
 
 ### Documentation
@@ -8,6 +17,10 @@
 ### Features
 
 - *(status)* Ventana de último publicado + 7 próximos (#9)
+
+### Miscellaneous Tasks
+
+- Release v0.2.0
 ## [0.1.0] - 2026-10-25
 
 ### Documentation
