@@ -18,7 +18,7 @@ use podtrack::commands::srt_stage::{SrtStageParams, run as run_srt_stage};
 use podtrack::commands::update::UpdateParams;
 use podtrack::commands::{
     Ctx, Rendered, add, backfill_slugs, get, insert, list, list_range, migrate_material, move_cmd,
-    next, next_date, publish, rebase_references, rename_material, renumber, status, update,
+    next, next_date, open, publish, rebase_references, rename_material, renumber, status, update,
     where_cmd,
 };
 use podtrack::error::PodtrackError;
@@ -81,6 +81,14 @@ enum Command {
     Where {
         /// Número o slug del episodio.
         target: String,
+    },
+    /// Abrir la presentación Typst de un episodio con typshow.
+    Open {
+        /// Número o slug del episodio.
+        target: String,
+        /// Resolver y mostrar la ruta sin lanzar la presentación.
+        #[arg(long)]
+        dry_run: bool,
     },
     /// Añadir un episodio (`scripted`), con número opcional.
     Add {
@@ -283,6 +291,7 @@ fn run(cli: &Cli) -> anyhow::Result<Rendered> {
         Command::ListRange { start, end } => list_range::run(&ctx, *start, *end, cli.json)?,
         Command::Get { target } => get::run(&ctx, target, cli.json)?,
         Command::Where { target } => where_cmd::run(&ctx, target, cli.json)?,
+        Command::Open { target, dry_run } => open::run(&ctx, target, *dry_run, cli.json)?,
         Command::Add {
             items,
             slug,

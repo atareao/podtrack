@@ -188,7 +188,9 @@ pub enum PodtrackError {
     SrtRead { path: String, reason: String },
 
     /// `open`: el perfil no declara `episodes.scripts.files.presentacion` (exit 2).
-    #[error("ERROR: El show '{show}' no declara una presentación en el perfil (episodes.scripts.files.presentacion).")]
+    #[error(
+        "ERROR: El show '{show}' no declara una presentación en el perfil (episodes.scripts.files.presentacion)."
+    )]
     PresentationNotDeclared { show: String },
 
     /// `open`: el `.typ` declarado no existe en disco (exit 1).
@@ -200,7 +202,9 @@ pub enum PodtrackError {
     LauncherNotFound { launcher: String },
 
     /// `open`: el layout necesita `{n}` y el episodio no tiene número (exit 1).
-    #[error("ERROR: El episodio '{label}' no tiene número; no se puede resolver la ruta de su presentación.")]
+    #[error(
+        "ERROR: El episodio '{label}' no tiene número; no se puede resolver la ruta de su presentación."
+    )]
     EpisodeWithoutNumber { label: String },
 
     /// Error de E/S genérico (exit 1).
@@ -225,6 +229,8 @@ impl PodtrackError {
             | Self::SrtStageError { .. }
             | Self::SrtNoCues { .. }
             | Self::SrtRead { .. } => 2,
+            // `open`: defecto del esquema del perfil (no declara la presentación).
+            Self::PresentationNotDeclared { .. } => 2,
             // Perfil que no usa tracker.
             Self::ProfileNoTracker { .. } => 3,
             // Uso incorrecto de un subcomando: `argparse` sale con 2.
@@ -301,7 +307,10 @@ mod tests {
         };
         assert_eq!(no_declarada.exit_code(), 2, "defecto de perfil: exit 2");
         let msg = no_declarada.to_string();
-        assert!(msg.contains("no declara una presentación"), "mensaje: {msg}");
+        assert!(
+            msg.contains("no declara una presentación"),
+            "mensaje: {msg}"
+        );
 
         let no_existe = PodtrackError::PresentationNotFound {
             slug: "la-memoria-de-valet".into(),
@@ -320,10 +329,13 @@ mod tests {
         };
         assert_eq!(lanzador.exit_code(), 1);
         let msg = lanzador.to_string();
-        assert!(msg.contains("No se encuentra el lanzador"), "mensaje: {msg}");
+        assert!(
+            msg.contains("No se encuentra el lanzador"),
+            "mensaje: {msg}"
+        );
 
         let sin_numero = PodtrackError::EpisodeWithoutNumber {
-            label: "—".into(),
+            label: "—".into()
         };
         assert_eq!(sin_numero.exit_code(), 1);
         let msg = sin_numero.to_string();

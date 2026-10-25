@@ -4,6 +4,7 @@
 //! directorio junto al ejecutable → `~/.config/podtrack/shows/`. Sin `--show` se
 //! usa `PODTRACK_SHOW` y, si no, el show por defecto compilado.
 
+use std::collections::BTreeMap;
 use std::path::{Component, Path, PathBuf};
 
 use serde::Deserialize;
@@ -24,6 +25,11 @@ pub struct ResolvedShow {
     /// léxicamente** (normalización en el constructor: D1; base del `tracker:`
     /// relativo: D3 — del change `profile-absolute-paths`).
     pub tracker: PathBuf,
+    /// Plantilla del directorio de material (`episodes.scripts.dir`), sin renderizar.
+    pub scripts_dir: Option<String>,
+    /// Plantilla del fichero de presentación (`episodes.scripts.files.presentacion`),
+    /// sin renderizar.
+    pub presentation: Option<String>,
 }
 
 impl ResolvedShow {
@@ -183,6 +189,18 @@ impl ShowResolver {
             .filter(|n| !n.trim().is_empty())
             .unwrap_or_else(|| slug.to_string());
 
+        let scripts_dir = profile
+            .episodes
+            .as_ref()
+            .and_then(|e| e.scripts.as_ref())
+            .and_then(|s| s.dir.clone());
+        let presentation = profile
+            .episodes
+            .as_ref()
+            .and_then(|e| e.scripts.as_ref())
+            .and_then(|s| s.files.as_ref())
+            .and_then(|f| f.get("presentacion").cloned());
+
         match profile.tracker {
             None | Some(serde_yaml::Value::Null) => Err(PodtrackError::ProfileMissingTrackerKey {
                 slug: slug.to_string(),
@@ -211,6 +229,8 @@ impl ShowResolver {
                         slug: slug.to_string(),
                         name,
                         tracker,
+                        scripts_dir,
+                        presentation,
                     })
                 }
             }
@@ -251,6 +271,24 @@ struct RawProfile {
     name: Option<String>,
     #[serde(default)]
     tracker: Option<serde_yaml::Value>,
+    #[serde(default)]
+    episodes: Option<RawEpisodes>,
+}
+
+/// Bloque `episodes` del perfil (solo lo que `open` necesita).
+#[derive(Deserialize)]
+struct RawEpisodes {
+    #[serde(default)]
+    scripts: Option<RawScripts>,
+}
+
+/// Bloque `episodes.scripts`: `dir` (carpeta de material) y `files` (entregables).
+#[derive(Deserialize)]
+struct RawScripts {
+    #[serde(default)]
+    dir: Option<String>,
+    #[serde(default)]
+    files: Option<BTreeMap<String, String>>,
 }
 
 fn scalar_to_string(value: &serde_yaml::Value) -> String {
@@ -313,18 +351,73 @@ fn absolutize(path: &Path, base_dir: &Path) -> std::io::Result<PathBuf> {
 /// opcional a N dígitos). Falta el valor → error tipado; marcador desconocido →
 /// literal. `label` es la etiqueta del episodio para el mensaje de error
 /// (`num_label`).
-///
-/// **RED:** stub deliberadamente incompleto; la implementación real llega en GREEN.
 pub fn render_material_template(
     template: &str,
     slug: Option<&str>,
     number: Option<u32>,
     label: &str,
 ) -> Result<String, PodtrackError> {
-    let _ = (template, slug, number, label);
-    Err(PodtrackError::Io(
-        "TODO: render_material_template no implementado".to_string(),
-    ))
+    let mut out = String::new();
+    let mut i = 0usize;
+    while let Some(rel) = template[i..].find('{') {
+        let open = i + rel;
+        out.push_str(&template[i..open]);
+        match template[open + 1..].find('}') {
+            Some(rel_close) => {
+                let close = open + 1 + rel_close;
+                let marker = &template[open + 1..close];
+                out.push_str(&render_marker(marker, slug, number, label)?);
+                i = close + 1;
+            }
+            None => {
+                // `{` sin cierre: se deja literal el resto.
+                out.push_str(&template[open..]);
+                return Ok(out);
+            }
+        }
+    }
+    out.push_str(&template[i..]);
+    Ok(out)
+}
+
+/// Sustituye **un** marcador (`{…}`) por su valor, o lo deja literal si es
+/// desconocido. Marcadores soportados: `slug`, `n`, `n:0Nd`.
+fn render_marker(
+    marker: &str,
+    slug: Option<&str>,
+    number: Option<u32>,
+    label: &str,
+) -> Result<String, PodtrackError> {
+    match marker {
+        "slug" => slug
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .ok_or_else(|| PodtrackError::EpisodeWithoutSlug {
+                label: label.to_string(),
+            }),
+        "n" => number
+            .map(|n| n.to_string())
+            .ok_or_else(|| PodtrackError::EpisodeWithoutNumber {
+                label: label.to_string(),
+            }),
+        _ => {
+            // `{n:0Nd}`: `0` + dígitos + `d`. Cualquier otra forma es desconocida.
+            if let Some(rest) = marker.strip_prefix("n:")
+                && let Some(inner) = rest.strip_prefix('0')
+                && let Some(digits) = inner.strip_suffix('d')
+                && !digits.is_empty()
+                && digits.chars().all(|c| c.is_ascii_digit())
+            {
+                let width: usize = digits.parse().unwrap_or(0);
+                return number.map(|n| format!("{n:0width$}")).ok_or_else(|| {
+                    PodtrackError::EpisodeWithoutNumber {
+                        label: label.to_string(),
+                    }
+                });
+            }
+            Ok(format!("{{{marker}}}"))
+        }
+    }
 }
 
 fn config_dir() -> Option<PathBuf> {
@@ -341,7 +434,9 @@ fn config_dir() -> Option<PathBuf> {
 
 #[cfg(test)]
 mod tests {
-    use super::{ResolvedShow, ShowResolver, absolutize, normalize_lexically, render_material_template};
+    use super::{
+        ResolvedShow, ShowResolver, absolutize, normalize_lexically, render_material_template,
+    };
     use crate::error::PodtrackError;
     use std::path::{Path, PathBuf};
 
@@ -351,6 +446,8 @@ mod tests {
             slug: "demo".to_string(),
             name: "Demo".to_string(),
             tracker: PathBuf::from(tracker),
+            scripts_dir: None,
+            presentation: None,
         }
     }
 
