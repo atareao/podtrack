@@ -10,7 +10,7 @@ use serde_json::{Value, json};
 use crate::commands::Ctx;
 use crate::commands::list::Filters;
 use crate::commands::status::counts;
-use crate::model::{Episode, Status};
+use crate::model::Episode;
 use crate::tracker::{
     DEFAULT_EPISODE_DURATION_MINUTES, calc_next_date, last_published, next_free_number,
     next_public_number, next_to_publish,
@@ -163,13 +163,21 @@ pub fn add_document(ctx: &Ctx<'_>, episode: &Episode) -> String {
 
 /// Documento JSON del comando `update`.
 #[must_use]
-pub fn update_document(ctx: &Ctx<'_>, episode: &Episode, from: Status) -> String {
+pub fn update_document(
+    ctx: &Ctx<'_>,
+    episode: &Episode,
+    changes: &[(&'static str, String, String)],
+) -> String {
+    let changes_json: Vec<Value> = changes
+        .iter()
+        .map(|(field, from, to)| json!({ "field": field, "from": from, "to": to }))
+        .collect();
     document(
         &ctx.show.slug,
         json!({
             "action": "update",
             "episode": episode_json(episode),
-            "changes": [{ "field": "status", "from": from.as_str(), "to": episode.status.as_str() }],
+            "changes": changes_json,
         }),
     )
 }

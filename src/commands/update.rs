@@ -1,4 +1,4 @@
-//! `update` — cambio de estado de un episodio (por número o slug).
+//! `update` — cambio de estado y/o de título de un episodio (por número o slug).
 
 use crate::commands::{Ctx, Rendered, bytes_to_string, resolve_index, save_quiet};
 use crate::error::PodtrackError;
@@ -11,8 +11,10 @@ use crate::tracker::{num_label, save_tracker};
 pub struct UpdateParams {
     /// Número o slug del episodio.
     pub target: String,
-    /// Nuevo estado.
-    pub status: String,
+    /// Nuevo estado (opcional).
+    pub status: Option<String>,
+    /// Nuevo título (opcional).
+    pub title: Option<String>,
 }
 
 /// Ejecuta `update`.
@@ -21,7 +23,18 @@ pub fn run(
     params: &UpdateParams,
     json_mode: bool,
 ) -> Result<Rendered, PodtrackError> {
-    let new_status = Status::parse(&params.status)?;
+    // Validación previa: nada se escribe si algo falla.
+    let new_status = params.status.as_deref().map(Status::parse).transpose()?;
+    let new_title = match params.title.as_deref() {
+        Some(raw) => {
+            let trimmed = raw.trim();
+            if trimmed.is_empty() {
+                return Err(PodtrackError::EmptyTitle);
+            }
+            Some(trimmed.to_string())
+        }
+        None => None,
+    };
 
     let index = resolve_index(ctx.tracker, &params.target).ok_or_else(|| {
         PodtrackError::EpisodeNotFound {
@@ -31,13 +44,23 @@ pub fn run(
 
     let mut work = ctx.tracker.clone();
     let old_status = work.episodes[index].status;
-    work.episodes[index].status = new_status;
+    let old_title = work.episodes[index].title.clone();
+
+    let mut changes: Vec<(&'static str, String, String)> = Vec::new();
+    if let Some(status) = new_status {
+        work.episodes[index].status = status;
+        changes.push(("status", old_status.to_string(), status.to_string()));
+    }
+    if let Some(title) = &new_title {
+        work.episodes[index].title = title.clone();
+        changes.push(("title", old_title.clone(), title.clone()));
+    }
 
     if json_mode {
         let episode = work.episodes[index].clone();
         save_quiet(&ctx.show.tracker, &ctx.show.name, &work)?;
         return Ok(Rendered::stdout(json::update_document(
-            ctx, &episode, old_status,
+            ctx, &episode, &changes,
         )));
     }
 
@@ -48,16 +71,29 @@ pub fn run(
     let episode = &work.episodes[index];
     out.extend_from_slice(
         format!(
-            "  ✓ Episodio #{}: \"{}\"\n    {} {} → {} {}\n",
+            "  ✓ Episodio #{}: \"{}\"\n",
             num_label(episode.number),
-            episode.title,
-            old_status.icon(),
-            old_status,
-            new_status.icon(),
-            new_status
+            episode.title
         )
         .as_bytes(),
     );
+    if let Some(status) = new_status {
+        out.extend_from_slice(
+            format!(
+                "    {} {} → {} {}\n",
+                old_status.icon(),
+                old_status,
+                status.icon(),
+                status
+            )
+            .as_bytes(),
+        );
+    }
+    if let Some(title) = &new_title {
+        out.extend_from_slice(
+            format!("    Título: \"{}\" → \"{}\"\n", old_title, title).as_bytes(),
+        );
+    }
 
     Ok(Rendered::new(bytes_to_string(out), bytes_to_string(err)))
 }

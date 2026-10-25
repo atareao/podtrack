@@ -344,7 +344,8 @@ fn cmd_update_cambia_estado() {
     };
     let params = UpdateParams {
         target: "101".to_string(),
-        status: "recorded".to_string(),
+        status: Some("recorded".to_string()),
+        title: None,
     };
     let rendered = update::run(&ctx, &params, false).expect("update");
     assert!(rendered.stdout.contains("scripted") && rendered.stdout.contains("recorded"));
@@ -367,7 +368,8 @@ fn cmd_update_estado_invalido_sale_con_error() {
     };
     let params = UpdateParams {
         target: "101".to_string(),
-        status: "inventado".to_string(),
+        status: Some("inventado".to_string()),
+        title: None,
     };
     let err = update::run(&ctx, &params, false).expect_err("err");
     assert_eq!(err.exit_code(), 1);
@@ -384,7 +386,8 @@ fn cmd_update_inexistente_sale_con_error() {
     };
     let params = UpdateParams {
         target: "999".to_string(),
-        status: "recorded".to_string(),
+        status: Some("recorded".to_string()),
+        title: None,
     };
     let err = update::run(&ctx, &params, false).expect_err("err");
     assert_eq!(err.exit_code(), 1);
@@ -401,7 +404,8 @@ fn cmd_update_por_slug() {
     };
     let params = UpdateParams {
         target: "sin-numero".to_string(),
-        status: "recorded".to_string(),
+        status: Some("recorded".to_string()),
+        title: None,
     };
     let rendered = update::run(&ctx, &params, false).expect("update");
     assert!(rendered.stdout.contains("Sin número"));
@@ -423,7 +427,8 @@ fn cmd_update_por_numero_textual_sigue_funcionando() {
     };
     let params = UpdateParams {
         target: "202".to_string(),
-        status: "published".to_string(),
+        status: Some("published".to_string()),
+        title: None,
     };
     update::run(&ctx, &params, false).expect("update");
     let reloaded = load_tracker(&fx.tracker).expect("reload");
@@ -446,7 +451,8 @@ fn cmd_update_slug_inexistente_error_sin_escribir() {
     };
     let params = UpdateParams {
         target: "no-existe".to_string(),
-        status: "recorded".to_string(),
+        status: Some("recorded".to_string()),
+        title: None,
     };
     let err = update::run(&ctx, &params, false).expect_err("err");
     assert_eq!(err.exit_code(), 1);
@@ -1134,4 +1140,93 @@ fn insert_slug_explicito_no_se_sufija_aunque_colisione() {
         .find(|e| e.number == Some(202))
         .expect("202");
     assert_eq!(ep.slug.as_ref().map(Slug::as_str), Some("sin-numero"));
+}
+
+// ─── update: título (change `update-title`) ──────────────────────────
+
+#[test]
+fn update_cambia_titulo_y_conserva_slug() {
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let (tracker, show) = load_ctx(&fx);
+    let ctx = Ctx {
+        tracker: &tracker,
+        show: &show,
+    };
+    let params = UpdateParams {
+        target: "sin-numero".to_string(),
+        status: None,
+        title: Some("¿Cómo se le da memoria a una IA?".to_string()),
+    };
+    let rendered = update::run(&ctx, &params, false).expect("update");
+    assert!(rendered.stdout.contains("¿Cómo se le da memoria a una IA?"));
+    let reloaded = load_tracker(&fx.tracker).expect("reload");
+    let ep = common::by_slug(&reloaded, "sin-numero");
+    assert_eq!(ep.title, "¿Cómo se le da memoria a una IA?");
+    assert_eq!(ep.slug.as_ref().map(Slug::as_str), Some("sin-numero"));
+    // el estado no se toca cuando solo se pide título
+    assert_eq!(ep.status.as_str(), "scripted");
+}
+
+#[test]
+fn update_estado_y_titulo_a_la_vez() {
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    let (tracker, show) = load_ctx(&fx);
+    let ctx = Ctx {
+        tracker: &tracker,
+        show: &show,
+    };
+    let params = UpdateParams {
+        target: "101".to_string(),
+        status: Some("recorded".to_string()),
+        title: Some("Segundo, retitulado".to_string()),
+    };
+    update::run(&ctx, &params, false).expect("update");
+    let reloaded = load_tracker(&fx.tracker).expect("reload");
+    let ep = reloaded
+        .episodes
+        .iter()
+        .find(|e| e.number == Some(101))
+        .expect("101");
+    assert_eq!(ep.status.as_str(), "recorded");
+    assert_eq!(ep.title, "Segundo, retitulado");
+}
+
+#[test]
+fn update_titulo_vacio_falla_sin_escribir() {
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    let original = std::fs::read(&fx.tracker).expect("read");
+    let (tracker, show) = load_ctx(&fx);
+    let ctx = Ctx {
+        tracker: &tracker,
+        show: &show,
+    };
+    let params = UpdateParams {
+        target: "101".to_string(),
+        status: None,
+        title: Some("   ".to_string()),
+    };
+    let err = update::run(&ctx, &params, false).expect_err("err");
+    assert_eq!(err.exit_code(), 1);
+    assert_eq!(std::fs::read(&fx.tracker).expect("read"), original);
+}
+
+#[test]
+fn update_cli_titulo() {
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["update", "101", "--title", "Titulado por CLI"]);
+    assert!(out.contains("Titulado por CLI"));
+    let reloaded = load_tracker(&fx.tracker).expect("reload");
+    let ep = reloaded
+        .episodes
+        .iter()
+        .find(|e| e.number == Some(101))
+        .expect("101");
+    assert_eq!(ep.title, "Titulado por CLI");
+}
+
+#[test]
+fn update_cli_sin_flags_falla() {
+    let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
+    let (code, _out, _err) = common::run_fail(&fx, &["update", "101"]);
+    assert_ne!(code, 0);
 }
