@@ -43,15 +43,23 @@ subcomando).
 - **THEN** NO SHALL aparecer ninguna invocación `python3 …/*.py`
 - **AND** SHALL invocar `podtrack`
 
-### Requirement: El binario está instalado de forma invocable
+### Requirement: El binario está instalado e invocable, y encuentra los perfiles
 
-`podtrack` SHALL instalarse de modo que sea invocable como `podtrack` desde el
-entorno de los agentes, sin ruta absoluta al árbol de trabajo.
+`podtrack` SHALL instalarse con `cargo install --path . --locked`, invocable como
+`podtrack` desde el entorno de los agentes sin ruta absoluta al árbol de trabajo.
+El directorio de perfiles de la skill SHALL quedar accesible por la cascada del
+binario (enlace en `~/.config/podtrack/shows`), de modo que `podtrack --show <slug>`
+encuentre `shows/<slug>.yaml` sin variables de entorno.
 
 #### Scenario: invocación directa
 - **GIVEN** el binario instalado
 - **WHEN** se ejecuta `podtrack --version`
 - **THEN** SHALL responder con la versión, sin `python3`
+
+#### Scenario: resuelve el perfil por la cascada
+- **GIVEN** los perfiles de la skill enlazados en `~/.config/podtrack/shows`
+- **WHEN** se ejecuta `podtrack status --show atareao-con-linux`
+- **THEN** SHALL mostrar el estado del tracker sin `PODTRACK_SHOWS_DIR`
 
 ### Requirement: Constancia del traslado de capacidades
 

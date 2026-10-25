@@ -46,6 +46,13 @@ quedando en `~/.cargo/bin/podtrack`. Los agentes invocan `podtrack` **a secas**
 es el mecanismo estándar y no ata los agentes a una ruta del árbol de trabajo.
 Alternativa descartada: copiar el binario a mano (envejece sin actualizarse).
 
+**Resolución de perfiles.** La cascada del binario (`PODTRACK_SHOWS_DIR` → `shows/`
+junto al ejecutable → `~/.config/podtrack/shows/`) no incluía el directorio de perfiles
+de la skill, así que, sin más, `podtrack --show <slug>` no encontraba el perfil. Se
+resuelve **enlazando** `~/.config/podtrack/shows` → `~/.agents/skills/podcast-srt/shows`
+(un punto de la cascada ya previsto), de modo que los agentes invocan `podtrack` sin
+variables de entorno y los perfiles siguen viviendo en su único sitio (la skill).
+
 ### D2. La conmutación es textual y verificable
 
 La conmutación de `SKILL.md` y de los agentes es **sustitución de la invocación**:
