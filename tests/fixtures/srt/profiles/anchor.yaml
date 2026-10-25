@@ -1,0 +1,16 @@
+slug: anchor
+name: Show de anclaje pequeño
+episodes:
+  root: @@ROOT@@
+  srt_glob: "*.srt"
+  srt_stages:
+    order: [raw, final]
+    raw:
+      detect: not_intro
+    final:
+      detect: starts_with_intro
+      intro_pattern: 'bienvenid[oa]s? al episodio'
+      intro_anchor_chars: 2
+      intro_block_min_seconds: 20.0
+      intro_block_max_start: 1.0
+tracker: none

@@ -594,3 +594,84 @@ fn oraculo_perfiles_rotos() {
     let path2 = none.copy("final-intro.srt", "solo.srt");
     none.assert_parity(&["--show", "nostages", "--srt", &path2.display().to_string()]);
 }
+
+// ─── regresión: anclaje por caracteres (no bytes) ───────────────────
+
+#[test]
+fn anclaje_cuenta_caracteres_no_bytes() {
+    let h = Harness::new("anchor", "anchor");
+    // `¿` ocupa 2 bytes y `—` 3; con `intro_anchor_chars: 2` la coincidencia
+    // empieza en el carácter 1, así que la señal de texto debe dispararse.
+    for fixture in ["final-multibyte-2b.srt", "final-multibyte-3b.srt"] {
+        let path = h.copy(fixture, &format!("m-{fixture}"));
+        let out = h.run_ok(&[
+            "srt-stage",
+            "--show",
+            "anchor",
+            "--srt",
+            &path.display().to_string(),
+        ]);
+        assert_eq!(
+            out,
+            format!("{}\tfinal\n", path.display()),
+            "fixture {fixture}"
+        );
+    }
+}
+
+#[test]
+fn oraculo_anclaje_multibyte() {
+    let h = Harness::new("anchor", "anchor");
+    for fixture in ["final-multibyte-2b.srt", "final-multibyte-3b.srt"] {
+        let path = h.copy(fixture, &format!("m-{fixture}"));
+        let file = path.display().to_string();
+        h.assert_parity(&["--show", "anchor", "--srt", &file]);
+        h.assert_parity(&["--show", "anchor", "--srt", &file, "--expect", "final"]);
+        h.assert_parity(&["--show", "anchor", "--srt", &file, "--expect", "raw"]);
+    }
+}
+
+// ─── regresión: cadenas vacías cuentan como ausentes ────────────────
+
+#[test]
+fn intro_vacio_cuenta_como_ausente() {
+    let h = Harness::new("empty-intro", "emptyintro");
+    let path = h.copy("final-intro.srt", "solo.srt");
+    let (code, _out, err) = h.run_fail(&[
+        "srt-stage",
+        "--show",
+        "emptyintro",
+        "--srt",
+        &path.display().to_string(),
+    ]);
+    assert_eq!(code, 2);
+    assert!(err.contains("no declara 'intro_pattern' ni 'intro_marker'"));
+}
+
+#[test]
+fn oraculo_intro_vacio() {
+    let h = Harness::new("empty-intro", "emptyintro");
+    let path = h.copy("final-intro.srt", "solo.srt");
+    h.assert_parity(&["--show", "emptyintro", "--srt", &path.display().to_string()]);
+}
+
+#[test]
+fn load_stages_trata_cadenas_vacias_como_ausentes() {
+    let both_empty = srt(
+        "episodes:\n  srt_stages:\n    order: [x]\n    x:\n      detect: starts_with_intro\n      intro_pattern: \"\"\n      intro_marker: \"\"\n",
+    );
+    let err = load_stages(&both_empty).expect_err("err");
+    assert_eq!(err.exit_code(), 2);
+    assert!(
+        err.to_string()
+            .contains("no declara 'intro_pattern' ni 'intro_marker'")
+    );
+
+    // Patrón vacío + marcador presente: válido, y el patrón no se compila.
+    let marker_only = srt(
+        "episodes:\n  srt_stages:\n    order: [x]\n    x:\n      detect: starts_with_intro\n      intro_pattern: \"\"\n      intro_marker: \"INTRO\"\n      intro_anchor_chars: 12\n",
+    );
+    let stages = load_stages(&marker_only).expect("stages");
+    assert!(stages[0].intro_re.is_none());
+    assert_eq!(stages[0].intro_marker.as_deref(), Some("INTRO"));
+}

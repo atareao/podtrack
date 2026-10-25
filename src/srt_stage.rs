@@ -232,7 +232,11 @@ pub fn looks_like_intro(
     let Some(found) = re.find(head) else {
         return false;
     };
-    if (found.start() as i64) >= intro.intro_anchor_chars {
+    // El oráculo compara el índice en **caracteres** (`match.start()` sobre un
+    // `str`), no en bytes: `¿`, `—`, `«`, `»`, `…` antes de la coincidencia no
+    // deben consumir el anclaje de más.
+    let char_index = head[..found.start()].chars().count();
+    if char_index as i64 >= intro.intro_anchor_chars {
         return false;
     }
     intro_block_ok(span, Some(intro))
@@ -312,6 +316,12 @@ fn value_as_string(value: &Value) -> Option<String> {
         Value::Bool(b) => Some(b.to_string()),
         _ => None,
     }
+}
+
+/// Verdad booleana de Python para un `Option<String>`: `None` y `Some("")` son
+/// falsos (una cadena vacía cuenta como ausente).
+fn string_is_falsy(value: &Option<String>) -> bool {
+    value.as_ref().is_none_or(String::is_empty)
 }
 
 /// Representación `repr()` de Python para los mensajes de error.
@@ -462,7 +472,9 @@ fn validate_intro_stage(
     spec: &serde_yaml::Mapping,
     stage: &mut Stage,
 ) -> Result<(), PodtrackError> {
-    if stage.intro_pattern.is_none() && stage.intro_marker.is_none() {
+    // El oráculo usa verdad booleana de Python: una cadena **vacía** cuenta como
+    // ausente, igual que faltar la clave.
+    if string_is_falsy(&stage.intro_pattern) && string_is_falsy(&stage.intro_marker) {
         return Err(stage_error(format!(
             "ERROR: La etapa '{name}' usa detect: starts_with_intro pero no declara 'intro_pattern' ni 'intro_marker'."
         )));
@@ -515,7 +527,9 @@ fn validate_intro_stage(
         },
     }
 
-    if let Some(pattern) = &stage.intro_pattern {
+    if let Some(pattern) = &stage.intro_pattern
+        && !pattern.is_empty()
+    {
         match Regex::new(pattern) {
             Ok(re) => stage.intro_re = Some(re),
             Err(e) => {
