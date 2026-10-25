@@ -10,6 +10,7 @@ pub mod migrate_material;
 pub mod move_cmd;
 pub mod next;
 pub mod next_date;
+pub mod open;
 pub mod publish;
 pub mod rebase_references;
 pub mod rename_material;

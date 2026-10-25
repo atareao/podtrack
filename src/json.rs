@@ -167,6 +167,23 @@ pub fn where_document(ctx: &Ctx<'_>, episode: &Episode, folder: &Path) -> String
     )
 }
 
+/// Documento JSON del comando `open`.
+#[must_use]
+pub fn open_document(ctx: &Ctx<'_>, episode: &Episode, path: &Path, launched: bool) -> String {
+    document(
+        &ctx.show.slug,
+        json!({
+            "episode": {
+                "number": episode.number,
+                "slug": episode.slug_str(),
+            },
+            "presentation": path.display().to_string(),
+            "launcher": crate::commands::open::LAUNCHER,
+            "launched": launched,
+        }),
+    )
+}
+
 /// Documento JSON del comando `add`.
 #[must_use]
 pub fn add_document(ctx: &Ctx<'_>, episode: &Episode) -> String {

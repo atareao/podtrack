@@ -24,6 +24,11 @@ pub struct ResolvedShow {
     /// léxicamente** (normalización en el constructor: D1; base del `tracker:`
     /// relativo: D3 — del change `profile-absolute-paths`).
     pub tracker: PathBuf,
+    /// Plantilla del directorio de material (`episodes.scripts.dir`), sin renderizar.
+    pub scripts_dir: Option<String>,
+    /// Plantilla del fichero de presentación (`episodes.scripts.files.presentacion`),
+    /// sin renderizar.
+    pub presentation: Option<String>,
 }
 
 impl ResolvedShow {
@@ -183,6 +188,24 @@ impl ShowResolver {
             .filter(|n| !n.trim().is_empty())
             .unwrap_or_else(|| slug.to_string());
 
+        let scripts_dir = profile
+            .episodes
+            .as_ref()
+            .and_then(|e| e.get("scripts"))
+            .and_then(|s| s.get("dir"))
+            .and_then(yaml_scalar_str)
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+        let presentation = profile
+            .episodes
+            .as_ref()
+            .and_then(|e| e.get("scripts"))
+            .and_then(|s| s.get("files"))
+            .and_then(|f| f.get("presentacion"))
+            .and_then(yaml_scalar_str)
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+
         match profile.tracker {
             None | Some(serde_yaml::Value::Null) => Err(PodtrackError::ProfileMissingTrackerKey {
                 slug: slug.to_string(),
@@ -211,6 +234,8 @@ impl ShowResolver {
                         slug: slug.to_string(),
                         name,
                         tracker,
+                        scripts_dir,
+                        presentation,
                     })
                 }
             }
@@ -251,6 +276,25 @@ struct RawProfile {
     name: Option<String>,
     #[serde(default)]
     tracker: Option<serde_yaml::Value>,
+    /// Bloque `episodes` **sin tipar**: se navega por clave en `load`, de forma
+    /// **laxa**, para no reinterpretar el esquema del perfil ni romper la carga
+    /// ante variaciones de tipo (`files.futuro: [a, b]`, `dir: {slug}` como *flow
+    /// mapping*, …). Igual que `tracker`, solo interesa su contenido puntual.
+    #[serde(default)]
+    episodes: Option<serde_yaml::Value>,
+}
+
+/// Extrae un escalar de texto de un `Value` YAML (`None` si no es escalar).
+///
+/// La lectura del perfil es **laxa y por clave**: un valor no escalar (secuencia,
+/// mapping, nulo) se trata como **ausente**, nunca como error.
+fn yaml_scalar_str(value: &serde_yaml::Value) -> Option<String> {
+    match value {
+        serde_yaml::Value::String(s) => Some(s.clone()),
+        serde_yaml::Value::Number(n) => Some(n.to_string()),
+        serde_yaml::Value::Bool(b) => Some(b.to_string()),
+        _ => None,
+    }
 }
 
 fn scalar_to_string(value: &serde_yaml::Value) -> String {
@@ -307,6 +351,90 @@ fn absolutize(path: &Path, base_dir: &Path) -> std::io::Result<PathBuf> {
     Ok(normalize_lexically(&base.join(path)))
 }
 
+/// Renderiza una plantilla de material del perfil: `{slug}`, `{n}`, `{n:0Nd}`.
+///
+/// Sustituye `{slug}` por el slug y `{n}` / `{n:0Nd}` por el número (con relleno
+/// opcional a N dígitos). Falta el valor → error tipado; marcador desconocido →
+/// literal. `label` es la etiqueta del episodio para el mensaje de error
+/// (`num_label`).
+pub fn render_material_template(
+    template: &str,
+    slug: Option<&str>,
+    number: Option<u32>,
+    label: &str,
+) -> Result<String, PodtrackError> {
+    let mut out = String::new();
+    let mut i = 0usize;
+    while let Some(rel) = template[i..].find('{') {
+        let open = i + rel;
+        out.push_str(&template[i..open]);
+        match template[open + 1..].find('}') {
+            Some(rel_close) => {
+                let close = open + 1 + rel_close;
+                let marker = &template[open + 1..close];
+                out.push_str(&render_marker(marker, slug, number, label)?);
+                i = close + 1;
+            }
+            None => {
+                // `{` sin cierre: se deja literal el resto.
+                out.push_str(&template[open..]);
+                return Ok(out);
+            }
+        }
+    }
+    out.push_str(&template[i..]);
+    Ok(out)
+}
+
+/// Sustituye **un** marcador (`{…}`) por su valor, o lo deja literal si es
+/// desconocido. Marcadores soportados: `slug`, `n`, `n:0Nd`.
+///
+/// En `n:0Nd`, el ancho `N` debe ser un `usize` **≤ 32**; un ancho no parseable o
+/// mayor se considera marcador **desconocido** y se devuelve literal (evita
+/// reservar una cantidad absurda de memoria en `{n:010000000000d}`).
+fn render_marker(
+    marker: &str,
+    slug: Option<&str>,
+    number: Option<u32>,
+    label: &str,
+) -> Result<String, PodtrackError> {
+    match marker {
+        "slug" => slug
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .ok_or_else(|| PodtrackError::EpisodeWithoutSlug {
+                label: label.to_string(),
+            }),
+        "n" => number
+            .map(|n| n.to_string())
+            .ok_or_else(|| PodtrackError::EpisodeWithoutNumber {
+                label: label.to_string(),
+            }),
+        _ => {
+            // `{n:0Nd}`: `0` + dígitos + `d`. Cualquier otra forma es desconocida.
+            // Un ancho **absurdo** (no parseable a `usize` o `> 32`, p. ej.
+            // `{n:010000000000d}`) también se trata como marcador desconocido, para
+            // no intentar reservar una cantidad disparatada de memoria: se devuelve
+            // literal.
+            if let Some(rest) = marker.strip_prefix("n:")
+                && let Some(inner) = rest.strip_prefix('0')
+                && let Some(digits) = inner.strip_suffix('d')
+                && !digits.is_empty()
+                && digits.chars().all(|c| c.is_ascii_digit())
+                && let Ok(width) = digits.parse::<usize>()
+                && width <= 32
+            {
+                return number.map(|n| format!("{n:0width$}")).ok_or_else(|| {
+                    PodtrackError::EpisodeWithoutNumber {
+                        label: label.to_string(),
+                    }
+                });
+            }
+            Ok(format!("{{{marker}}}"))
+        }
+    }
+}
+
 fn config_dir() -> Option<PathBuf> {
     let base = std::env::var_os("XDG_CONFIG_HOME")
         .filter(|v| !v.is_empty())
@@ -321,7 +449,9 @@ fn config_dir() -> Option<PathBuf> {
 
 #[cfg(test)]
 mod tests {
-    use super::{ResolvedShow, ShowResolver, absolutize, normalize_lexically};
+    use super::{
+        ResolvedShow, ShowResolver, absolutize, normalize_lexically, render_material_template,
+    };
     use crate::error::PodtrackError;
     use std::path::{Path, PathBuf};
 
@@ -331,6 +461,8 @@ mod tests {
             slug: "demo".to_string(),
             name: "Demo".to_string(),
             tracker: PathBuf::from(tracker),
+            scripts_dir: None,
+            presentation: None,
         }
     }
 
@@ -474,6 +606,32 @@ mod tests {
         assert!(
             matches!(err, PodtrackError::ProfileNoTracker { .. }),
             "esperado ProfileNoTracker, obtenido: {err:?}"
+        );
+    }
+
+    #[test]
+    fn render_rellena_el_numero_con_padding() {
+        assert_eq!(
+            render_material_template("episodio-{n:02d}", None, Some(7), "7").expect("render"),
+            "episodio-07"
+        );
+    }
+
+    #[test]
+    fn render_sin_slug_es_error_tipado() {
+        let err = render_material_template("{slug}", None, Some(1), "1").expect_err("sin slug");
+        assert!(
+            matches!(err, PodtrackError::EpisodeWithoutSlug { .. }),
+            "err: {err:?}"
+        );
+    }
+
+    #[test]
+    fn render_sin_numero_es_error_tipado() {
+        let err = render_material_template("{n}", Some("x"), None, "x").expect_err("sin número");
+        assert!(
+            matches!(err, PodtrackError::EpisodeWithoutNumber { .. }),
+            "err: {err:?}"
         );
     }
 
