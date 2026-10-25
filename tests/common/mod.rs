@@ -152,6 +152,8 @@ impl Fixture {
             slug: self.slug.clone(),
             name: self.name.clone(),
             tracker: self.tracker.clone(),
+            scripts_dir: None,
+            presentation: None,
         }
     }
 

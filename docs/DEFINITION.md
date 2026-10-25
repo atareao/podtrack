@@ -103,6 +103,7 @@ Por `date` ascendente; `number` solo desempata. **El número no ordena la parril
 | `list` / `list-range` | lectura | Listado filtrable (`--status`, `--season`, `--last`). Marca no publicados con `*` + leyenda. |
 | `get` | lectura | Detalle de un episodio (por número o slug), con su `slug` y la ruta del material. |
 | `where` | lectura | Ruta del material de guion de un episodio (por slug/número), sin crear nada. |
+| `open` | lectura | Abre la presentación Typst del episodio (por número o slug) con typshow, sin bloquear; `--dry-run` resuelve la ruta sin lanzar. |
 | `add` | escritura | Alta (con o sin número). |
 | `update` | escritura | Cambia estado (`scripted`/`recorded`/`published` — este último solo vía `publish`). |
 | `publish` | escritura | Estampa el número autoritativo y lo congela. |
@@ -114,7 +115,7 @@ Por `date` ascendente; `number` solo desempata. **El número no ordena la parril
 | `migrate-material` | cirugía | Migra el material al layout por slug (colisión-segura; solo no publicados por defecto). |
 | `rebase-references` | cirugía | Reescribe referencias estructurales entre guiones. |
 
-`insert`, `move`, `renumber`, `rename-material`, `backfill-slugs`, `migrate-material` y `rebase-references` aceptan `--dry-run`.
+`insert`, `move`, `renumber`, `rename-material`, `backfill-slugs`, `migrate-material`, `rebase-references` y `open` aceptan `--dry-run`.
 
 ## 7. Contrato de salida
 

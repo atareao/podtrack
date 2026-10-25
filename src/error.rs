@@ -187,6 +187,26 @@ pub enum PodtrackError {
     #[error("ERROR: No se pudo leer el SRT {path}: {reason}")]
     SrtRead { path: String, reason: String },
 
+    /// `open`: el perfil no declara `episodes.scripts.files.presentacion` (exit 2).
+    #[error(
+        "ERROR: El show '{show}' no declara una presentación en el perfil (episodes.scripts.files.presentacion)."
+    )]
+    PresentationNotDeclared { show: String },
+
+    /// `open`: el `.typ` declarado no existe en disco (exit 1).
+    #[error("ERROR: No existe la presentación del episodio '{slug}': {path}")]
+    PresentationNotFound { slug: String, path: PathBuf },
+
+    /// `open`: el lanzador no está en el PATH (exit 1).
+    #[error("ERROR: No se encuentra el lanzador '{launcher}' en el PATH.")]
+    LauncherNotFound { launcher: String },
+
+    /// `open`: el layout necesita `{n}` y el episodio no tiene número (exit 1).
+    #[error(
+        "ERROR: El episodio '{label}' no tiene número; no se puede resolver la ruta de su presentación."
+    )]
+    EpisodeWithoutNumber { label: String },
+
     /// Error de E/S genérico (exit 1).
     #[error("ERROR: {0}")]
     Io(String),
@@ -209,6 +229,8 @@ impl PodtrackError {
             | Self::SrtStageError { .. }
             | Self::SrtNoCues { .. }
             | Self::SrtRead { .. } => 2,
+            // `open`: defecto del esquema del perfil (no declara la presentación).
+            Self::PresentationNotDeclared { .. } => 2,
             // Perfil que no usa tracker.
             Self::ProfileNoTracker { .. } => 3,
             // Uso incorrecto de un subcomando: `argparse` sale con 2.
@@ -276,5 +298,47 @@ mod tests {
             msg.contains("no se pudo resolver la ruta del tracker"),
             "mensaje: {msg}"
         );
+    }
+
+    #[test]
+    fn los_errores_de_open_salen_con_su_codigo_y_mensaje() {
+        let no_declarada = PodtrackError::PresentationNotDeclared {
+            show: "la-era-de-las-distros".into(),
+        };
+        assert_eq!(no_declarada.exit_code(), 2, "defecto de perfil: exit 2");
+        let msg = no_declarada.to_string();
+        assert!(
+            msg.contains("no declara una presentación"),
+            "mensaje: {msg}"
+        );
+
+        let no_existe = PodtrackError::PresentationNotFound {
+            slug: "la-memoria-de-valet".into(),
+            path: PathBuf::from("/x/la-memoria-de-valet/presentacion-la-memoria-de-valet.typ"),
+        };
+        assert_eq!(no_existe.exit_code(), 1);
+        let msg = no_existe.to_string();
+        assert!(
+            msg.contains("No existe la presentación del episodio"),
+            "mensaje: {msg}"
+        );
+        assert!(msg.contains("la-memoria-de-valet"), "mensaje: {msg}");
+
+        let lanzador = PodtrackError::LauncherNotFound {
+            launcher: "typshow".into(),
+        };
+        assert_eq!(lanzador.exit_code(), 1);
+        let msg = lanzador.to_string();
+        assert!(
+            msg.contains("No se encuentra el lanzador"),
+            "mensaje: {msg}"
+        );
+
+        let sin_numero = PodtrackError::EpisodeWithoutNumber {
+            label: "—".into()
+        };
+        assert_eq!(sin_numero.exit_code(), 1);
+        let msg = sin_numero.to_string();
+        assert!(msg.contains("no tiene número"), "mensaje: {msg}");
     }
 }
