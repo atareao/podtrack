@@ -17,11 +17,7 @@ pub fn run(ctx: &Ctx<'_>, target: &str, json_mode: bool) -> Result<Rendered, Pod
         return Ok(Rendered::stdout(json::get_document(ctx, episode)));
     }
 
-    let slug = episode
-        .slug
-        .as_ref()
-        .map(|s| s.as_str().trim().to_string())
-        .unwrap_or_default();
+    let slug = episode.slug_str().unwrap_or_default();
 
     let mut out = String::new();
     out.push_str(&format!("\n  {}\n", "═".repeat(55)));
@@ -43,7 +39,7 @@ pub fn run(ctx: &Ctx<'_>, target: &str, json_mode: bool) -> Result<Rendered, Pod
         out.push_str(&format!(
             "  {:<10} {}\n",
             "Ruta:",
-            ctx.show.scripts_root().join(&slug).display()
+            ctx.show.scripts_root().join(slug).display()
         ));
     }
     out.push_str(&format!("  {}\n\n", "═".repeat(55)));

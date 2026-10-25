@@ -220,6 +220,23 @@ impl Episode {
         };
         (sin_fecha, fecha, number_key)
     }
+
+    /// Slug canónico del episodio: el `slug` **recortado** de espacios envolventes y **no
+    /// vacío**, o `None` si falta o queda vacío.
+    ///
+    /// Es la vía canónica de lectura del slug **en las salidas** (texto de `status`,
+    /// `get`, `where` y documentos `--json`), de modo que texto y JSON exponen el
+    /// **mismo** valor; los caminos de escritura no la usan. Es **defensivo**: el
+    /// cargador (`tracker.rs`) ya garantiza que un episodio
+    /// cargado tiene un slug kebab-case o ninguno.
+    #[must_use]
+    pub fn slug_str(&self) -> Option<&str> {
+        self.slug
+            .as_ref()
+            .map(Slug::as_str)
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+    }
 }
 
 /// Ordena in-place por la clave del dominio (fecha ascendente, número desempate).
@@ -404,5 +421,32 @@ mod tests {
         assert_eq!(slugify("   "), "");
         assert_eq!(slugify("!!!"), "");
         assert_eq!(slugify("MiXeD CaSe"), "mixed-case");
+    }
+
+    #[test]
+    fn slug_str_devuelve_el_slug_recortado_o_nada() {
+        // Camino normal: un slug válido se devuelve tal cual.
+        let mut valido = ep(Some(1), "2026-10-26");
+        valido.slug = Some(Slug::parse("la-memoria-de-valet").expect("slug válido"));
+        assert_eq!(valido.slug_str(), Some("la-memoria-de-valet"));
+
+        // Caja blanca: el `Slug` no valida el `trim`, así que se puede forzar.
+        let mut con_espacios = ep(Some(2), "2026-10-27");
+        con_espacios.slug = Some(Slug(" la-memoria-de-valet ".to_string()));
+        assert_eq!(con_espacios.slug_str(), Some("la-memoria-de-valet"));
+
+        // Sin slug.
+        let sin_slug = ep(Some(3), "2026-10-28");
+        assert_eq!(sin_slug.slug_str(), None);
+
+        // Slug vacío.
+        let mut vacio = ep(Some(4), "2026-10-29");
+        vacio.slug = Some(Slug(String::new()));
+        assert_eq!(vacio.slug_str(), None);
+
+        // Slug de solo espacios.
+        let mut espacios = ep(Some(5), "2026-10-30");
+        espacios.slug = Some(Slug("   ".to_string()));
+        assert_eq!(espacios.slug_str(), None);
     }
 }
