@@ -166,7 +166,7 @@ impl ShowResolver {
     }
 
     fn load(&self, slug: &str, path: &Path) -> Result<ResolvedShow, PodtrackError> {
-        let text = std::fs::read_to_string(path).map_err(|e| PodtrackError::InvalidProfile {
+        let text = std::fs::read_to_string(path).map_err(|e| PodtrackError::ProfileUnreadable {
             slug: slug.to_string(),
             path: path.to_path_buf(),
             reason: e.to_string(),
@@ -201,7 +201,7 @@ impl ShowResolver {
                     // Guarda y resolución miran el mismo valor recortado: un tracker
                     // entrecomillado con espacios resuelve limpio.
                     let tracker = absolutize(Path::new(raw), base_dir).map_err(|e| {
-                        PodtrackError::InvalidProfile {
+                        PodtrackError::ProfileTrackerUnresolvable {
                             slug: slug.to_string(),
                             path: path.to_path_buf(),
                             reason: e.to_string(),
@@ -475,5 +475,34 @@ mod tests {
             matches!(err, PodtrackError::ProfileNoTracker { .. }),
             "esperado ProfileNoTracker, obtenido: {err:?}"
         );
+    }
+
+    #[test]
+    fn un_perfil_ilegible_se_reporta_como_no_leido() {
+        // Un DIRECTORIO con nombre de perfil: `read_to_string` falla con EISDIR
+        // (Is a directory) incluso ejecutando como root, a diferencia de un fichero
+        // sin permisos. Reproduce el fallo de LECTURA (no de contenido).
+        // Por CLI el caso alcanzable es un fichero regular sin permiso de lectura:
+        // un directorio `<slug>.yaml` cae a `ProfileNotFound` porque la cascada
+        // filtra con `is_file()`. Aquí se usa el directorio porque su lectura falla
+        // siempre con EISDIR, incluso como root.
+        let dir = tempfile::TempDir::new().expect("tmp");
+        let path = dir.path().join("directorio.yaml");
+        std::fs::create_dir_all(&path).expect("mkdir directorio.yaml");
+        let resolver = ShowResolver {
+            shows_dir: None,
+            exe_dir: None,
+            config_dir: None,
+            default_slug: "demo".to_string(),
+        };
+        let err = resolver.load("directorio", &path).expect_err("debe fallar");
+        assert!(
+            matches!(err, PodtrackError::ProfileUnreadable { .. }),
+            "err: {err:?}"
+        );
+        assert_eq!(err.exit_code(), 2);
+        let msg = err.to_string();
+        assert!(msg.contains("No se pudo leer el perfil"), "msg: {msg}");
+        assert!(!msg.contains("no es válido"), "msg: {msg}");
     }
 }
