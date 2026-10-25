@@ -41,6 +41,7 @@ Todo se resuelve por show. `--show <slug>` es **obligatorio en todas las invocac
 
 - El perfil vive en `shows/<slug>.yaml`, **junto al binario** (mismo criterio que hoy junto al script), y declara `tracker:` (ruta del YAML de estado), `episodes.*` (generación, layout, temporadas, material) y el nombre del show.
 - La ruta del `tracker:` se resuelve siempre a **absoluta y normalizada léxicamente** (`profile-absolute-paths`): si el perfil la declara absoluta se usa tal cual; si la declara **relativa**, se resuelve contra el **directorio del propio fichero de perfil**. De ahí sale `<scripts.root>` —su directorio padre—, y por tanto las rutas de material de `status`, `get` y `where` también son absolutas, declare el perfil lo que declare.
+- El valor de `tracker:` se interpreta **recortado de espacios envolventes** antes de resolverlo: un `tracker: " /ruta/tracker.yaml "` entrecomillado resuelve a la misma ruta que `tracker: /ruta/tracker.yaml`. Un `tracker:` que quede vacío o valga `none` tras el recorte se trata como ausente (`slug-str-and-tracker-trim`).
 - **Sin `--show`** se usa el show por defecto. En el Python se llama `atareao-con-linux`; aquí debe poder configurarse (ver §9, decisión D1).
 - El esquema del perfil está en `shows/README.md` y **no se reinterpreta**: si el perfil está mal, el binario falla con un error claro, no improvisa.
 
@@ -69,7 +70,7 @@ episodes:
 | Campo | Tipo | Invariante |
 |---|---|---|
 | `number` | `Option<u32>` | `null` mientras no publicado. Provisional (informativo) si el episodio no está publicado; **autoritativo y congelado** si lo está. |
-| `slug` | `Option<Slug>` | kebab-case, identidad estable. **No** participa en el número. |
+| `slug` | `Option<Slug>` | kebab-case, identidad estable. **No** participa en el número. La lectura canónica del slug (texto y `--json`) lo expone recortado y no vacío, o ausente (`slug-str-and-tracker-trim`). |
 | `season` | `u16` | Se deduce de `date` y del calendario de temporadas si falta. |
 | `date` | `Date` | ISO `YYYY-MM-DD`. `TBD` o vacío van al final del orden. |
 | `title` | `String` | Libre. |

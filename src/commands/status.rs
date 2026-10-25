@@ -143,27 +143,16 @@ pub fn next_to_publish_block(
     episode: &crate::model::Episode,
     scripts_root: &std::path::Path,
 ) -> Vec<String> {
-    let slug = episode
-        .slug
-        .as_ref()
-        .map(|s| s.as_str().trim().to_string())
-        .unwrap_or_default();
+    let slug = episode.slug_str().unwrap_or_default();
     let numero = num_label(episode.number);
     let mut lines = vec![
         format!("  ▶ Siguiente a publicar: #{} «{}»", numero, episode.title),
-        format!(
-            "      slug:  {}",
-            if slug.is_empty() {
-                "—"
-            } else {
-                slug.as_str()
-            }
-        ),
+        format!("      slug:  {}", if slug.is_empty() { "—" } else { slug }),
     ];
     if !slug.is_empty() {
         lines.push(format!(
             "      ruta:  {}",
-            scripts_root.join(&slug).display()
+            scripts_root.join(slug).display()
         ));
     }
     lines
