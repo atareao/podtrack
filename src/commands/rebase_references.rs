@@ -73,7 +73,7 @@ pub fn run(
         if slug.is_empty() {
             continue;
         }
-        let folder = root.join(&slug);
+        let folder = ctx.show.material_dir(Some(slug.as_str()), episode.number)?;
         if !folder.is_dir() {
             continue;
         }

@@ -14,10 +14,13 @@ pub fn run(ctx: &Ctx<'_>, target: &str, json_mode: bool) -> Result<Rendered, Pod
         })?;
 
     if json_mode {
-        return Ok(Rendered::stdout(json::get_document(ctx, episode)));
+        return Ok(Rendered::stdout(json::get_document(ctx, episode)?));
     }
 
     let slug = episode.slug_str().unwrap_or_default();
+    // La ruta sale de la **regla única**; sin slug, `ctx.material` ya devuelve
+    // `None` y no se inventa ruta. Un error de layout sí se propaga.
+    let material = ctx.material(episode)?;
 
     let mut out = String::new();
     out.push_str(&format!("\n  {}\n", "═".repeat(55)));
@@ -31,17 +34,13 @@ pub fn run(ctx: &Ctx<'_>, target: &str, json_mode: bool) -> Result<Rendered, Pod
     ));
     out.push_str(&format!("  Fecha:     {}\n", fmt_date(&episode.date)));
     out.push_str(&format!("  Temporada: {}\n", episode.season));
-    if slug.is_empty() {
-        out.push_str(&format!("  {:<10} {}\n", "Slug:", "—"));
-        out.push_str(&format!("  {:<10} {}\n", "Ruta:", "—"));
-    } else {
-        out.push_str(&format!("  {:<10} {}\n", "Slug:", slug));
-        out.push_str(&format!(
-            "  {:<10} {}\n",
-            "Ruta:",
-            ctx.show.scripts_root().join(slug).display()
-        ));
-    }
+    out.push_str(&format!(
+        "  {:<10} {}\n",
+        "Slug:",
+        if slug.is_empty() { "—" } else { slug }
+    ));
+    let ruta = material.map_or_else(|| "—".to_string(), |p| p.display().to_string());
+    out.push_str(&format!("  {:<10} {}\n", "Ruta:", ruta));
     out.push_str(&format!("  {}\n\n", "═".repeat(55)));
     Ok(Rendered::stdout(out))
 }

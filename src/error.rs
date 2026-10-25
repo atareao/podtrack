@@ -207,6 +207,17 @@ pub enum PodtrackError {
     )]
     EpisodeWithoutNumber { label: String },
 
+    /// El perfil declara un `episodes.scripts.dir` que, **renderizado**, escapa de
+    /// la raíz de material: es una ruta **absoluta** o contiene componentes `..`
+    /// (exit 2, error de configuración).
+    ///
+    /// `<scripts_root>` es una frontera de verdad: la carpeta de material nunca
+    /// puede resolverse fuera de ella (spec `show-profile`).
+    #[error(
+        "ERROR: El perfil '{show}' declara episodes.scripts.dir '{dir}': no puede ser una ruta absoluta ni contener '..'."
+    )]
+    MaterialDirNotRelative { show: String, dir: String },
+
     /// Error de E/S genérico (exit 1).
     #[error("ERROR: {0}")]
     Io(String),
@@ -223,6 +234,9 @@ impl PodtrackError {
             | Self::InvalidProfile { .. }
             | Self::ProfileUnreadable { .. }
             | Self::ProfileTrackerUnresolvable { .. } => 2,
+            // Perfil con un layout de material que escapa de la raíz: defecto de
+            // configuración, como el perfil inválido.
+            Self::MaterialDirNotRelative { .. } => 2,
             // `srt-stage`: perfil/SRT/argumentos inválidos (contrato de la fase 4).
             Self::SrtProfileNotFound { .. }
             | Self::SrtProfileUnreadable { .. }
@@ -340,5 +354,18 @@ mod tests {
         assert_eq!(sin_numero.exit_code(), 1);
         let msg = sin_numero.to_string();
         assert!(msg.contains("no tiene número"), "mensaje: {msg}");
+    }
+
+    #[test]
+    fn un_dir_de_material_no_relativo_sale_con_dos_y_nombra_perfil_y_dir() {
+        let err = PodtrackError::MaterialDirNotRelative {
+            show: "la-era-de-las-distros".into(),
+            dir: "/etc".into(),
+        };
+        assert_eq!(err.exit_code(), 2, "defecto de configuración: exit 2");
+        let msg = err.to_string();
+        assert!(msg.contains("la-era-de-las-distros"), "mensaje: {msg}");
+        assert!(msg.contains("/etc"), "mensaje: {msg}");
+        assert!(msg.contains("episodes.scripts.dir"), "mensaje: {msg}");
     }
 }

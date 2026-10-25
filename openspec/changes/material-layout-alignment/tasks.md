@@ -28,20 +28,34 @@
       que `where` salga con código `2` y el mensaje nombre el perfil. Falla hoy (sale con `0`).
 - [ ] 1.6 `cargo test --locked`: 1.1–1.5 FALLAN y **toda** la suite previa permanece VERDE. Que la
       suite previa pase sin editar ningún test existente es criterio de aceptación.
+- [x] 1.7 (hueco de la verificación) `tests/material_layout_alignment.rs`: con una plantilla
+      **numérica** (`episodio-{n:02d}`) y un episodio **sin slug**, la ausencia de slug manda —`get`
+      muestra `—` en `Slug:`/`Ruta:`, `get --json`/`status --json` emiten `material: null`, `status`
+      omite la línea `ruta:` y `where` sale como caso tratado—. Falla hoy en las cuatro superficies
+      JSON/traza (`get`/`status` en texto ya cumplían). Fija la cláusula «sin slug no hay ruta» de
+      `tracker-read`/`json-output`.
 
 ## 2. GREEN (implementación mínima)
 
-- [ ] 2.1 `src/profile.rs`: implementar `material_dir` reutilizando `render_material_template` y
+- [x] 2.1 `src/profile.rs`: implementar `material_dir` reutilizando `render_material_template` y
       aplicando el rechazo de rutas no relativas.
-- [ ] 2.2 `src/commands/where_cmd.rs`, `src/commands/get.rs`, `src/commands/status.rs`: sustituir
+- [x] 2.2 `src/commands/where_cmd.rs`, `src/commands/get.rs`, `src/commands/status.rs`: sustituir
       `scripts_root().join(slug)` por `material_dir(...)`. `next_to_publish_block` cambia de firma
       para recibir la ruta ya resuelta (o el show).
-- [ ] 2.3 `src/json.rs`: los dos puntos que componen la ruta de material usan el helper.
-- [ ] 2.4 `src/commands/rebase_references.rs`: `root.join(&slug)` → `material_dir(...)`.
-- [ ] 2.5 `src/material.rs`: `collect_slug_renames` recibe el destino ya resuelto en vez de cablear
+- [x] 2.3 `src/json.rs`: los dos puntos que componen la ruta de material usan el helper.
+- [x] 2.4 `src/commands/rebase_references.rs`: `root.join(&slug)` → `material_dir(...)`.
+- [x] 2.5 `src/material.rs`: `collect_slug_renames` recibe el destino ya resuelto en vez de cablear
       el slug sobre `root`.
-- [ ] 2.6 `src/commands/open.rs`: pasa a usar `material_dir` sin cambiar su contrato de salida.
-- [ ] 2.7 `cargo test --locked` y `cargo check --locked` en verde.
+- [x] 2.6 `src/commands/open.rs`: pasa a usar `material_dir` sin cambiar su contrato de salida.
+- [x] 2.7 `cargo test --locked` y `cargo check --locked` en verde.
+- [x] 2.8 (hueco de la verificación) `src/commands/mod.rs`: la regla uniforme vive en `Ctx::material`
+      —un episodio **sin slug** no tiene ruta de material (`None`), sea cual sea la plantilla; con
+      slug, delega en `material_dir` y propaga sus errores—. `where` (`where_cmd.rs`) la consume y, si
+      es `None`, devuelve `EpisodeWithoutSlug` (caso tratado, mismo error/código que la línea base);
+      `status.rs::next_to_publish_block` recibe el `Ctx` y usa la misma regla; `get.rs` prescinde de
+      la guarda local. `open.rs` NO se toca (su `EpisodeWithoutSlug` es dependiente de la plantilla).
+      Cláusula de `specs/json-output/spec.md` («`material` … o `null` si el episodio no tiene
+      `slug`») y de `specs/tracker-read/spec.md` («NO SHALL inventarse ninguna ruta de material»).
 
 ## 3. REFACTOR
 

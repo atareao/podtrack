@@ -195,12 +195,16 @@ pub fn slug_component(name: &str, number: u32, slug: &str) -> String {
 ///
 /// Pares (origen, destino) de más profundo a menos, con la carpeta del episodio al
 /// final. El contenido sin número no aparece en el plan: viaja con la carpeta.
+///
+/// El destino de la **carpeta** es el que fija la **regla única** de resolución de
+/// material (`<raíz>/<dir>`), que el llamante pasa ya resuelto (`dest`); los tokens
+/// de **número** de los nombres internos se reescriben al `slug`.
 #[must_use]
-pub fn collect_slug_renames(
-    root: &Path,
+pub fn collect_slug_renames_into(
     src: &Path,
     number: u32,
     slug: &str,
+    dest: &Path,
 ) -> Vec<(PathBuf, PathBuf)> {
     let mut descendants = Vec::new();
     collect_descendants(src, &mut descendants);
@@ -215,8 +219,25 @@ pub fn collect_slug_renames(
             pairs.push((path, parent.join(new_name)));
         }
     }
-    pairs.push((src.to_path_buf(), root.join(slug)));
+    pairs.push((src.to_path_buf(), dest.to_path_buf()));
     pairs
+}
+
+/// Planifica la migración del material `0NNN/` de un episodio a `<raíz>/<slug>`
+/// (compatibilidad con la caracterización de `migration-surgery`).
+///
+/// Es la forma histórica de [`collect_slug_renames_into`] con el destino cableado
+/// a `<root>/<slug>`: la usan los tests de `material_renumber`. La vía de
+/// producción (`migrate-material`) pasa el destino **ya resuelto** por
+/// `ResolvedShow::material_dir`, para que lea y cirugía coincidan.
+#[must_use]
+pub fn collect_slug_renames(
+    root: &Path,
+    src: &Path,
+    number: u32,
+    slug: &str,
+) -> Vec<(PathBuf, PathBuf)> {
+    collect_slug_renames_into(src, number, slug, &root.join(slug))
 }
 
 /// Problemas de destino del plan: destinos existentes o convergentes
