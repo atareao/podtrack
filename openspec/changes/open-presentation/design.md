@@ -56,6 +56,9 @@ La fuente de la presentación se compone así, en este orden:
    **reescrita a `.typ`** (`Path::with_extension("typ")`).
 
 `scripts.root` es, como siempre, el directorio padre del `tracker` resuelto (`ResolvedShow::scripts_root`).
+La clave `episodes.scripts.root` del perfil **no** se consulta: la raíz de material es siempre el
+padre del tracker, por coherencia con `where`/`get` (que resuelven igual). Honrar esa clave en `open`
+haría que dos comandos del mismo binario discreparan sobre dónde vive el material.
 
 ### D2 — Render de plantillas mínimo y explícito
 

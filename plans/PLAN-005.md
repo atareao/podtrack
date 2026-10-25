@@ -81,3 +81,5 @@ material que el binario ya conoce. El Python no tiene `open`: es capacidad **nue
 - Alinear `where`/`get`/`status` con `scripts.dir` (hoy cablean el slug). Deuda preexistente.
 - Material legacy numerado sin migrar (lo arregla `migrate-material`).
 - Override del binario por env/flag (`PODTRACK_TYPSHOW`): el usuario eligió solo PATH.
+- `tests/common/mod.rs::Fixture::show()` fija `scripts_dir: None`/`presentation: None`, así que un futuro test de librería sobre `open::run` con `show()` daría `PresentationNotDeclared` engañoso (el fixture no declara el layout de material).
+- `open` mapea los errores de E/S de `spawn` a `PodtrackError::Io(String)`, perdiendo el `ErrorKind` original; solo el caso `NotFound` (lanzador ausente) se preserva como error tipado.

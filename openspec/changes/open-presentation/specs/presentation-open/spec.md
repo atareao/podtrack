@@ -14,8 +14,11 @@ un episodio a partir del layout de material declarado por el perfil, y su apertu
 `get`/`where`) y SHALL derivar la ruta de la **fuente** de su presentación a partir del layout de
 material del perfil:
 
-- La carpeta SHALL ser `<scripts.root>/<scripts.dir>`, con `scripts.dir` **renderizado**; si el
+- La carpeta SHALL ser `<raíz de material>/<scripts.dir>`, con `scripts.dir` **renderizado**; si el
   perfil no declara `dir`, el binario SHALL asumir `{slug}`.
+- La **raíz de material** SHALL ser el directorio padre del tracker resuelto
+  (`ResolvedShow::scripts_root()`), la misma convención que `where`/`get`; el binario NO SHALL leer
+  la clave `episodes.scripts.root` del perfil (evita divergir de `where`/`get`).
 - El nombre de fichero SHALL derivarse de `episodes.scripts.files.presentacion`, **renderizado**,
   con su extensión **reescrita a `.typ`**.
 - El binario NO SHALL inventar la ruta cuando el perfil no declara `files.presentacion`; en ese
@@ -26,7 +29,7 @@ material del perfil:
 - **AND** un episodio `843` de slug `la-memoria-de-valet`
 - **WHEN** se invoca `open 843`
 - **THEN** la ruta resuelta SHALL ser
-  `<scripts.root>/la-memoria-de-valet/presentacion-la-memoria-de-valet.typ`
+  `<raíz de material>/la-memoria-de-valet/presentacion-la-memoria-de-valet.typ`
 
 #### Scenario: episodio resuelto por slug
 - **GIVEN** el mismo perfil y episodio
@@ -37,7 +40,7 @@ material del perfil:
 - **GIVEN** un perfil con `scripts.dir: "episodio-{n:02d}"` y `files.presentacion: "presentacion-{slug}.typ"`
 - **AND** un episodio de número `7`
 - **WHEN** se invoca `open`
-- **THEN** la carpeta SHALL ser `<scripts.root>/episodio-07/`
+- **THEN** la carpeta SHALL ser `<raíz de material>/episodio-07/`
 
 #### Scenario: el perfil no declara presentación
 - **GIVEN** un perfil cuyo `episodes.scripts.files` no tiene la clave `presentacion`
