@@ -1,9 +1,18 @@
 # Changelog
+## [0.4.2] - 2026-10-25
+
+### Bug Fixes
+
+- *(profile)* Distingue perfil ilegible, mal formado y tracker irresoluble
 ## [0.4.1] - 2026-10-25
 
 ### Bug Fixes
 
 - *(profile)* Recorta el tracker del perfil y unifica la lectura del slug
+
+### Miscellaneous Tasks
+
+- Release v0.4.1
 ## [0.4.0] - 2026-10-25
 
 ### Bug Fixes
