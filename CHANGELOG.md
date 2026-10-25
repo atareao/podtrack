@@ -1,4 +1,19 @@
 # Changelog
+## [0.5.1] - 2026-10-25
+
+### Bug Fixes
+
+- *(material)* Resuelve la carpeta de material con una única regla
+- *(material)* Cierra los hallazgos de la auditoría del change
+
+### Documentation
+
+- Sincronizar SRS y Git Flow con el estado real
+- Cierra PLAN-006 (migración del material legacy a slug)
+- *(spec)* Aprueba el change material-layout-alignment
+- *(definicion)* Documenta la regla única de la carpeta de material
+- *(spec)* Archiva material-layout-alignment
+- *(plan)* Cierra el plan del change material-layout-alignment
 ## [0.5.0] - 2026-10-25
 
 ### Bug Fixes
@@ -14,6 +29,10 @@
 ### Features
 
 - *(open)* Open an episode's Typst presentation with typshow
+
+### Miscellaneous Tasks
+
+- Release v0.5.0
 
 ### Testing
 
