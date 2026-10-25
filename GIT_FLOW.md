@@ -120,7 +120,6 @@ git commit -m "🎨 style: apply formatting"
 
 - Un plan por trabajo en `plans/PLAN-NNN.md`; al terminar `plans/PLAN-NNN-COMPLETED.md`, si se aparca `plans/PLAN-NNN-PENDING.md`.
 - Automatizado en el `.justfile`: `just plans`, `just plan-new`, `just plan-done N` y `just plan-pending N`.
-- Convención completa: [AGENTS.md](./AGENTS.md).
 
 ## Resumen visual
 
