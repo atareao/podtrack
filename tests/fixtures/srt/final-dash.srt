@@ -1,0 +1,11 @@
+1
+00:00:00,000 --> 00:00:25,880
+-
+
+2
+00:00:25,880 --> 00:00:30,680
+Te doy la bienvenida al episodio número 2 de la era de las distros, un podcast donde
+
+3
+00:00:30,680 --> 00:00:35,160
+desgranamos la aventura del software libre en España.

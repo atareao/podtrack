@@ -2,5 +2,38 @@
 name = "podtrack"
 version = "0.1.0"
 edition = "2024"
+publish = false
+
+[lib]
+name = "podtrack"
+path = "src/lib.rs"
+
+[[bin]]
+name = "podtrack"
+path = "src/main.rs"
 
 [dependencies]
+# CLI y serialización (rangos resueltos contra la caché local de ~/.cargo/registry).
+clap = { version = "4.6", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# serde_yaml está deprecada, pero es la única disponible en caché; se usa SOLO
+# para LEER el tracker/perfil (el writer canónico del tracker se escribe a mano: D1).
+serde_yaml = "0.9"
+# Fechas: se elige `chrono` por su ergonomía para `weekday`, `Local::now()` y el
+# parseo/formateo `%Y-%m-%d`, que el port necesita reproducir sin ceremonia.
+chrono = "0.4"
+# Normalización Unicode NFKD para `slugify` (paridad con `unicodedata.normalize`).
+unicode-normalization = "0.1"
+# Reconocimiento de los hooks «Próximo episodio» y de la prosa numérica
+# (`rebase-references`), con los mismos patrones que el oráculo.
+regex = "1"
+# Localización de los SRT de un episodio con `episodes.srt_glob` (`srt-stage`).
+glob = "0.3"
+anyhow = "1.0"
+thiserror = "2.0"
+
+[dev-dependencies]
+assert_cmd = "2.2"
+predicates = "3.1"
+tempfile = "3.27"

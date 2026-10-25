@@ -1,0 +1,11 @@
+slug: emptyintro
+name: Show con intro vacío
+episodes:
+  root: @@ROOT@@
+  srt_glob: "*.srt"
+  srt_stages:
+    order: [x]
+    x:
+      detect: starts_with_intro
+      intro_pattern: ""
+tracker: none

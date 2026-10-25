@@ -1,0 +1,10 @@
+slug: bad
+name: Show con detect desconocido
+episodes:
+  root: @@ROOT@@
+  srt_glob: "*.srt"
+  srt_stages:
+    order: [x]
+    x:
+      detect: inventado
+tracker: none

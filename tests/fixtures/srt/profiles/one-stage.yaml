@@ -1,0 +1,12 @@
+slug: one
+name: Show de una etapa
+episodes:
+  root: @@ROOT@@
+  srt_glob: "*.srt"
+  srt_stages:
+    order: [final]
+    final:
+      label: "SRT final"
+      detect: any
+      deliverables: [chapters]
+tracker: none

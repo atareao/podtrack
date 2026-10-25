@@ -13,23 +13,27 @@ El producto tiene **dos objetivos en tensión**, y este SRS los ordena:
 
 La paridad manda. La modernización no puede romper a ningún consumidor.
 
+**El objetivo final es desterrar Python.** El script `podcast-tracker.py` es el *andaime* que garantiza la paridad durante la migración, y su destino es **ser borrado** junto con su suite, en cuanto el binario lo sustituya por completo. Un podtrack que conviva para siempre con el Python es un fracaso del proyecto. El binario absorbe también la **clasificación de etapas del SRT** (`srt-stage.py`), para que la skill del podcast pueda quedarse sin un solo fichero Python (fase `srt-stage`).
+
 ### Qué NO es
 
 - No es un cliente de podcasts: no hay feeds, descargas ni reproducción (eso es `podcli`).
 - No es un generador de web ni de feeds (eso es `aopodcast` / `iapodcast`).
 - No produce contenido: no escribe guiones, artículos ni descripciones. Solo gobierna **metadatos y layout**.
 
-## 2. Fuentes de verdad (oráculo)
+## 2. Fuentes de verdad durante el port (andaime a derribar)
+
+> Estas fuentes son **temporales**: se consultan para *portar*, no para *depender*. Cuando el port esté completo y los agentes conmutados, `podcast-tracker.py` y `podcast-tracker.test.py` se borran (§12).
 
 | Fuente | Rango |
 |---|---|
-| `~/.agents/skills/podcast-srt/podcast-tracker.py` | **Oráculo supremo.** Salida, exit codes, formato YAML, invariantes. |
+| `~/.agents/skills/podcast-srt/podcast-tracker.py` | **Oráculo supremo *mientras dure el port*.** Salida, exit codes, formato YAML, invariantes. **Se borra al terminar.** |
 | `~/.agents/skills/podcast-srt/podcast-tracker.test.py` | ~119 escenarios → se portan 1:1 como tests de integración de paridad. |
 | `~/.agents/openspec/specs/{episode-identity,episode-material-layout,episode-scheduling}/spec.md` | Capacidades del dominio ya especificadas. |
 | `~/.agents/skills/podcast-srt/shows/README.md` | Esquema canónico del perfil de show. |
 | `~/.agents/skills/podcast-srt/SKILL.md` | Documentación de subcomandos. |
 
-**Ante cualquier ambigüedad, decide el Python.** Cuando el port decida *de otra forma* a propósito, se documenta como decisión explícita (§9) y se marca en el spec como divergencia deliberada.
+**Ante cualquier ambigüedad *durante el port*, decide el Python.** Cuando el port decida *de otra forma* a propósito, se documenta como decisión explícita (§9) y se marca en el spec como divergencia deliberada. Pasado el port, la fuente de verdad es el propio podtrack (y sus specs de OpenSpec).
 
 ## 3. Multi-show y resolución del perfil
 
@@ -155,7 +159,7 @@ Esto elimina el mayor riesgo de un port a Rust (que `serde_yaml` reordene claves
 
 - **No** se toca el material de guion ni el contenido del tracker durante el port (los tests corren sobre fixtures temporales; jamás sobre `/data/notas`).
 - **No** se reescribe el esquema del perfil de show.
-- **No** se reapuntan los agentes hasta que las tres fases estén verdes.
+- **No** se reapuntan los agentes hasta que las tres primeras fases estén verdes.
 - **No** se publica el crate (`publish = false` hasta que merezca la pena).
 - **No** hay TUI ni servidor: solo CLI.
 
@@ -166,3 +170,25 @@ Esto elimina el mayor riesgo de un port a Rust (que `serde_yaml` reordene claves
 3. `--json` produce JSON válido y estable, sin afectar a la salida por defecto.
 4. `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test` y `cargo doc` limpios.
 5. Ningún test ni ejecución real toca `/data/notas`.
+
+## 12. Retirada de Python (fase `retire-python`)
+
+El port no termina cuando el binario funciona: termina cuando **no queda Python**. El objetivo es **Python cero** en `~/.agents/skills/podcast-srt/`.
+
+La skill tiene hoy exactamente tres ficheros Python, y **los tres caen**:
+
+| Fichero | Lo sustituye | Fase de port |
+|---|---|---|
+| `podcast-tracker.py` | los subcomandos de la parrilla | `bootstrap-core` + `write-commands` + `migration-surgery` |
+| `podcast-tracker.test.py` | la suite de paridad del binario | `bootstrap-core` (port) |
+| `srt-stage.py` | el subcomando de clasificación de etapas del SRT | `srt-stage` |
+
+Pasos de la fase:
+
+1. Portar `srt-stage.py` al binario (fase `srt-stage`) con paridad de contrato, antes de tocar nada.
+2. Conmutar el `SKILL.md` de `podcast-srt` y los agentes que hoy invocan los scripts (planificador, coordinador, procesador de capítulos y notas, como mínimo) para llamar a `podtrack`.
+3. Verificar en producción un ciclo completo (una publicación real) sin Python.
+4. **Borrar** los tres `.py`, limpiar `__pycache__`/`.ruff_cache` y la configuración huérfana de `pytest`/`ruff`.
+5. Dejar constancia en `~/.agents/openspec` de que las capacidades pasaron al binario.
+
+**Criterio de cierre:** `grep -r '\.py' ~/.agents/skills/podcast-srt/` no devuelve nada.
