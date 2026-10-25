@@ -98,7 +98,7 @@ Por `date` ascendente; `number` solo desempata. **El número no ordena la parril
 | `next` | lectura | Hueco provisional («Siguiente episodio») y número autoritativo («Próximo a publicar»). |
 | `next-date` | lectura | Próxima fecha publicable. |
 | `list` / `list-range` | lectura | Listado filtrable (`--status`, `--season`, `--last`). Marca no publicados con `*` + leyenda. |
-| `get` | lectura | Detalle de un episodio (por número o slug). |
+| `get` | lectura | Detalle de un episodio (por número o slug), con su `slug` y la ruta del material. |
 | `where` | lectura | Ruta del material de guion de un episodio (por slug/número), sin crear nada. |
 | `add` | escritura | Alta (con o sin número). |
 | `update` | escritura | Cambia estado (`scripted`/`recorded`/`published` — este último solo vía `publish`). |

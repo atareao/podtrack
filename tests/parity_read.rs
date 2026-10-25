@@ -147,6 +147,136 @@ fn get_cli_por_slug() {
 }
 
 #[test]
+fn get_muestra_slug_y_ruta_del_material() {
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["get", "200"]);
+
+    // `Slug:` y `Ruta:` arrancan en la misma columna que el valor de `Título:`
+    // (etiqueta de 10 + un espacio, tras la sangría de 2).
+    let esperado_slug = format!("  {:<10} {}", "Slug:", "primer-episodio");
+    assert!(
+        out.lines().any(|l| l == esperado_slug.as_str()),
+        "falta `Slug:` alineado; salida:\n{out}"
+    );
+
+    let esperado_ruta = format!(
+        "  {:<10} {}",
+        "Ruta:",
+        fx.root.join("primer-episodio").display()
+    );
+    assert!(
+        out.lines().any(|l| l == esperado_ruta.as_str()),
+        "falta `Ruta:` con la ruta absoluta del material; salida:\n{out}"
+    );
+}
+
+#[test]
+fn get_conserva_las_cinco_lineas_existentes() {
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["get", "200"]);
+
+    assert!(out.contains("  Episodio #200"), "salida:\n{out}");
+    assert!(out.contains("  Título:    Primero"), "salida:\n{out}");
+    assert!(out.contains("  Estado:    ✅ published"), "salida:\n{out}");
+    assert!(out.contains("  Fecha:     2025-09-04"), "salida:\n{out}");
+    assert!(out.contains("  Temporada: 8"), "salida:\n{out}");
+}
+
+#[test]
+fn get_sin_slug_muestra_guion_en_slug_y_ruta() {
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["get", "202"]);
+
+    let esperado_slug = format!("  {:<10} {}", "Slug:", "—");
+    assert!(
+        out.lines().any(|l| l == esperado_slug.as_str()),
+        "falta `Slug: —`; salida:\n{out}"
+    );
+
+    let esperado_ruta = format!("  {:<10} {}", "Ruta:", "—");
+    assert!(
+        out.lines().any(|l| l == esperado_ruta.as_str()),
+        "falta `Ruta: —`; salida:\n{out}"
+    );
+
+    // No se inventa ninguna ruta de material para un episodio sin slug.
+    assert!(
+        !out.contains(&fx.root.display().to_string()),
+        "no debe inventarse ruta; salida:\n{out}"
+    );
+}
+
+#[test]
+fn get_muestra_la_ruta_unque_el_material_no_exista() {
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    assert!(!fx.root.join("primer-episodio").exists());
+
+    let out = common::run_ok(&fx, &["get", "200"]);
+    assert!(
+        out.contains(&fx.root.join("primer-episodio").display().to_string()),
+        "salida:\n{out}"
+    );
+    // `get` describe; no crea el directorio (eso es `where`, que además informa de la existencia).
+    assert!(!fx.root.join("primer-episodio").exists());
+}
+
+#[test]
+fn get_por_slug_muestra_slug_y_ruta() {
+    // El escenario «se resuelve por slug» de la spec se verifica resolviendo por
+    // slug (no por número).
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["get", "primer-episodio"]);
+
+    let esperado_slug = format!("  {:<10} {}", "Slug:", "primer-episodio");
+    assert!(
+        out.lines().any(|l| l == esperado_slug.as_str()),
+        "falta `Slug:` alineado al resolver por slug; salida:\n{out}"
+    );
+
+    let esperado_ruta = format!(
+        "  {:<10} {}",
+        "Ruta:",
+        fx.root.join("primer-episodio").display()
+    );
+    assert!(
+        out.lines().any(|l| l == esperado_ruta.as_str()),
+        "falta `Ruta:` alineada al resolver por slug; salida:\n{out}"
+    );
+}
+
+#[test]
+fn get_coloca_slug_y_ruta_entre_temporada_y_el_cierre() {
+    // No basta con que las líneas existan: deben ir *después* de `Temporada:` y
+    // *antes* del separador `═` de cierre.
+    let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["get", "200"]);
+    let lines: Vec<&str> = out.lines().collect();
+
+    let idx = |etiqueta: &str| {
+        lines
+            .iter()
+            .position(|l| l.trim_start().starts_with(etiqueta))
+    };
+    let temporada = idx("Temporada:").expect("línea `Temporada:`");
+    let slug = idx("Slug:").expect("línea `Slug:`");
+    let ruta = idx("Ruta:").expect("línea `Ruta:`");
+    let cierre = lines
+        .iter()
+        .rposition(|l| l.contains('═'))
+        .expect("separador de cierre");
+
+    assert!(
+        temporada < slug,
+        "Slug: debe ir tras Temporada:; salida:\n{out}"
+    );
+    assert!(slug < ruta, "Ruta: debe ir tras Slug:; salida:\n{out}");
+    assert!(
+        ruta < cierre,
+        "Ruta: debe ir antes del cierre; salida:\n{out}"
+    );
+}
+
+#[test]
 fn where_imprime_ruta_y_existencia() {
     let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
     std::fs::create_dir_all(fx.root.join("sin-numero")).expect("mkdir");
