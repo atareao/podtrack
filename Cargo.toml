@@ -1,6 +1,6 @@
 [package]
 name = "podtrack"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 description = "Tracker de la parrilla y del ciclo de vida de los episodios de un podcast: parrilla, material de guion y clasificacion de etapas del SRT."
 authors = ["Lorenzo Carbonell <lorenzo.carbonell.cerezo@gmail.com>"]

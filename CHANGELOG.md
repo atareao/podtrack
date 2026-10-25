@@ -1,4 +1,13 @@
 # Changelog
+## [0.4.0] - 2026-10-25
+
+### Bug Fixes
+
+- *(profile)* Resuelve el tracker del perfil a una ruta absoluta
+
+### Features
+
+- *(get)* Muestra el slug y la ruta del material del episodio
 ## [0.3.0] - 2026-10-25
 
 ### Documentation
@@ -8,6 +17,10 @@
 ### Features
 
 - *(update)* `--title` cambia el título del episodio (#13)
+
+### Miscellaneous Tasks
+
+- Release v0.3.0
 ## [0.2.1] - 2026-10-25
 
 ### Bug Fixes
