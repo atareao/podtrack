@@ -190,14 +190,17 @@ impl ShowResolver {
             }),
             Some(value) => {
                 let raw = scalar_to_string(&value);
-                if raw.trim().is_empty() || raw.trim().eq_ignore_ascii_case("none") {
+                let raw = raw.trim();
+                if raw.is_empty() || raw.eq_ignore_ascii_case("none") {
                     Err(PodtrackError::ProfileNoTracker {
                         name,
                         slug: slug.to_string(),
                     })
                 } else {
                     let base_dir = path.parent().unwrap_or_else(|| Path::new(""));
-                    let tracker = absolutize(Path::new(&raw), base_dir).map_err(|e| {
+                    // Guarda y resolución miran el mismo valor recortado: un tracker
+                    // entrecomillado con espacios resuelve limpio.
+                    let tracker = absolutize(Path::new(raw), base_dir).map_err(|e| {
                         PodtrackError::InvalidProfile {
                             slug: slug.to_string(),
                             path: path.to_path_buf(),
@@ -319,6 +322,7 @@ fn config_dir() -> Option<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::{ResolvedShow, ShowResolver, absolutize, normalize_lexically};
+    use crate::error::PodtrackError;
     use std::path::{Path, PathBuf};
 
     /// `ResolvedShow` de conveniencia con un `tracker` ya resuelto.
@@ -417,5 +421,59 @@ mod tests {
             dir.path().join("guiones/podcast-tracker.yaml")
         );
         assert_eq!(resolved.scripts_root(), dir.path().join("guiones"));
+    }
+
+    #[test]
+    fn load_recorta_el_tracker_entrecomillado_con_espacios() {
+        // YAML preserva los espacios de un escalar entrecomillado: el `trim`
+        // de la guarda y la resolución deben usar la MISMA cadena recortada.
+        let dir = tempfile::TempDir::new().expect("tmp");
+        let shows = dir.path().join("shows");
+        std::fs::create_dir_all(&shows).expect("mkdir");
+        let profile = shows.join("demo.yaml");
+        std::fs::write(
+            &profile,
+            "name: Demo\ntracker: \" /data/notas/Podcasts/guiones/podcast-tracker.yaml \"\n",
+        )
+        .expect("write profile");
+
+        let resolver = ShowResolver {
+            shows_dir: Some(shows),
+            exe_dir: None,
+            config_dir: None,
+            default_slug: "demo".to_string(),
+        };
+        let resolved = resolver.resolve(Some("demo")).expect("resolve");
+        assert_eq!(
+            resolved.tracker,
+            Path::new("/data/notas/Podcasts/guiones/podcast-tracker.yaml")
+        );
+        assert_eq!(
+            resolved.scripts_root(),
+            Path::new("/data/notas/Podcasts/guiones")
+        );
+    }
+
+    #[test]
+    fn un_tracker_de_solo_espacios_es_ausente() {
+        let dir = tempfile::TempDir::new().expect("tmp");
+        let shows = dir.path().join("shows");
+        std::fs::create_dir_all(&shows).expect("mkdir");
+        let profile = shows.join("demo.yaml");
+        std::fs::write(&profile, "name: Demo\ntracker: \"   \"\n").expect("write profile");
+
+        let resolver = ShowResolver {
+            shows_dir: Some(shows),
+            exe_dir: None,
+            config_dir: None,
+            default_slug: "demo".to_string(),
+        };
+        let err = resolver
+            .resolve(Some("demo"))
+            .expect_err("un tracker de solo espacios es ausente");
+        assert!(
+            matches!(err, PodtrackError::ProfileNoTracker { .. }),
+            "esperado ProfileNoTracker, obtenido: {err:?}"
+        );
     }
 }

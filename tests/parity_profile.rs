@@ -433,3 +433,31 @@ fn tracker_absoluto_limpio_se_conserva_identico() {
         )
     );
 }
+
+#[test]
+fn tracker_entrecomillado_con_espacios_se_recorta() {
+    // YAML preserva los espacios de un escalar entrecomillado: la resolución debe
+    // usar la MISMA cadena recortada que la guarda, sin espacios envolventes.
+    let tmp = TempDir::new().expect("tmp");
+    let shows = tmp.path().join("shows");
+    write_profile(
+        &shows,
+        "demo",
+        "slug: demo\nname: Demo\ntracker: \" /data/notas/Podcasts/guiones/podcast-tracker.yaml \"\n",
+    );
+    let resolver = ShowResolver {
+        shows_dir: Some(shows),
+        exe_dir: None,
+        config_dir: None,
+        default_slug: "demo".to_string(),
+    };
+    let resolved = resolver.resolve(Some("demo")).expect("resolve");
+    assert_eq!(
+        resolved.tracker,
+        std::path::Path::new("/data/notas/Podcasts/guiones/podcast-tracker.yaml")
+    );
+    assert_eq!(
+        resolved.scripts_root(),
+        std::path::Path::new("/data/notas/Podcasts/guiones")
+    );
+}

@@ -39,10 +39,10 @@ pub fn status_document(ctx: &Ctx<'_>) -> String {
     let next_to_publish = next_ep.map(|ep| {
         json!({
             "number": ep.number,
-            "slug": ep.slug.as_ref().map(|s| s.as_str()),
+            "slug": ep.slug_str(),
             "date": ep.date.to_iso(),
-            "material": ep.slug.as_ref().map(|s| {
-                ctx.show.scripts_root().join(s.as_str()).display().to_string()
+            "material": ep.slug_str().map(|s| {
+                ctx.show.scripts_root().join(s).display().to_string()
             }),
         })
     });
@@ -67,7 +67,7 @@ pub fn status_document(ctx: &Ctx<'_>) -> String {
             "next_number": next_free_number(tracker),
             "last_published": last.map(|ep| json!({
                 "number": ep.number,
-                "slug": ep.slug.as_ref().map(|s| s.as_str()),
+                "slug": ep.slug_str(),
                 "date": ep.date.to_iso(),
             })),
             "next_to_publish": next_to_publish,
@@ -143,13 +143,9 @@ pub fn get_document(ctx: &Ctx<'_>, episode: &Episode) -> String {
     // compartido `episode_fields` (lo usan `list`, `list-range` y los comandos de
     // escritura). Al trabajar sobre el mapa directamente, la clave no puede
     // descartarse en silencio.
-    let material = episode.slug.as_ref().map(|s| {
-        ctx.show
-            .scripts_root()
-            .join(s.as_str().trim())
-            .display()
-            .to_string()
-    });
+    let material = episode
+        .slug_str()
+        .map(|s| ctx.show.scripts_root().join(s).display().to_string());
     let mut fields = episode_fields(episode);
     fields.insert("material".to_string(), json!(material));
     document(&ctx.show.slug, json!({ "episode": Value::Object(fields) }))
@@ -163,7 +159,7 @@ pub fn where_document(ctx: &Ctx<'_>, episode: &Episode, folder: &Path) -> String
         json!({
             "episode": {
                 "number": episode.number,
-                "slug": episode.slug.as_ref().map(|s| s.as_str()),
+                "slug": episode.slug_str(),
             },
             "material": folder.display().to_string(),
             "exists": folder.exists(),
@@ -402,10 +398,7 @@ pub fn srt_stage_document(show: &str, results: &[Value], expect: Option<&str>, o
 fn episode_fields(episode: &Episode) -> serde_json::Map<String, Value> {
     let mut fields = serde_json::Map::new();
     fields.insert("number".to_string(), json!(episode.number));
-    fields.insert(
-        "slug".to_string(),
-        json!(episode.slug.as_ref().map(|s| s.as_str())),
-    );
+    fields.insert("slug".to_string(), json!(episode.slug_str()));
     fields.insert("season".to_string(), json!(episode.season));
     fields.insert("date".to_string(), json!(episode.date.to_iso()));
     fields.insert("title".to_string(), json!(episode.title));
