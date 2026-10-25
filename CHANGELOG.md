@@ -1,4 +1,13 @@
 # Changelog
+## [0.2.0] - 2026-10-25
+
+### Documentation
+
+- *(openspec)* Archiva el change status-upcoming-window
+
+### Features
+
+- *(status)* Ventana de último publicado + 7 próximos (#9)
 ## [0.1.0] - 2026-10-25
 
 ### Documentation
@@ -24,3 +33,4 @@
 - Initialize OpenSpec (SDD)
 - Release v0.1.0
 - Metadatos de publicación y habilita el crate en crates.io (#7)
+- Release v0.1.0
