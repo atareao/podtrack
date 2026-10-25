@@ -1,9 +1,33 @@
 # Changelog
+## [0.5.0] - 2026-10-25
+
+### Bug Fixes
+
+- *(profile)* Read episodes.scripts laxly and harden open
+
+### Documentation
+
+- Add open-presentation change proposal and PLAN-005
+- Clarify material root and document the open subcommand
+- Archive open-presentation and close PLAN-005
+
+### Features
+
+- *(open)* Open an episode's Typst presentation with typshow
+
+### Testing
+
+- *(open)* Add failing RED tests for open-presentation
+- *(open)* Cover launcher-missing, default dir, json and dir-by-number
 ## [0.4.2] - 2026-10-25
 
 ### Bug Fixes
 
 - *(profile)* Distingue perfil ilegible, mal formado y tracker irresoluble
+
+### Miscellaneous Tasks
+
+- Release v0.4.2
 ## [0.4.1] - 2026-10-25
 
 ### Bug Fixes
