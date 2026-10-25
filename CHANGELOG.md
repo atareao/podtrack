@@ -22,3 +22,5 @@
 - Prepare release tooling
 - Add CI and release pipelines
 - Initialize OpenSpec (SDD)
+- Release v0.1.0
+- Metadatos de publicación y habilita el crate en crates.io (#7)
