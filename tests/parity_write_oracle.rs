@@ -185,13 +185,19 @@ fn oraculo_publish() {
 }
 
 // ─── insert ─────────────────────────────────────────────────────────
+//
+// Nota (change `insert-derives-slug`): `insert` ahora deriva el `slug` del título
+// cuando falta `--slug`, cosa que el oráculo (retirado) no hacía. Para seguir
+// contrastando lo que el oráculo SÍ reproduce —desplazamiento de números, fechas
+// y material—, estos casos fijan `--slug` explícito. La derivación se cubre con
+// pruebas de fixture en `parity_write.rs`.
 
 #[test]
 fn oraculo_insert() {
     assert_case(
         MINI_YAML,
         &[
-            "--show", "demo", "insert", "--before", "101", "--title", "Nuevo",
+            "--show", "demo", "insert", "--before", "101", "--title", "Nuevo", "--slug", "nuevo",
         ],
     );
     assert_case(
@@ -204,13 +210,15 @@ fn oraculo_insert() {
             "101",
             "--title",
             "Nuevo",
+            "--slug",
+            "nuevo",
             "--dry-run",
         ],
     );
     assert_case(
         MINI_YAML,
         &[
-            "--show", "demo", "insert", "--before", "999", "--title", "Nuevo",
+            "--show", "demo", "insert", "--before", "999", "--title", "Nuevo", "--slug", "nuevo",
         ],
     );
     assert_case(
@@ -223,6 +231,8 @@ fn oraculo_insert() {
             "101",
             "--title",
             "Nuevo",
+            "--slug",
+            "nuevo",
             "--date",
             "2026-09-08",
         ],
@@ -237,7 +247,7 @@ fn oraculo_insert_material_anidado() {
     assert_case_with(
         MINI_YAML,
         &[
-            "--show", "demo", "insert", "--before", "101", "--title", "Nuevo",
+            "--show", "demo", "insert", "--before", "101", "--title", "Nuevo", "--slug", "nuevo",
         ],
         &|fx| {
             common::build_nested_material(&fx.root, 101);

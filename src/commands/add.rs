@@ -3,8 +3,8 @@
 use crate::commands::{Ctx, Rendered, bytes_to_string, save_quiet};
 use crate::error::PodtrackError;
 use crate::json;
-use crate::model::{Date, Episode, Slug, Status, slugify, weekday_es};
-use crate::tracker::{Tracker, calc_next_date, next_free_number, save_tracker};
+use crate::model::{Date, Episode, Slug, Status, slugify, unique_slug, weekday_es};
+use crate::tracker::{calc_next_date, next_free_number, save_tracker};
 
 use chrono::Datelike;
 
@@ -55,26 +55,6 @@ fn parse_number(value: &str) -> Result<u32, PodtrackError> {
     })
 }
 
-/// Slug libre a partir de `base`, sufijando `-2`, `-3`, … si colisiona (`_unique_slug`).
-fn unique_slug(tracker: &Tracker, base: &str) -> String {
-    let used: Vec<&str> = tracker
-        .episodes
-        .iter()
-        .filter_map(|e| e.slug.as_ref().map(Slug::as_str))
-        .collect();
-    if !used.contains(&base) {
-        return base.to_string();
-    }
-    let mut suffix = 2u32;
-    loop {
-        let candidate = format!("{base}-{suffix}");
-        if !used.contains(&candidate.as_str()) {
-            return candidate;
-        }
-        suffix += 1;
-    }
-}
-
 /// Ejecuta `add`.
 pub fn run(ctx: &Ctx<'_>, params: &AddParams, json_mode: bool) -> Result<Rendered, PodtrackError> {
     let tracker = ctx.tracker;
@@ -99,7 +79,13 @@ pub fn run(ctx: &Ctx<'_>, params: &AddParams, json_mode: bool) -> Result<Rendere
             if derived.is_empty() {
                 None
             } else {
-                Some(Slug::parse(&unique_slug(tracker, &derived))?)
+                Some(Slug::parse(&unique_slug(
+                    tracker
+                        .episodes
+                        .iter()
+                        .filter_map(|e| e.slug.as_ref().map(Slug::as_str)),
+                    &derived,
+                ))?)
             }
         }
     };

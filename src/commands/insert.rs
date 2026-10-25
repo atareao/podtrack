@@ -7,7 +7,7 @@ use crate::commands::{Ctx, DRY_RUN_LINE, Rendered, save_quiet};
 use crate::error::PodtrackError;
 use crate::json;
 use crate::material::{apply_renames, plan_number_renames, relative};
-use crate::model::{Date, Episode, Slug, Status, next_slot, parse_iso};
+use crate::model::{Date, Episode, Slug, Status, next_slot, parse_iso, slugify, unique_slug};
 use crate::tracker::save_tracker;
 
 /// Parámetros de `insert`.
@@ -115,7 +115,22 @@ pub fn run(
         number: Some(params.before),
         slug: match params.slug.as_deref().filter(|s| !s.is_empty()) {
             Some(slug) => Some(Slug::parse(slug)?),
-            None => None,
+            None => {
+                // Sin `--slug`, se deriva del título como en `add`: el material se
+                // direcciona por slug y un episodio insertado sin él es intrabajable.
+                let derived = slugify(&params.title);
+                if derived.is_empty() {
+                    None
+                } else {
+                    Some(Slug::parse(&unique_slug(
+                        tracker
+                            .episodes
+                            .iter()
+                            .filter_map(|e| e.slug.as_ref().map(Slug::as_str)),
+                        &derived,
+                    ))?)
+                }
+            }
         },
         season: tracker.episodes[target_index].season,
         date: Date::parse(&new_date),
