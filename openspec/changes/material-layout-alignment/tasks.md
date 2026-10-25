@@ -92,14 +92,14 @@
 
 ## 4. Auditoría y verificación end-to-end
 
-- [ ] 4.1 Auditoría con `rust-reviewer`; cerrar hallazgos.
-- [ ] 4.2 Binario real: con el perfil de `atareao-con-linux`, `where`, `get` y `status` siguen dando
+- [x] 4.1 Auditoría con `rust-reviewer`; cerrar hallazgos.
+- [x] 4.2 Binario real: con el perfil de `atareao-con-linux`, `where`, `get` y `status` siguen dando
       exactamente la misma ruta que antes del change.
-- [ ] 4.3 `where --json` y `get --json` sin cambios para `dir: "{slug}"`.
+- [x] 4.3 `where --json` y `get --json` sin cambios para `dir: "{slug}"`.
 
 ## 5. Documentación y cierre
 
-- [ ] 5.1 `docs/DEFINITION.md` §6: anotar que la carpeta de material sale de `scripts.dir`
+- [x] 5.1 `docs/DEFINITION.md` §6: anotar que la carpeta de material sale de `scripts.dir`
       renderizado, no del slug cableado.
 - [ ] 5.2 `just spec-archive material-layout-alignment`.
 - [ ] 5.3 Cerrar el plan correspondiente.

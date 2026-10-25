@@ -112,10 +112,25 @@ Por `date` ascendente; `number` solo desempata. **El número no ordena la parril
 | `renumber` | cirugía | Renumera un rango con delta. |
 | `rename-material` | cirugía | Renombra el material derivado (`0NNN`/`NNN`/`eNNN`/`episodio-NNN`) tras renumerar. |
 | `backfill-slugs` | cirugía | Rellena `slug` donde falte. |
-| `migrate-material` | cirugía | Migra el material al layout por slug (colisión-segura; solo no publicados por defecto). |
-| `rebase-references` | cirugía | Reescribe referencias estructurales entre guiones. |
+| `migrate-material` | cirugía | Migra el material a la carpeta de la regla única del perfil (por defecto, `{slug}`) (colisión-segura; solo no publicados por defecto). |
+| `rebase-references` | cirugía | Reescribe referencias estructurales entre guiones. Resuelve la carpeta con la regla única y salta los episodios sin carpeta resoluble. |
 
 `insert`, `move`, `renumber`, `rename-material`, `backfill-slugs`, `migrate-material`, `rebase-references` y `open` aceptan `--dry-run`.
+
+### 6.1 Resolución de la carpeta de material
+
+La carpeta de material de un episodio tiene **una sola definición** en el binario
+(`ResolvedShow::material_dir`, en `src/profile.rs`): `<scripts.root>/<episodes.scripts.dir
+renderizado>`. El `dir` admite `{slug}`, `{n}` y `{n:0Nd}`; si el perfil no lo declara (o lo declara
+vacío) vale `{slug}`. La usan por igual las superficies de lectura (`where`, `get`, `status` y sus
+documentos `--json`), `open` y las cirugías que escriben material (`migrate-material`,
+`rebase-references`), de modo que lo que se informa y lo que se escribe no pueden divergir.
+
+Un `dir` que, ya renderizado, sea **absoluto** o contenga `..` es un error de configuración
+(`MaterialDirNotRelative`, código de salida **2**): la raíz de material es una frontera, no una
+convención. Y un episodio **sin `slug`** no tiene ruta de material en ninguna superficie: el texto
+muestra `—` (en `status` se omite la línea), el JSON emite `null`, `where` lo trata como caso
+tratado y `rebase-references` lo salta.
 
 ## 7. Contrato de salida
 
