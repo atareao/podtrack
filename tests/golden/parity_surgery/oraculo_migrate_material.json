@@ -1,0 +1,735 @@
+{
+  "cases": [
+    {
+      "label": "--show demo migrate-material",
+      "code": 0,
+      "stdout": [
+        "  ✓ Migrar 0301 → borrador:",
+        "      · 0301/ejemplos-0301  →  0301/ejemplos-borrador",
+        "      · 0301/ADR-episodio-301.md  →  0301/ADR-episodio-borrador.md",
+        "      · 0301/episodio-301.md  →  0301/episodio-borrador.md",
+        "      · 0301/notas-301.md  →  0301/notas-borrador.md",
+        "      · 0301/investigacion-e301.md  →  0301/investigacion-borrador.md",
+        "      · 0301/guion-0301.md  →  0301/guion-borrador.md",
+        "      · 0301  →  borrador",
+        ""
+      ],
+      "stderr": [
+        "  ⚠ Aviso: el episodio #302 no tiene slug; se salta.",
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 300",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 301",
+        "    slug: borrador",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador\"",
+        "    status: scripted",
+        "  - number: 302",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Sin slug\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "borrador/ADR-episodio-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/cosas.bak": [
+          "x",
+          ""
+        ],
+        "borrador/datos.db": [
+          "x",
+          ""
+        ],
+        "borrador/ejemplos-borrador/demo.sh": [
+          "x",
+          ""
+        ],
+        "borrador/episodio-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/guion-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/investigacion-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/notas-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/presentacion.typ": [
+          "x",
+          ""
+        ],
+        "borrador/template/base.typ": [
+          "x",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo migrate-material",
+      "code": 0,
+      "stdout": [
+        "  ✓ Migrar 0301 → borrador:",
+        "      · 0301/ejemplos-0301  →  0301/ejemplos-borrador",
+        "      · 0301/ADR-episodio-301.md  →  0301/ADR-episodio-borrador.md",
+        "      · 0301/episodio-301.md  →  0301/episodio-borrador.md",
+        "      · 0301/notas-301.md  →  0301/notas-borrador.md",
+        "      · 0301/investigacion-e301.md  →  0301/investigacion-borrador.md",
+        "      · 0301/guion-0301.md  →  0301/guion-borrador.md",
+        "      · 0301  →  borrador",
+        ""
+      ],
+      "stderr": [
+        "  ⚠ Aviso: el episodio #302 no tiene slug; se salta.",
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 300",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 301",
+        "    slug: borrador",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador\"",
+        "    status: scripted",
+        "  - number: 302",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Sin slug\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0300/ADR-episodio-300.md": [
+          "x",
+          ""
+        ],
+        "0300/cosas.bak": [
+          "x",
+          ""
+        ],
+        "0300/datos.db": [
+          "x",
+          ""
+        ],
+        "0300/ejemplos-0300/demo.sh": [
+          "x",
+          ""
+        ],
+        "0300/episodio-300.md": [
+          "x",
+          ""
+        ],
+        "0300/guion-0300.md": [
+          "x",
+          ""
+        ],
+        "0300/investigacion-e300.md": [
+          "x",
+          ""
+        ],
+        "0300/notas-300.md": [
+          "x",
+          ""
+        ],
+        "0300/presentacion.typ": [
+          "x",
+          ""
+        ],
+        "0300/template/base.typ": [
+          "x",
+          ""
+        ],
+        "borrador/ADR-episodio-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/cosas.bak": [
+          "x",
+          ""
+        ],
+        "borrador/datos.db": [
+          "x",
+          ""
+        ],
+        "borrador/ejemplos-borrador/demo.sh": [
+          "x",
+          ""
+        ],
+        "borrador/episodio-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/guion-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/investigacion-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/notas-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/presentacion.typ": [
+          "x",
+          ""
+        ],
+        "borrador/template/base.typ": [
+          "x",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo migrate-material --include-published",
+      "code": 0,
+      "stdout": [
+        "  ✓ Migrar 0300 → publicado:",
+        "      · 0300/ejemplos-0300  →  0300/ejemplos-publicado",
+        "      · 0300/ADR-episodio-300.md  →  0300/ADR-episodio-publicado.md",
+        "      · 0300/episodio-300.md  →  0300/episodio-publicado.md",
+        "      · 0300/notas-300.md  →  0300/notas-publicado.md",
+        "      · 0300/investigacion-e300.md  →  0300/investigacion-publicado.md",
+        "      · 0300/guion-0300.md  →  0300/guion-publicado.md",
+        "      · 0300  →  publicado",
+        "  ✓ Migrar 0301 → borrador:",
+        "      · 0301/ejemplos-0301  →  0301/ejemplos-borrador",
+        "      · 0301/ADR-episodio-301.md  →  0301/ADR-episodio-borrador.md",
+        "      · 0301/episodio-301.md  →  0301/episodio-borrador.md",
+        "      · 0301/notas-301.md  →  0301/notas-borrador.md",
+        "      · 0301/investigacion-e301.md  →  0301/investigacion-borrador.md",
+        "      · 0301/guion-0301.md  →  0301/guion-borrador.md",
+        "      · 0301  →  borrador",
+        ""
+      ],
+      "stderr": [
+        "  ⚠ Aviso: el episodio #302 no tiene slug; se salta.",
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 300",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 301",
+        "    slug: borrador",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador\"",
+        "    status: scripted",
+        "  - number: 302",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Sin slug\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "borrador/ADR-episodio-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/cosas.bak": [
+          "x",
+          ""
+        ],
+        "borrador/datos.db": [
+          "x",
+          ""
+        ],
+        "borrador/ejemplos-borrador/demo.sh": [
+          "x",
+          ""
+        ],
+        "borrador/episodio-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/guion-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/investigacion-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/notas-borrador.md": [
+          "x",
+          ""
+        ],
+        "borrador/presentacion.typ": [
+          "x",
+          ""
+        ],
+        "borrador/template/base.typ": [
+          "x",
+          ""
+        ],
+        "publicado/ADR-episodio-publicado.md": [
+          "x",
+          ""
+        ],
+        "publicado/cosas.bak": [
+          "x",
+          ""
+        ],
+        "publicado/datos.db": [
+          "x",
+          ""
+        ],
+        "publicado/ejemplos-publicado/demo.sh": [
+          "x",
+          ""
+        ],
+        "publicado/episodio-publicado.md": [
+          "x",
+          ""
+        ],
+        "publicado/guion-publicado.md": [
+          "x",
+          ""
+        ],
+        "publicado/investigacion-publicado.md": [
+          "x",
+          ""
+        ],
+        "publicado/notas-publicado.md": [
+          "x",
+          ""
+        ],
+        "publicado/presentacion.typ": [
+          "x",
+          ""
+        ],
+        "publicado/template/base.typ": [
+          "x",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo migrate-material --dry-run",
+      "code": 0,
+      "stdout": [
+        "  ⚠ DRY-RUN: no se escribe nada (ni tracker ni disco)",
+        "  ✓ Migrar 0301 → borrador:",
+        "      · 0301/ejemplos-0301  →  0301/ejemplos-borrador",
+        "      · 0301/ADR-episodio-301.md  →  0301/ADR-episodio-borrador.md",
+        "      · 0301/episodio-301.md  →  0301/episodio-borrador.md",
+        "      · 0301/notas-301.md  →  0301/notas-borrador.md",
+        "      · 0301/investigacion-e301.md  →  0301/investigacion-borrador.md",
+        "      · 0301/guion-0301.md  →  0301/guion-borrador.md",
+        "      · 0301  →  borrador",
+        ""
+      ],
+      "stderr": [
+        "  ⚠ Aviso: el episodio #302 no tiene slug; se salta.",
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 300",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 301",
+        "    slug: borrador",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador\"",
+        "    status: scripted",
+        "  - number: 302",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Sin slug\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0301/ADR-episodio-301.md": [
+          "x",
+          ""
+        ],
+        "0301/cosas.bak": [
+          "x",
+          ""
+        ],
+        "0301/datos.db": [
+          "x",
+          ""
+        ],
+        "0301/ejemplos-0301/demo.sh": [
+          "x",
+          ""
+        ],
+        "0301/episodio-301.md": [
+          "x",
+          ""
+        ],
+        "0301/guion-0301.md": [
+          "x",
+          ""
+        ],
+        "0301/investigacion-e301.md": [
+          "x",
+          ""
+        ],
+        "0301/notas-301.md": [
+          "x",
+          ""
+        ],
+        "0301/presentacion.typ": [
+          "x",
+          ""
+        ],
+        "0301/template/base.typ": [
+          "x",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo migrate-material",
+      "code": 0,
+      "stdout": [
+        "      (sin material que migrar)",
+        ""
+      ],
+      "stderr": [
+        "  ⚠ Aviso: el episodio #302 no tiene slug; se salta.",
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 300",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 301",
+        "    slug: borrador",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador\"",
+        "    status: scripted",
+        "  - number: 302",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Sin slug\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0302/ADR-episodio-302.md": [
+          "x",
+          ""
+        ],
+        "0302/cosas.bak": [
+          "x",
+          ""
+        ],
+        "0302/datos.db": [
+          "x",
+          ""
+        ],
+        "0302/ejemplos-0302/demo.sh": [
+          "x",
+          ""
+        ],
+        "0302/episodio-302.md": [
+          "x",
+          ""
+        ],
+        "0302/guion-0302.md": [
+          "x",
+          ""
+        ],
+        "0302/investigacion-e302.md": [
+          "x",
+          ""
+        ],
+        "0302/notas-302.md": [
+          "x",
+          ""
+        ],
+        "0302/presentacion.typ": [
+          "x",
+          ""
+        ],
+        "0302/template/base.typ": [
+          "x",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo migrate-material",
+      "code": 1,
+      "stdout": [
+        "  ✓ Migrar 0302 → sin-slug:",
+        "      · 0302/ejemplos-0302  →  0302/ejemplos-sin-slug",
+        "      · 0302/ADR-episodio-302.md  →  0302/ADR-episodio-sin-slug.md",
+        "      · 0302/episodio-302.md  →  0302/episodio-sin-slug.md",
+        "      · 0302/notas-302.md  →  0302/notas-sin-slug.md",
+        "      · 0302/investigacion-e302.md  →  0302/investigacion-sin-slug.md",
+        "      · 0302/guion-0302.md  →  0302/guion-sin-slug.md",
+        "      · 0302  →  sin-slug",
+        ""
+      ],
+      "stderr": [
+        "  ✗ Colisión al migrar 0301 → borrador: no se renombra nada.",
+        "      · varios orígenes colisionan en investigacion-borrador.md: investigacion-0301.md, investigacion-e301.md",
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 300",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 301",
+        "    slug: borrador",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador\"",
+        "    status: scripted",
+        "  - number: 302",
+        "    slug: sin-slug",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Sin slug\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0301/ADR-episodio-301.md": [
+          "x",
+          ""
+        ],
+        "0301/cosas.bak": [
+          "x",
+          ""
+        ],
+        "0301/datos.db": [
+          "x",
+          ""
+        ],
+        "0301/ejemplos-0301/demo.sh": [
+          "x",
+          ""
+        ],
+        "0301/episodio-301.md": [
+          "x",
+          ""
+        ],
+        "0301/guion-0301.md": [
+          "x",
+          ""
+        ],
+        "0301/investigacion-0301.md": [
+          "a",
+          ""
+        ],
+        "0301/investigacion-e301.md": [
+          "x",
+          ""
+        ],
+        "0301/notas-301.md": [
+          "x",
+          ""
+        ],
+        "0301/presentacion.typ": [
+          "x",
+          ""
+        ],
+        "0301/template/base.typ": [
+          "x",
+          ""
+        ],
+        "sin-slug/ADR-episodio-sin-slug.md": [
+          "x",
+          ""
+        ],
+        "sin-slug/cosas.bak": [
+          "x",
+          ""
+        ],
+        "sin-slug/datos.db": [
+          "x",
+          ""
+        ],
+        "sin-slug/ejemplos-sin-slug/demo.sh": [
+          "x",
+          ""
+        ],
+        "sin-slug/episodio-sin-slug.md": [
+          "x",
+          ""
+        ],
+        "sin-slug/guion-sin-slug.md": [
+          "x",
+          ""
+        ],
+        "sin-slug/investigacion-sin-slug.md": [
+          "x",
+          ""
+        ],
+        "sin-slug/notas-sin-slug.md": [
+          "x",
+          ""
+        ],
+        "sin-slug/presentacion.typ": [
+          "x",
+          ""
+        ],
+        "sin-slug/template/base.typ": [
+          "x",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo migrate-material",
+      "code": 1,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "  ✗ Colisión al migrar 0301 → borrador: no se renombra nada.",
+        "      · el destino ya existe: borrador",
+        "  ⚠ Aviso: el episodio #302 no tiene slug; se salta.",
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 300",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 301",
+        "    slug: borrador",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador\"",
+        "    status: scripted",
+        "  - number: 302",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Sin slug\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0301/ADR-episodio-301.md": [
+          "x",
+          ""
+        ],
+        "0301/cosas.bak": [
+          "x",
+          ""
+        ],
+        "0301/datos.db": [
+          "x",
+          ""
+        ],
+        "0301/ejemplos-0301/demo.sh": [
+          "x",
+          ""
+        ],
+        "0301/episodio-301.md": [
+          "x",
+          ""
+        ],
+        "0301/guion-0301.md": [
+          "x",
+          ""
+        ],
+        "0301/investigacion-e301.md": [
+          "x",
+          ""
+        ],
+        "0301/notas-301.md": [
+          "x",
+          ""
+        ],
+        "0301/presentacion.typ": [
+          "x",
+          ""
+        ],
+        "0301/template/base.typ": [
+          "x",
+          ""
+        ]
+      }
+    }
+  ]
+}

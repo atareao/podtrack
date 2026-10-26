@@ -1,0 +1,427 @@
+{
+  "cases": [
+    {
+      "label": "--show demo rebase-references",
+      "code": 0,
+      "stdout": [
+        "  ✓ Rebase de hooks estructurales (episodios no publicados):",
+        "      · borrador-uno/guion-borrador-uno.md:3",
+        "          antes:  **Próximo episodio:** 502 — RAG II: Profundizando en la base de conocimiento",
+        "          ahora:  **Próximo episodio:** RAG II: Profundizando en la base de conocimiento",
+        "      · borrador-uno/guion-borrador-uno.md:6",
+        "          antes:  - **Próximo episodio:** 502 - RAG III: el regreso",
+        "          ahora:  - **Próximo episodio:** RAG III: el regreso",
+        "      · borrador-uno/guion-borrador-uno.md:8",
+        "          antes:  Próximo episodio: 502 – Sin negritas ni nada",
+        "          ahora:  Próximo episodio: Sin negritas ni nada",
+        "      · borrador-uno/guion-borrador-uno.md:10",
+        "          antes:  Proximo episodio: 502: con dos puntos y sin tilde",
+        "          ahora:  Proximo episodio: con dos puntos y sin tilde",
+        "  ℹ Referencias en prosa (no se tocan): 3 en 2 ficheros",
+        "      · borrador-dos/guion-borrador-dos.md — 1 ref(s)",
+        "          l.3: En el episodio 502 hablamos de más cosas.",
+        "      · borrador-uno/escaleta-borrador-uno.md — 2 ref(s)",
+        "          l.3: En el episodio 501 hablamos de todo esto.",
+        "          l.5: El 502⭐ salió redondo.",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 500",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 501",
+        "    slug: borrador-uno",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador uno\"",
+        "    status: scripted",
+        "  - number: 502",
+        "    slug: borrador-dos",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Borrador dos\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "borrador-dos/guion-borrador-dos.md": [
+          "# Guion Borrador Dos",
+          "",
+          "En el episodio 502 hablamos de más cosas.",
+          "",
+          "Cierre.",
+          ""
+        ],
+        "borrador-uno/escaleta-borrador-uno.md": [
+          "# Escaleta",
+          "",
+          "En el episodio 501 hablamos de todo esto.",
+          "Nos escuchamos en el episodio 866.",
+          "El 502⭐ salió redondo.",
+          ""
+        ],
+        "borrador-uno/guion-borrador-uno.md": [
+          "# Guion Borrador Uno",
+          "",
+          "**Próximo episodio:** RAG II: Profundizando en la base de conocimiento",
+          "",
+          "Algunas notas:",
+          "- **Próximo episodio:** RAG III: el regreso",
+          "",
+          "Próximo episodio: Sin negritas ni nada",
+          "",
+          "Proximo episodio: con dos puntos y sin tilde",
+          ""
+        ],
+        "publicado/guion-publicado.md": [
+          "# Guion Publicado",
+          "",
+          "**Próximo episodio:** 501 — algo del pasado",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo rebase-references --dry-run",
+      "code": 0,
+      "stdout": [
+        "  ⚠ DRY-RUN: no se escribe nada (ni tracker ni disco)",
+        "  ✓ Rebase de hooks estructurales (episodios no publicados):",
+        "      · borrador-uno/guion-borrador-uno.md:3",
+        "          antes:  **Próximo episodio:** 502 — RAG II: Profundizando en la base de conocimiento",
+        "          ahora:  **Próximo episodio:** RAG II: Profundizando en la base de conocimiento",
+        "      · borrador-uno/guion-borrador-uno.md:6",
+        "          antes:  - **Próximo episodio:** 502 - RAG III: el regreso",
+        "          ahora:  - **Próximo episodio:** RAG III: el regreso",
+        "      · borrador-uno/guion-borrador-uno.md:8",
+        "          antes:  Próximo episodio: 502 – Sin negritas ni nada",
+        "          ahora:  Próximo episodio: Sin negritas ni nada",
+        "      · borrador-uno/guion-borrador-uno.md:10",
+        "          antes:  Proximo episodio: 502: con dos puntos y sin tilde",
+        "          ahora:  Proximo episodio: con dos puntos y sin tilde",
+        "  ℹ Referencias en prosa (no se tocan): 3 en 2 ficheros",
+        "      · borrador-dos/guion-borrador-dos.md — 1 ref(s)",
+        "          l.3: En el episodio 502 hablamos de más cosas.",
+        "      · borrador-uno/escaleta-borrador-uno.md — 2 ref(s)",
+        "          l.3: En el episodio 501 hablamos de todo esto.",
+        "          l.5: El 502⭐ salió redondo.",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 500",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 501",
+        "    slug: borrador-uno",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador uno\"",
+        "    status: scripted",
+        "  - number: 502",
+        "    slug: borrador-dos",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Borrador dos\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "borrador-dos/guion-borrador-dos.md": [
+          "# Guion Borrador Dos",
+          "",
+          "En el episodio 502 hablamos de más cosas.",
+          "",
+          "Cierre.",
+          ""
+        ],
+        "borrador-uno/escaleta-borrador-uno.md": [
+          "# Escaleta",
+          "",
+          "En el episodio 501 hablamos de todo esto.",
+          "Nos escuchamos en el episodio 866.",
+          "El 502⭐ salió redondo.",
+          ""
+        ],
+        "borrador-uno/guion-borrador-uno.md": [
+          "# Guion Borrador Uno",
+          "",
+          "**Próximo episodio:** 502 — RAG II: Profundizando en la base de conocimiento",
+          "",
+          "Algunas notas:",
+          "- **Próximo episodio:** 502 - RAG III: el regreso",
+          "",
+          "Próximo episodio: 502 – Sin negritas ni nada",
+          "",
+          "Proximo episodio: 502: con dos puntos y sin tilde",
+          ""
+        ],
+        "publicado/guion-publicado.md": [
+          "# Guion Publicado",
+          "",
+          "**Próximo episodio:** 501 — algo del pasado",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo rebase-references",
+      "code": 1,
+      "stdout": [
+        "  ✓ Rebase de hooks estructurales (episodios no publicados):",
+        "      · borrador-uno/guion-borrador-uno.md:3",
+        "          antes:  **Próximo episodio:** 502 — RAG II: Profundizando en la base de conocimiento",
+        "          ahora:  **Próximo episodio:** RAG II: Profundizando en la base de conocimiento",
+        "      · borrador-uno/guion-borrador-uno.md:6",
+        "          antes:  - **Próximo episodio:** 502 - RAG III: el regreso",
+        "          ahora:  - **Próximo episodio:** RAG III: el regreso",
+        "      · borrador-uno/guion-borrador-uno.md:8",
+        "          antes:  Próximo episodio: 502 – Sin negritas ni nada",
+        "          ahora:  Próximo episodio: Sin negritas ni nada",
+        "      · borrador-uno/guion-borrador-uno.md:10",
+        "          antes:  Proximo episodio: 502: con dos puntos y sin tilde",
+        "          ahora:  Proximo episodio: con dos puntos y sin tilde",
+        "  ⚠ Hooks sin título (revisar a mano): 1",
+        "      · borrador-dos/guion-borrador-dos.md:7",
+        "          **Próximo episodio:** 999",
+        "  ℹ Referencias en prosa (no se tocan): 3 en 2 ficheros",
+        "      · borrador-dos/guion-borrador-dos.md — 1 ref(s)",
+        "          l.3: En el episodio 502 hablamos de más cosas.",
+        "      · borrador-uno/escaleta-borrador-uno.md — 2 ref(s)",
+        "          l.3: En el episodio 501 hablamos de todo esto.",
+        "          l.5: El 502⭐ salió redondo.",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 500",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 501",
+        "    slug: borrador-uno",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador uno\"",
+        "    status: scripted",
+        "  - number: 502",
+        "    slug: borrador-dos",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Borrador dos\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "borrador-dos/guion-borrador-dos.md": [
+          "# Guion Borrador Dos",
+          "",
+          "En el episodio 502 hablamos de más cosas.",
+          "",
+          "Cierre.",
+          "",
+          "**Próximo episodio:** 999",
+          ""
+        ],
+        "borrador-uno/escaleta-borrador-uno.md": [
+          "# Escaleta",
+          "",
+          "En el episodio 501 hablamos de todo esto.",
+          "Nos escuchamos en el episodio 866.",
+          "El 502⭐ salió redondo.",
+          ""
+        ],
+        "borrador-uno/guion-borrador-uno.md": [
+          "# Guion Borrador Uno",
+          "",
+          "**Próximo episodio:** RAG II: Profundizando en la base de conocimiento",
+          "",
+          "Algunas notas:",
+          "- **Próximo episodio:** RAG III: el regreso",
+          "",
+          "Próximo episodio: Sin negritas ni nada",
+          "",
+          "Proximo episodio: con dos puntos y sin tilde",
+          ""
+        ],
+        "publicado/guion-publicado.md": [
+          "# Guion Publicado",
+          "",
+          "**Próximo episodio:** 501 — algo del pasado",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo rebase-references",
+      "code": 1,
+      "stdout": [
+        "  ✓ Rebase de hooks estructurales (episodios no publicados):",
+        "      · borrador-uno/guion-borrador-uno.md:3",
+        "          antes:  **Próximo episodio:** 502 — RAG II: Profundizando en la base de conocimiento",
+        "          ahora:  **Próximo episodio:** RAG II: Profundizando en la base de conocimiento",
+        "      · borrador-uno/guion-borrador-uno.md:6",
+        "          antes:  - **Próximo episodio:** 502 - RAG III: el regreso",
+        "          ahora:  - **Próximo episodio:** RAG III: el regreso",
+        "      · borrador-uno/guion-borrador-uno.md:8",
+        "          antes:  Próximo episodio: 502 – Sin negritas ni nada",
+        "          ahora:  Próximo episodio: Sin negritas ni nada",
+        "      · borrador-uno/guion-borrador-uno.md:10",
+        "          antes:  Proximo episodio: 502: con dos puntos y sin tilde",
+        "          ahora:  Proximo episodio: con dos puntos y sin tilde",
+        "  ⚠ Hooks sin título (revisar a mano): 1",
+        "      · borrador-dos/guion-borrador-dos.md:7",
+        "          Proximo episodio: 999",
+        "  ℹ Referencias en prosa (no se tocan): 3 en 2 ficheros",
+        "      · borrador-dos/guion-borrador-dos.md — 1 ref(s)",
+        "          l.3: En el episodio 502 hablamos de más cosas.",
+        "      · borrador-uno/escaleta-borrador-uno.md — 2 ref(s)",
+        "          l.3: En el episodio 501 hablamos de todo esto.",
+        "          l.5: El 502⭐ salió redondo.",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 500",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 501",
+        "    slug: borrador-uno",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador uno\"",
+        "    status: scripted",
+        "  - number: 502",
+        "    slug: borrador-dos",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Borrador dos\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "borrador-dos/guion-borrador-dos.md": [
+          "# Guion Borrador Dos",
+          "",
+          "En el episodio 502 hablamos de más cosas.",
+          "",
+          "Cierre.",
+          "",
+          "Proximo episodio: 999",
+          ""
+        ],
+        "borrador-uno/escaleta-borrador-uno.md": [
+          "# Escaleta",
+          "",
+          "En el episodio 501 hablamos de todo esto.",
+          "Nos escuchamos en el episodio 866.",
+          "El 502⭐ salió redondo.",
+          ""
+        ],
+        "borrador-uno/guion-borrador-uno.md": [
+          "# Guion Borrador Uno",
+          "",
+          "**Próximo episodio:** RAG II: Profundizando en la base de conocimiento",
+          "",
+          "Algunas notas:",
+          "- **Próximo episodio:** RAG III: el regreso",
+          "",
+          "Próximo episodio: Sin negritas ni nada",
+          "",
+          "Proximo episodio: con dos puntos y sin tilde",
+          ""
+        ],
+        "publicado/guion-publicado.md": [
+          "# Guion Publicado",
+          "",
+          "**Próximo episodio:** 501 — algo del pasado",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo rebase-references",
+      "code": 0,
+      "stdout": [
+        "  ✓ Rebase de hooks estructurales (episodios no publicados):",
+        "      (sin hooks que reescribir)",
+        "  ℹ Referencias en prosa (no se tocan): ninguna",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 500",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 501",
+        "    slug: borrador-uno",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Borrador uno\"",
+        "    status: scripted",
+        "  - number: 502",
+        "    slug: borrador-dos",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Borrador dos\"",
+        "    status: scripted",
+        ""
+      ]
+    }
+  ]
+}

@@ -1,9 +1,9 @@
 //! Clasificación de la **etapa de transcripción** de un SRT (`raw`/`final`).
 //!
-//! Port de `srt-stage.py`: la etapa se decide **por contenido** (nunca por el
-//! nombre del fichero). El `final` se reconoce por **dos señales del intro
-//! combinadas con un AND** (texto + bloque), con el marcador literal como
-//! excepción que basta por sí solo.
+//! El módulo resultó de portar `srt-stage.py`: la etapa se decide **por
+//! contenido** (nunca por el nombre del fichero). El `final` se reconoce por
+//! **dos señales del intro combinadas con un AND** (texto + bloque), con el
+//! marcador literal como excepción que basta por sí solo.
 
 use std::fs;
 use std::path::{Path, PathBuf};

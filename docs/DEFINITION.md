@@ -1,19 +1,19 @@
 # PodTrack — Especificación de requisitos (SRS)
 
-> Documento vivo. Manda sobre `AGENTS.md`. Para el **comportamiento**, manda la implementación de referencia (§2).
+> Documento vivo. Manda sobre `AGENTS.md`. Para el **comportamiento**, mandan el binario y su suite de tests; §2 conserva la historia del oráculo retirado.
 
 ## 1. Alcance
 
-`podtrack` es el **rastreador de la parrilla y del ciclo de vida de los episodios** de un podcast, empaquetado como binario único en Rust. Sustituye a `podcast-tracker.py`, un script Python de ~1800 líneas que hoy usan los agentes del pipeline de producción (guion → grabación → publicación).
+`podtrack` es el **rastreador de la parrilla y del ciclo de vida de los episodios** de un podcast, empaquetado como binario único en Rust. Sustituyó a `podcast-tracker.py`, un script Python de ~1800 líneas que usaban los agentes del pipeline de producción (guion → grabación → publicación) y que hoy ya no existe.
 
-El producto tiene **dos objetivos en tensión**, y este SRS los ordena:
+El producto persiguió **dos objetivos en tensión**, y este SRS los ordenó:
 
-1. **Paridad exacta** con el script Python: mismas rutas, mismos subcomandos, misma salida de texto, mismos *exit codes*, mismo formato de YAML.
+1. **Paridad exacta** con el script Python: mismas rutas, mismos subcomandos, misma salida de texto, mismos *exit codes*, mismo formato de YAML. Ese criterio histórico se conserva hoy como **golden congelado** en `tests/golden/`, que **no se regenera**.
 2. **Modernización aditiva**: una salida `--json` *opt-in* para que los agentes dejen de raspar texto, y un binario sin dependencia de intérprete.
 
-La paridad manda. La modernización no puede romper a ningún consumidor.
+La paridad mandó como criterio de aceptación, y la modernización no puede romper a ningún consumidor.
 
-**El objetivo final es desterrar Python.** El script `podcast-tracker.py` es el *andaime* que garantiza la paridad durante la migración, y su destino es **ser borrado** junto con su suite, en cuanto el binario lo sustituya por completo. Un podtrack que conviva para siempre con el Python es un fracaso del proyecto. El binario absorbe también la **clasificación de etapas del SRT** (`srt-stage.py`), para que la skill del podcast pueda quedarse sin un solo fichero Python (fase `srt-stage`).
+**El objetivo final era desterrar Python.** El script `podcast-tracker.py` fue el *andaime* que garantizó la paridad durante la migración, y se **borró** junto con su suite al quedar sustituido por completo. Un podtrack que conviviera para siempre con el Python habría sido un fracaso del proyecto. El binario absorbió también la **clasificación de etapas del SRT** (`srt-stage.py`), de modo que la skill del podcast quedó sin un solo fichero Python (fase `srt-stage`). Se borraron los tres `.py` y el objetivo —desterrar Python— **está cumplido** (§12).
 
 ### Qué NO es
 
@@ -21,19 +21,20 @@ La paridad manda. La modernización no puede romper a ningún consumidor.
 - No es un generador de web ni de feeds (eso es `aopodcast` / `iapodcast`).
 - No produce contenido: no escribe guiones, artículos ni descripciones. Solo gobierna **metadatos y layout**.
 
-## 2. Fuentes de verdad durante el port (andaime a derribar)
+## 2. Fuentes de verdad (históricas y vivas)
 
-> Estas fuentes son **temporales**: se consultan para *portar*, no para *depender*. Cuando el port esté completo y los agentes conmutados, `podcast-tracker.py` y `podcast-tracker.test.py` se borran (§12).
+El port ya terminó. Sus fuentes **históricas** fueron el oráculo Python y su suite, hoy borrados; de ellos queda la evidencia del **golden congelado**. Las fuentes **vivas** de hoy son las especificaciones del dominio y el esquema del perfil.
 
 | Fuente | Rango |
 |---|---|
-| `~/.agents/skills/podcast-srt/podcast-tracker.py` | **Oráculo supremo *mientras dure el port*.** Salida, exit codes, formato YAML, invariantes. **Se borra al terminar.** |
-| `~/.agents/skills/podcast-srt/podcast-tracker.test.py` | ~119 escenarios → se portan 1:1 como tests de integración de paridad. |
+| `~/.agents/skills/podcast-srt/podcast-tracker.py` | **Oráculo histórico (retirado).** Fijó salida, exit codes, formato YAML e invariantes. Borrado en la fase `retire-python` (§12). |
+| `tests/golden/` | **Golden congelado del oráculo**, grabado una sola vez desde el histórico y **no regenerable**. Es la única evidencia viva de su comportamiento: **se lee, nunca se reescribe**. |
+| `openspec/specs/` (capacidades fundidas: `tracker-read`, `tracker-write`, `srt-stage`, `python-retirement`, …) | Capacidades del dominio ya especificadas y verificadas. |
 | `~/.agents/openspec/specs/{episode-identity,episode-material-layout,episode-scheduling}/spec.md` | Capacidades del dominio ya especificadas. |
 | `~/.agents/skills/podcast-srt/shows/README.md` | Esquema canónico del perfil de show. |
-| `~/.agents/skills/podcast-srt/SKILL.md` | Documentación de subcomandos. |
+| `~/.agents/skills/podcast-srt/SKILL.md` | Documentación de subcomandos, ya sobre el binario. |
 
-**Ante cualquier ambigüedad *durante el port*, decide el Python.** Cuando el port decida *de otra forma* a propósito, se documenta como decisión explícita (§9) y se marca en el spec como divergencia deliberada. Pasado el port, la fuente de verdad es el propio podtrack (y sus specs de OpenSpec).
+**Durante el port, ante cualquier ambigüedad decidía el Python.** Cuando el port decidió *de otra forma* a propósito, se documentó como decisión explícita (§9) y se marcó en el spec como divergencia deliberada. Hoy la fuente de verdad es el propio podtrack: su suite, el golden de `tests/golden/` y sus specs de OpenSpec.
 
 ## 3. Multi-show y resolución del perfil
 
@@ -176,16 +177,16 @@ Esto elimina el mayor riesgo de un port a Rust (que `serde_yaml` reordene claves
 
 ## 10. No-objetivos
 
-- **No** se toca el material de guion ni el contenido del tracker durante el port (los tests corren sobre fixtures temporales; jamás sobre `/data/notas`).
+- **No** se toca el material de guion ni el contenido del tracker (los tests corren sobre fixtures temporales; jamás sobre `/data/notas`).
 - **No** se reescribe el esquema del perfil de show.
 - **No** se reapuntan los agentes hasta que las tres primeras fases estén verdes.
-- **No** se retiene la publicación del crate: la guarda `publish = false` se retiró al preparar los metadatos de publicación, y desde entonces cada release publica en crates.io (última: `v0.5.0`).
+- **No** se retiene la publicación del crate: la guarda `publish = false` se retiró al preparar los metadatos de publicación, y desde entonces cada release publica en crates.io (última: `v0.5.1`).
 - **No** hay TUI ni servidor: solo CLI.
 
 ## 11. Criterios de aceptación (global)
 
-1. La suite de paridad (port de los ~119 escenarios) pasa en verde.
-2. Para cada subcomando, la salida de texto es **idéntica** a la del Python sobre el mismo fixture (comparación por `diff`).
+1. La suite de paridad —construida sobre el **golden del oráculo retirado** (`tests/golden/`, no regenerable)— pasa en verde.
+2. Para cada subcomando, la salida de texto coincide con la del **golden congelado** sobre el mismo fixture (comparación por `diff`).
 3. `--json` produce JSON válido y estable, sin afectar a la salida por defecto.
 4. `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test` y `cargo doc` limpios.
 5. Ningún test ni ejecución real toca `/data/notas`.
@@ -205,13 +206,14 @@ La skill tenía exactamente tres ficheros Python, y **los tres cayeron**:
 Pasos de la fase (todos completados):
 
 1. Portar `srt-stage.py` al binario (fase `srt-stage`) con paridad de contrato, antes de tocar nada.
-2. Conmutar el `SKILL.md` de `podcast-srt` y los agentes que hoy invocan los scripts (planificador, coordinador, procesador de capítulos y notas, como mínimo) para llamar a `podtrack`.
+2. Conmutar el `SKILL.md` de `podcast-srt` y los agentes que invocaban los scripts (planificador, coordinador, procesador de capítulos y notas, como mínimo) para llamar a `podtrack`.
 3. Verificar en producción un ciclo completo (una publicación real) sin Python.
 4. **Borrar** los tres `.py`, limpiar `__pycache__`/`.ruff_cache` y la configuración huérfana de `pytest`/`ruff`.
 5. Dejar constancia en `~/.agents/openspec` de que las capacidades pasaron al binario.
 
-**Estado: cerrada.** Los tres `.py` están borrados y `~/.agents/skills/podcast-srt/` quedó solo
-con `shows/` y `SKILL.md`; los agentes del pipeline invocan `podtrack`. La constancia del traspaso
-de capacidades vive en `~/.agents/openspec/specs/podtrack-tooling/spec.md`.
+**Estado: cerrada.** No queda **ningún `.py`** en `~/.agents/skills/podcast-srt/`: quedan `shows/`,
+`SKILL.md` y dos copias de seguridad de este último, `SKILL.md.bak-puntos` y `SKILL.md.bak-story`;
+los agentes del pipeline invocan `podtrack`. La constancia del traspaso de capacidades vive en
+`~/.agents/openspec/specs/podtrack-tooling/spec.md`.
 
 **Criterio de cierre:** `grep -r '\.py' ~/.agents/skills/podcast-srt/` no devuelve nada.

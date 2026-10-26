@@ -1,0 +1,150 @@
+{
+  "cases": [
+    {
+      "label": "--show distros --episode 1",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/episodio-01/episodio-01.srt\tfinal",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --episode 1 --expect final",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/episodio-01/episodio-01.srt\tfinal",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --episode 1 --expect raw",
+      "code": 4,
+      "stdout": [
+        "<FIXTURE>/srt/episodio-01/episodio-01.srt\tfinal",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Ningún SRT del episodio 1 es de la etapa 'raw'.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --episode 2",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/episodio-02/episodio_02.srt\tfinal",
+        "<FIXTURE>/srt/episodio-02/zzz-bruto.srt\traw",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --episode 2 --expect final",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/episodio-02/episodio_02.srt\tfinal",
+        "<FIXTURE>/srt/episodio-02/zzz-bruto.srt\traw",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --episode 2 --expect raw",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/episodio-02/episodio_02.srt\tfinal",
+        "<FIXTURE>/srt/episodio-02/zzz-bruto.srt\traw",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --episode 3",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/episodio-03/a-bruto.srt\traw",
+        "<FIXTURE>/srt/episodio-03/b-bruto.srt\traw",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --episode 3 --expect final",
+      "code": 4,
+      "stdout": [
+        "<FIXTURE>/srt/episodio-03/a-bruto.srt\traw",
+        "<FIXTURE>/srt/episodio-03/b-bruto.srt\traw",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Ningún SRT del episodio 3 es de la etapa 'final'.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --episode 3 --expect raw",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/episodio-03/a-bruto.srt\traw",
+        "<FIXTURE>/srt/episodio-03/b-bruto.srt\traw",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --episode 99",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: No se encontró ningún SRT del episodio 99 según el perfil 'distros'.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --episode 99 --expect final",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: No se encontró ningún SRT del episodio 99 según el perfil 'distros'.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --episode 99 --expect raw",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: No se encontró ningún SRT del episodio 99 según el perfil 'distros'.",
+        ""
+      ]
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 Este proyecto sigue **Git Flow** con versionado semántico. Igual que el resto de proyectos del entorno, se usa **siempre**: ninguna feature se commitea directamente en `main` ni en `development`.
 
-**Estado actual:** remoto en `github.com/atareao/podtrack` (público), ramas `main` y `development`, pipeline de GitHub Actions en verde y release automatizada operativa: los secretos `GH_PAT` y `CARGO_REGISTRY_TOKEN` están creados y el crate se publica en crates.io en cada release (última: `v0.5.0`).
+**Estado actual:** remoto en `github.com/atareao/podtrack` (público), ramas `main` y `development`, pipeline de GitHub Actions en verde y release automatizada operativa: los secretos `GH_PAT` y `CARGO_REGISTRY_TOKEN` están creados y el crate se publica en crates.io en cada release (última: `v0.5.1`).
 
 ## Ramas
 
@@ -116,12 +116,10 @@ git commit -m "🎨 style: apply formatting"
 | `release-prepare.yml` | push a `main` | versión, changelog y tag |
 | `release.yml` | tag `v*` | crate a crates.io y GitHub Release |
 
-## Planes y features
+## Planes
 
 - Un plan por trabajo en `plans/PLAN-NNN.md`; al terminar `plans/PLAN-NNN-COMPLETED.md`, si se aparca `plans/PLAN-NNN-PENDING.md`.
-- Un documento por feature entregada en `docs/FEATURE-NNN-<slug>.md`.
-- Automatizado en el `.justfile`: `just plans`, `just plan-new`, `just plan-done N`, `just plan-pending N` y `just feature-new <slug>`.
-- Convención completa: [AGENTS.md](./AGENTS.md).
+- Automatizado en el `.justfile`: `just plans`, `just plan-new`, `just plan-done N` y `just plan-pending N`.
 
 ## Resumen visual
 

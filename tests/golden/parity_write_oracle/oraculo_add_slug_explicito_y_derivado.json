@@ -1,0 +1,232 @@
+{
+  "cases": [
+    {
+      "label": "--show demo add Nuevo sin número --slug nuevo-slug",
+      "code": 0,
+      "stdout": [
+        "✓ Tracker actualizado: <FIXTURE>/guiones/podcast-tracker.yaml",
+        "  ✓ Episodio #203 añadido:",
+        "    Título:  \"Nuevo sin número\"",
+        "    Fecha:   2026-09-14 (lunes)",
+        "    Estado:  📝 scripted",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 9",
+        "season_start: 2026-09-03",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 200",
+        "    slug: primer-episodio",
+        "    season: 8",
+        "    date: 2025-09-04",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: null",
+        "    slug: sin-numero",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Sin número\"",
+        "    status: scripted",
+        "  - number: 202",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: recorded",
+        "  - number: 203",
+        "    slug: nuevo-slug",
+        "    season: 9",
+        "    date: 2026-09-14",
+        "    title: \"Nuevo sin número\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0100/ejemplos-0100/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0100/escaleta-0100.md": [
+          "escaleta 100",
+          ""
+        ],
+        "0100/guion-0100.md": [
+          "guion 100",
+          ""
+        ],
+        "0100/presentacion-0100.typ": [
+          "typ 100",
+          ""
+        ],
+        "0100/working-e100.md": [
+          "working 100",
+          ""
+        ],
+        "0101/ejemplos-0101/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0101/escaleta-0101.md": [
+          "escaleta 101",
+          ""
+        ],
+        "0101/guion-0101.md": [
+          "guion 101",
+          ""
+        ],
+        "0101/presentacion-0101.typ": [
+          "typ 101",
+          ""
+        ],
+        "0101/working-e101.md": [
+          "working 101",
+          ""
+        ],
+        "0102/ejemplos-0102/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0102/escaleta-0102.md": [
+          "escaleta 102",
+          ""
+        ],
+        "0102/guion-0102.md": [
+          "guion 102",
+          ""
+        ],
+        "0102/presentacion-0102.typ": [
+          "typ 102",
+          ""
+        ],
+        "0102/working-e102.md": [
+          "working 102",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo add Cómo montar un NAS",
+      "code": 0,
+      "stdout": [
+        "✓ Tracker actualizado: <FIXTURE>/guiones/podcast-tracker.yaml",
+        "  ✓ Episodio #203 añadido:",
+        "    Título:  \"Cómo montar un NAS\"",
+        "    Fecha:   2026-09-14 (lunes)",
+        "    Estado:  📝 scripted",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 9",
+        "season_start: 2026-09-03",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 200",
+        "    slug: primer-episodio",
+        "    season: 8",
+        "    date: 2025-09-04",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: null",
+        "    slug: sin-numero",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Sin número\"",
+        "    status: scripted",
+        "  - number: 202",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: recorded",
+        "  - number: 203",
+        "    slug: como-montar-un-nas",
+        "    season: 9",
+        "    date: 2026-09-14",
+        "    title: \"Cómo montar un NAS\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0100/ejemplos-0100/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0100/escaleta-0100.md": [
+          "escaleta 100",
+          ""
+        ],
+        "0100/guion-0100.md": [
+          "guion 100",
+          ""
+        ],
+        "0100/presentacion-0100.typ": [
+          "typ 100",
+          ""
+        ],
+        "0100/working-e100.md": [
+          "working 100",
+          ""
+        ],
+        "0101/ejemplos-0101/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0101/escaleta-0101.md": [
+          "escaleta 101",
+          ""
+        ],
+        "0101/guion-0101.md": [
+          "guion 101",
+          ""
+        ],
+        "0101/presentacion-0101.typ": [
+          "typ 101",
+          ""
+        ],
+        "0101/working-e101.md": [
+          "working 101",
+          ""
+        ],
+        "0102/ejemplos-0102/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0102/escaleta-0102.md": [
+          "escaleta 102",
+          ""
+        ],
+        "0102/guion-0102.md": [
+          "guion 102",
+          ""
+        ],
+        "0102/presentacion-0102.typ": [
+          "typ 102",
+          ""
+        ],
+        "0102/working-e102.md": [
+          "working 102",
+          ""
+        ]
+      }
+    }
+  ]
+}

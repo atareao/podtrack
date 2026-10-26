@@ -1,0 +1,15 @@
+{
+  "cases": [
+    {
+      "label": "--show emptyintro --srt <FIXTURE>/srt/solo.srt",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: La etapa 'x' usa detect: starts_with_intro pero no declara 'intro_pattern' ni 'intro_marker'.",
+        ""
+      ]
+    }
+  ]
+}
