@@ -1,4 +1,21 @@
 # Changelog
+## [0.5.2] - 2026-10-26
+
+### Documentation
+
+- *(git-flow)* Retira una referencia muerta a AGENTS.md
+- Declara el estado real (el port terminó)
+- *(spec)* Aprueba y archiva el change close-the-port
+- *(plan)* Cierra el plan del change close-the-port
+
+### Miscellaneous Tasks
+
+- *(justfile)* Retira la convención FEATURE-NNN sin uso
+
+### Testing
+
+- *(parity)* Congela la paridad del oráculo retirado en un golden
+- *(guard)* Impide que el arnés retirado vuelva a la suite
 ## [0.5.1] - 2026-10-25
 
 ### Bug Fixes
@@ -14,6 +31,10 @@
 - *(definicion)* Documenta la regla única de la carpeta de material
 - *(spec)* Archiva material-layout-alignment
 - *(plan)* Cierra el plan del change material-layout-alignment
+
+### Miscellaneous Tasks
+
+- Release v0.5.1
 ## [0.5.0] - 2026-10-25
 
 ### Bug Fixes
