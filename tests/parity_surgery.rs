@@ -1,6 +1,11 @@
 //! `migration-surgery` — contrato de texto/exit/tracker/material de `renumber`,
-//! `rename-material`, `backfill-slugs` y `migrate-material`, con **contraste en
-//! vivo contra el oráculo** sobre el mismo fixture.
+//! `rename-material`, `backfill-slugs` y `migrate-material`.
+//!
+//! Los casos `oraculo_*` contrastan contra el **golden congelado**
+//! (`tests/golden/parity_surgery/*.json`): evidencia del oráculo recuperado del
+//! histórico de `~/.agents` (commit `c70287f^`), que **ya no existe** y es el
+//! **origen** del golden, no el contrato vivo. El golden **no se regenera solo** ni
+//! se generó nunca desde el binario; es candado contra regresiones, no paridad en vivo.
 
 mod common;
 
@@ -110,12 +115,6 @@ fn dates(fx: &Fixture) -> Vec<String> {
         .iter()
         .map(|e| e.date.to_iso())
         .collect()
-}
-
-/// Contraste en vivo: mismo fixture, misma ruta de tracker, mismo argv; compara
-/// stdout, stderr, exit code y **árbol completo** (tracker + material).
-fn assert_parity(yaml: &str, args: &[&str], setup: &dyn Fn(&Fixture)) {
-    common::assert_oracle_parity(yaml, args, setup);
 }
 
 fn no_setup(_: &Fixture) {}
@@ -484,39 +483,49 @@ fn migrate_no_toca_el_tracker() {
     assert_eq!(std::fs::read(&fx.tracker).expect("read"), original);
 }
 
-// ─── contraste en vivo con el oráculo ───────────────────────────────
+// ─── contraste con el golden congelado ──────────────────────────────
 
 #[test]
 fn oraculo_renumber() {
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_renumber",
+        0,
         MINI_YAML,
         &[
             "--show", "demo", "renumber", "--from", "101", "--delta", "5",
         ],
         &no_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_renumber",
+        1,
         MINI_YAML,
         &[
             "--show", "demo", "renumber", "--from", "101", "--delta", "-1",
         ],
         &no_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_renumber",
+        2,
         MINI_YAML,
         &[
             "--show", "demo", "renumber", "--from", "101", "--delta", "0",
         ],
         &no_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_renumber",
+        3,
         MINI_YAML,
         &[
             "--show", "demo", "renumber", "--from", "999", "--delta", "1",
         ],
         &no_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_renumber",
+        4,
         MINI_YAML,
         &[
             "--show",
@@ -530,7 +539,9 @@ fn oraculo_renumber() {
         ],
         &no_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_renumber",
+        5,
         MINI_YAML_V2,
         &[
             "--show", "demo", "renumber", "--from", "202", "--delta", "5",
@@ -541,7 +552,9 @@ fn oraculo_renumber() {
 
 #[test]
 fn oraculo_rename_material() {
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_rename_material",
+        0,
         MINI_YAML,
         &[
             "--show",
@@ -554,7 +567,9 @@ fn oraculo_rename_material() {
         ],
         &material_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_rename_material",
+        1,
         MINI_YAML,
         &[
             "--show",
@@ -567,7 +582,9 @@ fn oraculo_rename_material() {
         ],
         &material_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_rename_material",
+        2,
         MINI_YAML,
         &[
             "--show",
@@ -581,12 +598,16 @@ fn oraculo_rename_material() {
         ],
         &material_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_rename_material",
+        3,
         MINI_YAML,
         &["--show", "demo", "rename-material"],
         &material_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_rename_material",
+        4,
         MINI_YAML,
         &[
             "--show",
@@ -599,7 +620,9 @@ fn oraculo_rename_material() {
         ],
         &material_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_rename_material",
+        5,
         MINI_YAML,
         &["--show", "demo", "rename-material", "--check"],
         &material_setup,
@@ -608,7 +631,9 @@ fn oraculo_rename_material() {
 
 #[test]
 fn oraculo_rename_material_check_huerfano() {
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_rename_material_check_huerfano",
+        0,
         MINI_YAML,
         &["--show", "demo", "rename-material", "--check"],
         &|fx| {
@@ -621,23 +646,37 @@ fn oraculo_rename_material_check_huerfano() {
 
 #[test]
 fn oraculo_backfill_slugs() {
-    assert_parity(MINI_YAML, &["--show", "demo", "backfill-slugs"], &no_setup);
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_backfill_slugs",
+        0,
+        MINI_YAML,
+        &["--show", "demo", "backfill-slugs"],
+        &no_setup,
+    );
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_backfill_slugs",
+        1,
         MINI_YAML_V2,
         &["--show", "demo", "backfill-slugs"],
         &no_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_backfill_slugs",
+        2,
         REPEATED_YAML,
         &["--show", "demo", "backfill-slugs"],
         &no_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_backfill_slugs",
+        3,
         NO_SLUG_TITLE_YAML,
         &["--show", "demo", "backfill-slugs"],
         &no_setup,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_backfill_slugs",
+        4,
         MINI_YAML,
         &["--show", "demo", "backfill-slugs", "--dry-run"],
         &no_setup,
@@ -648,28 +687,23 @@ fn oraculo_backfill_slugs() {
 fn oraculo_backfill_idempotente() {
     // Segunda pasada sobre el tracker ya rellenado: el oráculo y el binario deben
     // emitir `0 slugs asignados…` y no tocar el fichero.
-    let Some(module) = common::require_oracle() else {
-        return;
-    };
     let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
-    let harness = fx.dir.path().join("oracle_main.py");
-    std::fs::write(&harness, common::MAIN_HARNESS).expect("harness");
     let args = ["--show", "demo", "backfill-slugs"];
 
-    common::reset_root(&fx, MINI_YAML, &no_setup);
-    let _ = common::run_oracle_main(&module, &harness, &fx.shows, &args);
-    let second_oracle = common::run_oracle_main(&module, &harness, &fx.shows, &args);
-    let oracle_tree = snapshot(&fx.root);
+    let expected = common::golden::case("parity_surgery/oraculo_backfill_idempotente", 0);
 
     common::reset_root(&fx, MINI_YAML, &no_setup);
     let _ = common::run_podtrack(&fx, &args);
     let second_lib = common::run_podtrack(&fx, &args);
     let lib_tree = snapshot(&fx.root);
 
-    assert_eq!(second_oracle.stdout, second_lib.stdout);
-    assert_eq!(second_oracle.stderr, second_lib.stderr);
-    assert_eq!(second_oracle.code, second_lib.code);
-    assert_eq!(oracle_tree, lib_tree);
+    expected.assert_outcome(
+        fx.dir.path(),
+        second_lib.code,
+        &second_lib.stdout,
+        &second_lib.stderr,
+    );
+    expected.assert_tree(&lib_tree, &fx.root, &fx.tracker);
 }
 
 #[test]
@@ -690,25 +724,51 @@ fn oraculo_migrate_material() {
         std::fs::create_dir_all(fx.root.join("borrador")).expect("mkdir");
     };
 
-    assert_parity(B3_YAML, &["--show", "demo", "migrate-material"], &only_301);
-    assert_parity(B3_YAML, &["--show", "demo", "migrate-material"], &two);
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_migrate_material",
+        0,
+        B3_YAML,
+        &["--show", "demo", "migrate-material"],
+        &only_301,
+    );
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_migrate_material",
+        1,
+        B3_YAML,
+        &["--show", "demo", "migrate-material"],
+        &two,
+    );
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_migrate_material",
+        2,
         B3_YAML,
         &["--show", "demo", "migrate-material", "--include-published"],
         &two,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_migrate_material",
+        3,
         B3_YAML,
         &["--show", "demo", "migrate-material", "--dry-run"],
         &only_301,
     );
-    assert_parity(B3_YAML, &["--show", "demo", "migrate-material"], &no_slug);
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_migrate_material",
+        4,
+        B3_YAML,
+        &["--show", "demo", "migrate-material"],
+        &no_slug,
+    );
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_migrate_material",
+        5,
         B3_YAML_302_SLUG,
         &["--show", "demo", "migrate-material"],
         &convergence,
     );
-    assert_parity(
+    common::assert_golden_parity(
+        "parity_surgery/oraculo_migrate_material",
+        6,
         B3_YAML,
         &["--show", "demo", "migrate-material"],
         &dest_exists,

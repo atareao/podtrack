@@ -1,0 +1,517 @@
+{
+  "cases": [
+    {
+      "label": "--show demo publish 101",
+      "code": 0,
+      "stdout": [
+        "  ✓ Publicado provisional-uno como #101",
+        "✓ Tracker actualizado: <FIXTURE>/guiones/podcast-tracker.yaml",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 101",
+        "    slug: provisional-uno",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Provisional uno\"",
+        "    status: published",
+        "  - number: 102",
+        "    slug: provisional-dos",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Provisional dos\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0100/ejemplos-0100/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0100/escaleta-0100.md": [
+          "escaleta 100",
+          ""
+        ],
+        "0100/guion-0100.md": [
+          "guion 100",
+          ""
+        ],
+        "0100/presentacion-0100.typ": [
+          "typ 100",
+          ""
+        ],
+        "0100/working-e100.md": [
+          "working 100",
+          ""
+        ],
+        "0101/ejemplos-0101/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0101/escaleta-0101.md": [
+          "escaleta 101",
+          ""
+        ],
+        "0101/guion-0101.md": [
+          "guion 101",
+          ""
+        ],
+        "0101/presentacion-0101.typ": [
+          "typ 101",
+          ""
+        ],
+        "0101/working-e101.md": [
+          "working 101",
+          ""
+        ],
+        "0102/ejemplos-0102/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0102/escaleta-0102.md": [
+          "escaleta 102",
+          ""
+        ],
+        "0102/guion-0102.md": [
+          "guion 102",
+          ""
+        ],
+        "0102/presentacion-0102.typ": [
+          "typ 102",
+          ""
+        ],
+        "0102/working-e102.md": [
+          "working 102",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo publish provisional-uno",
+      "code": 0,
+      "stdout": [
+        "  ✓ Publicado provisional-uno como #101",
+        "✓ Tracker actualizado: <FIXTURE>/guiones/podcast-tracker.yaml",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 101",
+        "    slug: provisional-uno",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Provisional uno\"",
+        "    status: published",
+        "  - number: 102",
+        "    slug: provisional-dos",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Provisional dos\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0100/ejemplos-0100/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0100/escaleta-0100.md": [
+          "escaleta 100",
+          ""
+        ],
+        "0100/guion-0100.md": [
+          "guion 100",
+          ""
+        ],
+        "0100/presentacion-0100.typ": [
+          "typ 100",
+          ""
+        ],
+        "0100/working-e100.md": [
+          "working 100",
+          ""
+        ],
+        "0101/ejemplos-0101/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0101/escaleta-0101.md": [
+          "escaleta 101",
+          ""
+        ],
+        "0101/guion-0101.md": [
+          "guion 101",
+          ""
+        ],
+        "0101/presentacion-0101.typ": [
+          "typ 101",
+          ""
+        ],
+        "0101/working-e101.md": [
+          "working 101",
+          ""
+        ],
+        "0102/ejemplos-0102/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0102/escaleta-0102.md": [
+          "escaleta 102",
+          ""
+        ],
+        "0102/guion-0102.md": [
+          "guion 102",
+          ""
+        ],
+        "0102/presentacion-0102.typ": [
+          "typ 102",
+          ""
+        ],
+        "0102/working-e102.md": [
+          "working 102",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo publish 101 --dry-run",
+      "code": 0,
+      "stdout": [
+        "  ⚠ DRY-RUN: no se escribe nada (ni tracker ni disco)",
+        "  ✓ Publicado provisional-uno como #101",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 101",
+        "    slug: provisional-uno",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Provisional uno\"",
+        "    status: scripted",
+        "  - number: 102",
+        "    slug: provisional-dos",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Provisional dos\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0100/ejemplos-0100/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0100/escaleta-0100.md": [
+          "escaleta 100",
+          ""
+        ],
+        "0100/guion-0100.md": [
+          "guion 100",
+          ""
+        ],
+        "0100/presentacion-0100.typ": [
+          "typ 100",
+          ""
+        ],
+        "0100/working-e100.md": [
+          "working 100",
+          ""
+        ],
+        "0101/ejemplos-0101/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0101/escaleta-0101.md": [
+          "escaleta 101",
+          ""
+        ],
+        "0101/guion-0101.md": [
+          "guion 101",
+          ""
+        ],
+        "0101/presentacion-0101.typ": [
+          "typ 101",
+          ""
+        ],
+        "0101/working-e101.md": [
+          "working 101",
+          ""
+        ],
+        "0102/ejemplos-0102/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0102/escaleta-0102.md": [
+          "escaleta 102",
+          ""
+        ],
+        "0102/guion-0102.md": [
+          "guion 102",
+          ""
+        ],
+        "0102/presentacion-0102.typ": [
+          "typ 102",
+          ""
+        ],
+        "0102/working-e102.md": [
+          "working 102",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo publish 100",
+      "code": 1,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: El episodio #100 ('publicado') ya está publicado.",
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 101",
+        "    slug: provisional-uno",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Provisional uno\"",
+        "    status: scripted",
+        "  - number: 102",
+        "    slug: provisional-dos",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Provisional dos\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0100/ejemplos-0100/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0100/escaleta-0100.md": [
+          "escaleta 100",
+          ""
+        ],
+        "0100/guion-0100.md": [
+          "guion 100",
+          ""
+        ],
+        "0100/presentacion-0100.typ": [
+          "typ 100",
+          ""
+        ],
+        "0100/working-e100.md": [
+          "working 100",
+          ""
+        ],
+        "0101/ejemplos-0101/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0101/escaleta-0101.md": [
+          "escaleta 101",
+          ""
+        ],
+        "0101/guion-0101.md": [
+          "guion 101",
+          ""
+        ],
+        "0101/presentacion-0101.typ": [
+          "typ 101",
+          ""
+        ],
+        "0101/working-e101.md": [
+          "working 101",
+          ""
+        ],
+        "0102/ejemplos-0102/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0102/escaleta-0102.md": [
+          "escaleta 102",
+          ""
+        ],
+        "0102/guion-0102.md": [
+          "guion 102",
+          ""
+        ],
+        "0102/presentacion-0102.typ": [
+          "typ 102",
+          ""
+        ],
+        "0102/working-e102.md": [
+          "working 102",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo publish 999",
+      "code": 1,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: Episodio '999' no encontrado.",
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    slug: publicado",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Publicado\"",
+        "    status: published",
+        "  - number: 101",
+        "    slug: provisional-uno",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Provisional uno\"",
+        "    status: scripted",
+        "  - number: 102",
+        "    slug: provisional-dos",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Provisional dos\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0100/ejemplos-0100/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0100/escaleta-0100.md": [
+          "escaleta 100",
+          ""
+        ],
+        "0100/guion-0100.md": [
+          "guion 100",
+          ""
+        ],
+        "0100/presentacion-0100.typ": [
+          "typ 100",
+          ""
+        ],
+        "0100/working-e100.md": [
+          "working 100",
+          ""
+        ],
+        "0101/ejemplos-0101/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0101/escaleta-0101.md": [
+          "escaleta 101",
+          ""
+        ],
+        "0101/guion-0101.md": [
+          "guion 101",
+          ""
+        ],
+        "0101/presentacion-0101.typ": [
+          "typ 101",
+          ""
+        ],
+        "0101/working-e101.md": [
+          "working 101",
+          ""
+        ],
+        "0102/ejemplos-0102/demo.sh": [
+          "#!/bin/sh",
+          ""
+        ],
+        "0102/escaleta-0102.md": [
+          "escaleta 102",
+          ""
+        ],
+        "0102/guion-0102.md": [
+          "guion 102",
+          ""
+        ],
+        "0102/presentacion-0102.typ": [
+          "typ 102",
+          ""
+        ],
+        "0102/working-e102.md": [
+          "working 102",
+          ""
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,300 @@
+{
+  "cases": [
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-intro.srt",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-intro.srt\tfinal",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-intro.srt --expect raw",
+      "code": 5,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-intro.srt\tfinal",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Se esperaba la etapa 'raw' pero el SRT es de la etapa 'final'.",
+        "       No generes entregables de una etapa que el SRT no es: en un bruto las marcas de tiempo están desplazadas ~26-30 s.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-intro.srt --expect final",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-intro.srt\tfinal",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-dash.srt",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-dash.srt\tfinal",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-dash.srt --expect raw",
+      "code": 5,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-dash.srt\tfinal",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Se esperaba la etapa 'raw' pero el SRT es de la etapa 'final'.",
+        "       No generes entregables de una etapa que el SRT no es: en un bruto las marcas de tiempo están desplazadas ~26-30 s.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-dash.srt --expect final",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-dash.srt\tfinal",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-split.srt",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-split.srt\tfinal",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-split.srt --expect raw",
+      "code": 5,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-split.srt\tfinal",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Se esperaba la etapa 'raw' pero el SRT es de la etapa 'final'.",
+        "       No generes entregables de una etapa que el SRT no es: en un bruto las marcas de tiempo están desplazadas ~26-30 s.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-split.srt --expect final",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-split.srt\tfinal",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-marker.srt",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-marker.srt\tfinal",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-marker.srt --expect raw",
+      "code": 5,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-marker.srt\tfinal",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Se esperaba la etapa 'raw' pero el SRT es de la etapa 'final'.",
+        "       No generes entregables de una etapa que el SRT no es: en un bruto las marcas de tiempo están desplazadas ~26-30 s.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-final-marker.srt --expect final",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-final-marker.srt\tfinal",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-conversation.srt",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-conversation.srt\traw",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-conversation.srt --expect raw",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-conversation.srt\traw",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-conversation.srt --expect final",
+      "code": 5,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-conversation.srt\traw",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Se esperaba la etapa 'final' pero el SRT es de la etapa 'raw'.",
+        "       No generes entregables de una etapa que el SRT no es: en un bruto las marcas de tiempo están desplazadas ~26-30 s.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-short-intro.srt",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-short-intro.srt\traw",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-short-intro.srt --expect raw",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-short-intro.srt\traw",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-short-intro.srt --expect final",
+      "code": 5,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-short-intro.srt\traw",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Se esperaba la etapa 'final' pero el SRT es de la etapa 'raw'.",
+        "       No generes entregables de una etapa que el SRT no es: en un bruto las marcas de tiempo están desplazadas ~26-30 s.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-casual.srt",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-casual.srt\traw",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-casual.srt --expect raw",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-casual.srt\traw",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-casual.srt --expect final",
+      "code": 5,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-casual.srt\traw",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Se esperaba la etapa 'final' pero el SRT es de la etapa 'raw'.",
+        "       No generes entregables de una etapa que el SRT no es: en un bruto las marcas de tiempo están desplazadas ~26-30 s.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-late-intro.srt",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-late-intro.srt\traw",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-late-intro.srt --expect raw",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-late-intro.srt\traw",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/o-raw-late-intro.srt --expect final",
+      "code": 5,
+      "stdout": [
+        "<FIXTURE>/srt/o-raw-late-intro.srt\traw",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Se esperaba la etapa 'final' pero el SRT es de la etapa 'raw'.",
+        "       No generes entregables de una etapa que el SRT no es: en un bruto las marcas de tiempo están desplazadas ~26-30 s.",
+        ""
+      ]
+    }
+  ]
+}

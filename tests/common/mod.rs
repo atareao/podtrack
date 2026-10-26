@@ -4,6 +4,8 @@
 
 #![allow(dead_code)]
 
+pub mod golden;
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command as ProcessCommand;
@@ -340,150 +342,6 @@ pub fn by_slug<'a>(
         .expect("slug presente")
 }
 
-// ── Guardián del oráculo (paridad en vivo) ──────────────────────────────────
-//
-// Los tests que comparan contra `podcast-tracker.py` necesitan Python + PyYAML y
-// el propio script. Cuando no están, el patrón por defecto es **saltar** el test
-// (para no romper el CI, donde no existe la skill). Pero un test que se salta en
-// silencio puede pasar sin comprobar nada: por eso, si `PODTRACK_REQUIRE_ORACLE`
-// está definida y no vacía, el test **falla** con un mensaje claro en vez de
-// saltar. Así el operador exige el guardián con `PODTRACK_REQUIRE_ORACLE=1 cargo test`
-// y obtiene certeza de que la comparación se ejecutó de verdad.
-
-/// ¿Se exige el oráculo (variable `PODTRACK_REQUIRE_ORACLE` no vacía)?
-fn require_oracle_env() -> bool {
-    std::env::var_os("PODTRACK_REQUIRE_ORACLE").is_some_and(|v| !v.is_empty())
-}
-
-/// Ruta del oráculo: `PODTRACK_ORACLE` o el hogar habitual.
-pub fn oracle_path() -> Option<PathBuf> {
-    if let Some(path) = std::env::var_os("PODTRACK_ORACLE") {
-        let path = PathBuf::from(path);
-        return path.is_file().then_some(path);
-    }
-    let home = std::env::var_os("HOME")?;
-    let path = PathBuf::from(home).join(".agents/skills/podcast-srt/podcast-tracker.py");
-    path.is_file().then_some(path)
-}
-
-/// Comprueba que Python y PyYAML están operativos.
-pub fn python_ready() -> bool {
-    ProcessCommand::new("python3")
-        .args(["-c", "import yaml"])
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
-}
-
-/// Resuelve el oráculo si está disponible; si no, **salta** el test (imprimiendo
-/// el motivo) salvo que `PODTRACK_REQUIRE_ORACLE` lo exija, en cuyo caso falla.
-pub fn require_oracle() -> Option<PathBuf> {
-    let (available, reason) = match oracle_path() {
-        Some(module) if python_ready() => (Some(module), String::new()),
-        Some(_) => (
-            None,
-            "python3 + PyYAML no disponibles".to_string(),
-        ),
-        None => (
-            None,
-            "el oráculo Python no está disponible (PODTRACK_ORACLE o ~/.agents/skills/podcast-srt/podcast-tracker.py)"
-                .to_string(),
-        ),
-    };
-
-    if available.is_none() {
-        if require_oracle_env() {
-            panic!("PODTRACK_REQUIRE_ORACLE está activo pero {reason}");
-        }
-        eprintln!("skip: {reason}");
-    }
-    available
-}
-
-/// Cuerpo del harness Python que carga el módulo del oráculo por ruta y deja
-/// fijados `TRACKER_PATH` y `SHOW_NAME` para invocar sus funciones sin `main()`.
-pub const ORACLE_PREAMBLE: &str = r#"import importlib.util, sys
-from pathlib import Path
-spec = importlib.util.spec_from_file_location("pt", sys.argv[1])
-m = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(m)
-m.TRACKER_PATH = Path(sys.argv[2])
-m.SHOW_NAME = sys.argv[3]
-"#;
-
-/// Harness para `srt-stage.py`: fija `SHOWS_DIR`, llama a `main()` y propaga su
-/// código de salida (`m.main()` lo devuelve, no llama a `sys.exit`).
-pub const SRT_MAIN_HARNESS: &str = r#"import importlib.util, sys
-from pathlib import Path
-spec = importlib.util.spec_from_file_location("pt", sys.argv[1])
-m = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(m)
-m.SHOWS_DIR = Path(sys.argv[2])
-sys.argv = ["srt-stage.py"] + sys.argv[3:]
-sys.exit(m.main())
-"#;
-
-/// Ruta del oráculo `srt-stage.py`: `PODTRACK_ORACLE_SRT` o junto al tracker.
-pub fn oracle_srt_path() -> Option<PathBuf> {
-    if let Some(path) = std::env::var_os("PODTRACK_ORACLE_SRT") {
-        let path = PathBuf::from(path);
-        return path.is_file().then_some(path);
-    }
-    let tracker = oracle_path()?;
-    let path = tracker.parent()?.join("srt-stage.py");
-    path.is_file().then_some(path)
-}
-
-/// Resuelve el oráculo `srt-stage.py`; si no está, salta (o falla con
-/// `PODTRACK_REQUIRE_ORACLE`).
-pub fn require_oracle_srt() -> Option<PathBuf> {
-    let (available, reason) = match oracle_srt_path() {
-        Some(module) if python_ready() => (Some(module), String::new()),
-        Some(_) => (None, "python3 + PyYAML no disponibles".to_string()),
-        None => (
-            None,
-            "el oráculo srt-stage.py no está disponible (PODTRACK_ORACLE_SRT o junto a podcast-tracker.py)"
-                .to_string(),
-        ),
-    };
-    if available.is_none() {
-        if require_oracle_env() {
-            panic!("PODTRACK_REQUIRE_ORACLE está activo pero {reason}");
-        }
-        eprintln!("skip: {reason}");
-    }
-    available
-}
-
-/// Ejecuta un harness Python (fichero) con el módulo, tracker y nombre del show.
-pub fn run_python_harness(
-    harness: &Path,
-    module: &Path,
-    tracker: &Path,
-    name: &str,
-) -> std::process::Output {
-    ProcessCommand::new("python3")
-        .arg(harness)
-        .arg(module)
-        .arg(tracker)
-        .arg(name)
-        .output()
-        .expect("python3")
-}
-
-/// Harness que carga el módulo del oráculo, apunta `SHOWS_DIR` al fixture y llama
-/// a `main()` con los argumentos (mismo camino que producción):
-/// `harness.py <module> <shows_dir> <args…>`.
-pub const MAIN_HARNESS: &str = r#"import importlib.util, sys
-from pathlib import Path
-spec = importlib.util.spec_from_file_location("pt", sys.argv[1])
-m = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(m)
-m.SHOWS_DIR = Path(sys.argv[2])
-sys.argv = ["podcast-tracker.py"] + sys.argv[3:]
-m.main()
-"#;
-
 /// Resultado de una ejecución: código de salida, `stdout` y `stderr`.
 pub struct Outcome {
     /// Código de salida (`-1` si el proceso no terminó normalmente).
@@ -492,22 +350,6 @@ pub struct Outcome {
     pub stdout: String,
     /// Texto de `stderr`.
     pub stderr: String,
-}
-
-/// Ejecuta el oráculo con el harness de `main()`.
-pub fn run_oracle_main(module: &Path, harness: &Path, shows: &Path, args: &[&str]) -> Outcome {
-    let output = ProcessCommand::new("python3")
-        .arg(harness)
-        .arg(module)
-        .arg(shows)
-        .args(args)
-        .output()
-        .expect("python3");
-    Outcome {
-        code: output.status.code().unwrap_or(-1),
-        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
-        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
-    }
 }
 
 /// Ejecuta el binario `podtrack` contra la fixture.
@@ -535,34 +377,6 @@ pub fn reset_root(fx: &Fixture, yaml: &str, setup: &dyn Fn(&Fixture)) {
     setup(fx);
 }
 
-/// Contraste en vivo completo contra el oráculo: mismo fixture, misma ruta de
-/// tracker, mismo argv; compara `stdout`, `stderr`, *exit code* y **árbol
-/// completo**. Se salta si el oráculo no está; con `PODTRACK_REQUIRE_ORACLE`, falla.
-pub fn assert_oracle_parity(yaml: &str, args: &[&str], setup: &dyn Fn(&Fixture)) {
-    let Some(module) = require_oracle() else {
-        return;
-    };
-    let fx = Fixture::new(yaml, "demo", "Show de prueba");
-    let harness = fx.dir.path().join("oracle_main.py");
-    std::fs::write(&harness, MAIN_HARNESS).expect("harness");
-
-    reset_root(&fx, yaml, setup);
-    let oracle = run_oracle_main(&module, &harness, &fx.shows, args);
-    let oracle_tree = snapshot(&fx.root);
-
-    reset_root(&fx, yaml, setup);
-    let lib = run_podtrack(&fx, args);
-    let lib_tree = snapshot(&fx.root);
-
-    assert_eq!(oracle.stdout, lib.stdout, "stdout difiere para {args:?}");
-    assert_eq!(oracle.stderr, lib.stderr, "stderr difiere para {args:?}");
-    assert_eq!(oracle.code, lib.code, "exit code difiere para {args:?}");
-    assert_eq!(
-        oracle_tree, lib_tree,
-        "árbol resultante difiere para {args:?}"
-    );
-}
-
 /// Material numerado con todas las formas de número que migra a slug
 /// (`_build_material` del oráculo, Fase B3).
 pub fn build_slug_material(root: &Path, num: u32) {
@@ -587,4 +401,24 @@ pub fn build_slug_material(root: &Path, num: u32) {
     for name in ["datos.db", "presentacion.typ", "cosas.bak"] {
         std::fs::write(folder.join(name), "x\n").expect("write");
     }
+}
+
+/// Contraste contra el **golden congelado**: mismo fixture, misma ruta de tracker, mismo `argv`.
+///
+/// `golden` identifica el caso como `<área>/<caso>` y `idx` es la posición del escenario dentro
+/// del caso. Un golden ausente es un **fallo de test** que nombra el fichero, nunca un error de
+/// compilación (ver `golden::read`).
+pub fn assert_golden_parity(
+    golden: &str,
+    idx: usize,
+    yaml: &str,
+    args: &[&str],
+    setup: &dyn Fn(&Fixture),
+) {
+    let expected = golden::case(golden, idx);
+    let fx = Fixture::new(yaml, "demo", "Show de prueba");
+    reset_root(&fx, yaml, setup);
+    let lib = run_podtrack(&fx, args);
+    expected.assert_outcome(fx.dir.path(), lib.code, &lib.stdout, &lib.stderr);
+    expected.assert_tree(&snapshot(&fx.root), &fx.root, &fx.tracker);
 }

@@ -1,0 +1,313 @@
+{
+  "cases": [
+    {
+      "label": "--show demo renumber --from 101 --delta 5",
+      "code": 0,
+      "stdout": [
+        "  ✓ Renumerar desde #101 con delta +5:",
+        "      #101 → #106",
+        "      #102 → #107",
+        "✓ Tracker actualizado: <FIXTURE>/guiones/podcast-tracker.yaml",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 8",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    season: 8",
+        "    date: 2026-09-03",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: 106",
+        "    season: 8",
+        "    date: 2026-09-07",
+        "    title: \"Segundo\"",
+        "    status: scripted",
+        "  - number: 107",
+        "    season: 8",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "podcast-tracker.yaml.bak": [
+          "# podcast-tracker.yaml",
+          "# Estado del podcast \"Show de prueba\"",
+          "# Temporadas: empiezan el 1 de septiembre",
+          "# Formato de episodio: XXXX (4 dígitos)",
+          "",
+          "season: 8",
+          "season_start: 2026-09-01",
+          "episode_duration_minutes: 25",
+          "publish_days: [Monday, Thursday]",
+          "",
+          "episodes:",
+          "  - number: 100",
+          "    season: 8",
+          "    date: 2026-09-03",
+          "    title: \"Primero\"",
+          "    status: published",
+          "  - number: 101",
+          "    season: 8",
+          "    date: 2026-09-07",
+          "    title: \"Segundo\"",
+          "    status: scripted",
+          "  - number: 102",
+          "    season: 8",
+          "    date: 2026-09-10",
+          "    title: \"Tercero\"",
+          "    status: scripted",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo renumber --from 101 --delta -1",
+      "code": 1,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: Colisión de numeración: el --delta solapa con episodios existentes.",
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 8",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    season: 8",
+        "    date: 2026-09-03",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: 101",
+        "    season: 8",
+        "    date: 2026-09-07",
+        "    title: \"Segundo\"",
+        "    status: scripted",
+        "  - number: 102",
+        "    season: 8",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: scripted",
+        ""
+      ]
+    },
+    {
+      "label": "--show demo renumber --from 101 --delta 0",
+      "code": 1,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: --delta no puede ser 0.",
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 8",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    season: 8",
+        "    date: 2026-09-03",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: 101",
+        "    season: 8",
+        "    date: 2026-09-07",
+        "    title: \"Segundo\"",
+        "    status: scripted",
+        "  - number: 102",
+        "    season: 8",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: scripted",
+        ""
+      ]
+    },
+    {
+      "label": "--show demo renumber --from 999 --delta 1",
+      "code": 1,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: No hay episodios con número >= 999.",
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 8",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    season: 8",
+        "    date: 2026-09-03",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: 101",
+        "    season: 8",
+        "    date: 2026-09-07",
+        "    title: \"Segundo\"",
+        "    status: scripted",
+        "  - number: 102",
+        "    season: 8",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: scripted",
+        ""
+      ]
+    },
+    {
+      "label": "--show demo renumber --from 101 --delta 1 --dry-run",
+      "code": 0,
+      "stdout": [
+        "  ⚠ DRY-RUN: no se escribe nada (ni tracker ni disco)",
+        "  ✓ Renumerar desde #101 con delta +1:",
+        "      #101 → #102",
+        "      #102 → #103",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 8",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    season: 8",
+        "    date: 2026-09-03",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: 101",
+        "    season: 8",
+        "    date: 2026-09-07",
+        "    title: \"Segundo\"",
+        "    status: scripted",
+        "  - number: 102",
+        "    season: 8",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: scripted",
+        ""
+      ]
+    },
+    {
+      "label": "--show demo renumber --from 202 --delta 5",
+      "code": 0,
+      "stdout": [
+        "  ✓ Renumerar desde #202 con delta +5:",
+        "      #202 → #207",
+        "✓ Tracker actualizado: <FIXTURE>/guiones/podcast-tracker.yaml",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 9",
+        "season_start: 2026-09-03",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 200",
+        "    slug: primer-episodio",
+        "    season: 8",
+        "    date: 2025-09-04",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: null",
+        "    slug: sin-numero",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Sin número\"",
+        "    status: scripted",
+        "  - number: 207",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: recorded",
+        ""
+      ],
+      "material": {
+        "podcast-tracker.yaml.bak": [
+          "season: 9",
+          "season_start: 2026-09-03",
+          "episode_duration_minutes: 25",
+          "publish_days: [Monday, Thursday]",
+          "",
+          "episodes:",
+          "  - number: 200",
+          "    slug: primer-episodio",
+          "    season: 8",
+          "    date: 2025-09-04",
+          "    title: \"Primero\"",
+          "    status: published",
+          "  - number: null",
+          "    slug: sin-numero",
+          "    season: 9",
+          "    date: 2026-09-07",
+          "    title: \"Sin número\"",
+          "    status: scripted",
+          "  - number: 202",
+          "    season: 9",
+          "    date: 2026-09-10",
+          "    title: \"Tercero\"",
+          "    status: recorded",
+          ""
+        ]
+      }
+    }
+  ]
+}

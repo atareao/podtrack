@@ -4,7 +4,7 @@
 
 ## Qué es PodTrack
 
-El **rastreador de la parrilla y del ciclo de vida de los episodios** de un podcast. Sustituye al script Python `podcast-tracker.py` que hoy vive en `~/.agents/skills/podcast-srt/`, conservando su contrato de línea de comandos **byte a byte** y añadiendo, de forma opt-in, una salida `--json` para que los agentes dejen de *parsear texto bonito*.
+El **rastreador de la parrilla y del ciclo de vida de los episodios** de un podcast. Sustituyó al script Python `podcast-tracker.py` que vivía en `~/.agents/skills/podcast-srt/`, conservando su contrato de línea de comandos **byte a byte** y añadiendo, de forma opt-in, una salida `--json` para que los agentes dejen de *parsear texto bonito*.
 
 No es un cliente de podcasts: no se suscribe a feeds, no descarga ni reproduce audio. Eso es otro proyecto (`podcli`).
 
@@ -14,19 +14,19 @@ No es un cliente de podcasts: no se suscribe a feeds, no descarga ni reproduce a
 
 ## Fuente de verdad: `docs/DEFINITION.md`
 
-El SRS del proyecto. Manda sobre este fichero cuando haya conflicto. Y por encima de él, para el **comportamiento**, manda la implementación de referencia **mientras dure el port**:
+El SRS del proyecto. Manda sobre este fichero cuando haya conflicto. Y por encima de él, para el **comportamiento**, mandan el binario y su suite de tests:
 
 | Fuente | Para qué |
 |---|---|
-| `~/.agents/skills/podcast-srt/podcast-tracker.py` | **Oráculo de comportamiento.** Salida de texto, exit codes, formato del YAML, invariantes. |
-| `~/.agents/skills/podcast-srt/podcast-tracker.test.py` | **Suite de conformidad**: ~119 escenarios. Se portan 1:1 como tests de integración. |
-| `~/.agents/skills/podcast-srt/SKILL.md` | Documentación de los subcomandos. |
+| `openspec/specs/` (capacidades ya fundidas: `tracker-read`, `tracker-write`, `srt-stage`, `python-retirement`, …) | Las capacidades del dominio, ya especificadas y verificadas. |
+| `tests/golden/` | **Golden congelado del oráculo retirado.** Evidencia histórica de su comportamiento; **no se regenera** y ningún test puede escribirlo. |
 | `~/.agents/openspec/specs/{episode-identity,episode-material-layout,episode-scheduling}` | Las capacidades ya especificadas del dominio. |
-| `~/.agents/skills/podcast-srt/shows/*.yaml` + `shows/README.md` | Esquema y perfiles de show. |
+| `~/.agents/skills/podcast-srt/shows/README.md` | Esquema canónico del perfil de show. |
+| `~/.agents/skills/podcast-srt/SKILL.md` | Documentación de los subcomandos, ya sobre el binario. |
 
-**Regla de oro durante el port:** ante cualquier duda de comportamiento, la respuesta la da el Python, no la intuición. Este proyecto es un **port de paridad** primero y una mejora después.
+**Regla de oro:** ante cualquier duda de comportamiento, la respuesta la dan el binario y su suite, no la intuición. El golden de `tests/golden/` es la única evidencia del comportamiento del oráculo retirado — **se lee, nunca se reescribe**.
 
-**Pero el Python es *andaime*, no cimiento.** Existe para garantizar la paridad mientras se construye el reemplazo, y **se derriba** al terminar: `podcast-tracker.py` y su suite se borran, y los agentes pasan a invocar el binario. Que hoy sea el oráculo no significa que sobreviva mañana: el objetivo final del proyecto es **no tener Python**.
+**El Python fue *andaime*, no cimiento.** Existió para garantizar la paridad mientras se construía el reemplazo y **se derribó** al terminar: `podcast-tracker.py`, su suite y `srt-stage.py` se borraron y los agentes pasaron a invocar el binario. El invariante vivo del proyecto es **Python cero**, vigilado por `tests/no_python.rs`.
 
 ## Protocolo SDD (OpenSpec)
 
@@ -42,15 +42,17 @@ just spec-archive <name>       # funde el delta en openspec/specs/
 
 ## Trabajo en fases
 
-| Change | Alcance |
-|---|---|
-| `bootstrap-core` | **tracker** — crate, modelo tipado, resolución de `--show`, writer YAML canónico y comandos de **solo lectura** (`status`, `next`, `list`, `where`, `get`) — paridad + `--json` |
-| `write-commands` | **tracker** — `add`, `update`, `publish`, `insert`, `move` |
-| `migration-surgery` | **tracker** — `renumber`, `rename-material`, `backfill-slugs`, `migrate-material`, `rebase-references` |
-| `srt-stage` | **clasificador SRT** — portar `srt-stage.py` al binario (etapas `raw`/`final`; hoy lo usan 4 agentes) |
-| `retire-python` | **derribar el andaime** — conmutar agentes y `SKILL.md` al binario y **borrar** los tres `.py` de la skill |
+Las cinco fases del port **están archivadas** en `openspec/changes/archive/`, y sus deltas fundidos en `openspec/specs/`:
 
-Los agentes del pipeline (`~/.config/opencode/agents/`) solo se reapuntan al binario **cuando las cuatro primeras fases estén verdes**. Hasta entonces, el Python sigue siendo el que corre. La última fase es la que borra el Python: **el éxito del proyecto se mide por que no quede ningún `.py` en la skill del podcast.**
+| Change archivado | Alcance |
+|---|---|
+| `2026-10-24-bootstrap-core` | **tracker** — crate, modelo tipado, resolución de `--show`, writer YAML canónico y comandos de **solo lectura** (`status`, `next`, `list`, `where`, `get`) — paridad + `--json` |
+| `2026-10-24-write-commands` | **tracker** — `add`, `update`, `publish`, `insert`, `move` |
+| `2026-10-24-migration-surgery` | **tracker** — `renumber`, `rename-material`, `backfill-slugs`, `migrate-material`, `rebase-references` |
+| `2026-10-25-srt-stage` | **clasificador SRT** — `srt-stage.py` portado al binario (etapas `raw`/`final`; lo usan 4 agentes) |
+| `2026-10-25-retire-python` | **derribar el andaime** — conmutó agentes y `SKILL.md` al binario y **borró** los tres `.py` de la skill |
+
+Los agentes del pipeline (`~/.config/opencode/agents/`) **ya invocan `podtrack`**. El éxito del proyecto —que no quede ningún `.py` en la skill del podcast— **está cumplido**: Python cero, vigilado por `tests/no_python.rs`.
 
 ## Git Flow y convenciones
 

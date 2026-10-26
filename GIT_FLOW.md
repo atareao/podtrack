@@ -2,7 +2,7 @@
 
 Este proyecto sigue **Git Flow** con versionado semántico. Igual que el resto de proyectos del entorno, se usa **siempre**: ninguna feature se commitea directamente en `main` ni en `development`.
 
-**Estado actual:** remoto en `github.com/atareao/podtrack` (público), ramas `main` y `development`, pipeline de GitHub Actions en verde y release automatizada operativa: los secretos `GH_PAT` y `CARGO_REGISTRY_TOKEN` están creados y el crate se publica en crates.io en cada release (última: `v0.5.0`).
+**Estado actual:** remoto en `github.com/atareao/podtrack` (público), ramas `main` y `development`, pipeline de GitHub Actions en verde y release automatizada operativa: los secretos `GH_PAT` y `CARGO_REGISTRY_TOKEN` están creados y el crate se publica en crates.io en cada release (última: `v0.5.1`).
 
 ## Ramas
 

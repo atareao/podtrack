@@ -1,0 +1,286 @@
+{
+  "cases": [
+    {
+      "label": "--show demo backfill-slugs",
+      "code": 0,
+      "stdout": [
+        "    100 -> primero",
+        "    101 -> segundo",
+        "    102 -> tercero",
+        "  3 slugs asignados de 3 episodios",
+        "✓ Tracker actualizado: <FIXTURE>/guiones/podcast-tracker.yaml",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 8",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    slug: primero",
+        "    season: 8",
+        "    date: 2026-09-03",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: 101",
+        "    slug: segundo",
+        "    season: 8",
+        "    date: 2026-09-07",
+        "    title: \"Segundo\"",
+        "    status: scripted",
+        "  - number: 102",
+        "    slug: tercero",
+        "    season: 8",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "podcast-tracker.yaml.bak": [
+          "# podcast-tracker.yaml",
+          "# Estado del podcast \"Show de prueba\"",
+          "# Temporadas: empiezan el 1 de septiembre",
+          "# Formato de episodio: XXXX (4 dígitos)",
+          "",
+          "season: 8",
+          "season_start: 2026-09-01",
+          "episode_duration_minutes: 25",
+          "publish_days: [Monday, Thursday]",
+          "",
+          "episodes:",
+          "  - number: 100",
+          "    season: 8",
+          "    date: 2026-09-03",
+          "    title: \"Primero\"",
+          "    status: published",
+          "  - number: 101",
+          "    season: 8",
+          "    date: 2026-09-07",
+          "    title: \"Segundo\"",
+          "    status: scripted",
+          "  - number: 102",
+          "    season: 8",
+          "    date: 2026-09-10",
+          "    title: \"Tercero\"",
+          "    status: scripted",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo backfill-slugs",
+      "code": 0,
+      "stdout": [
+        "    202 -> tercero",
+        "  1 slugs asignados de 3 episodios",
+        "✓ Tracker actualizado: <FIXTURE>/guiones/podcast-tracker.yaml",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 9",
+        "season_start: 2026-09-03",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 200",
+        "    slug: primer-episodio",
+        "    season: 8",
+        "    date: 2025-09-04",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: null",
+        "    slug: sin-numero",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Sin número\"",
+        "    status: scripted",
+        "  - number: 202",
+        "    slug: tercero",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: recorded",
+        ""
+      ],
+      "material": {
+        "podcast-tracker.yaml.bak": [
+          "season: 9",
+          "season_start: 2026-09-03",
+          "episode_duration_minutes: 25",
+          "publish_days: [Monday, Thursday]",
+          "",
+          "episodes:",
+          "  - number: 200",
+          "    slug: primer-episodio",
+          "    season: 8",
+          "    date: 2025-09-04",
+          "    title: \"Primero\"",
+          "    status: published",
+          "  - number: null",
+          "    slug: sin-numero",
+          "    season: 9",
+          "    date: 2026-09-07",
+          "    title: \"Sin número\"",
+          "    status: scripted",
+          "  - number: 202",
+          "    season: 9",
+          "    date: 2026-09-10",
+          "    title: \"Tercero\"",
+          "    status: recorded",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo backfill-slugs",
+      "code": 0,
+      "stdout": [
+        "    400 -> repetido",
+        "    401 -> repetido-2",
+        "  2 slugs asignados de 2 episodios",
+        "✓ Tracker actualizado: <FIXTURE>/guiones/podcast-tracker.yaml",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 400",
+        "    slug: repetido",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"Repetido\"",
+        "    status: scripted",
+        "  - number: 401",
+        "    slug: repetido-2",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Repetido\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "podcast-tracker.yaml.bak": [
+          "season: 9",
+          "season_start: 2026-09-01",
+          "episode_duration_minutes: 25",
+          "publish_days: [Monday, Thursday]",
+          "",
+          "episodes:",
+          "  - number: 400",
+          "    season: 9",
+          "    date: 2026-09-03",
+          "    title: \"Repetido\"",
+          "    status: scripted",
+          "  - number: 401",
+          "    season: 9",
+          "    date: 2026-09-07",
+          "    title: \"Repetido\"",
+          "    status: scripted",
+          ""
+        ]
+      }
+    },
+    {
+      "label": "--show demo backfill-slugs",
+      "code": 0,
+      "stdout": [
+        "  0 slugs asignados de 1 episodios",
+        ""
+      ],
+      "stderr": [
+        "  ⚠ Aviso: el episodio #500 no produce un slug utilizable; se omite.",
+        ""
+      ],
+      "tracker": [
+        "season: 9",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 500",
+        "    season: 9",
+        "    date: 2026-09-03",
+        "    title: \"!!!\"",
+        "    status: scripted",
+        ""
+      ]
+    },
+    {
+      "label": "--show demo backfill-slugs --dry-run",
+      "code": 0,
+      "stdout": [
+        "  ⚠ DRY-RUN: no se escribe nada (ni tracker ni disco)",
+        "    100 -> primero",
+        "    101 -> segundo",
+        "    102 -> tercero",
+        "  3 slugs asignados de 3 episodios",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 8",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    season: 8",
+        "    date: 2026-09-03",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: 101",
+        "    season: 8",
+        "    date: 2026-09-07",
+        "    title: \"Segundo\"",
+        "    status: scripted",
+        "  - number: 102",
+        "    season: 8",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: scripted",
+        ""
+      ]
+    }
+  ]
+}

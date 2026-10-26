@@ -1,0 +1,27 @@
+{
+  "cases": [
+    {
+      "label": "--show bad --srt <FIXTURE>/srt/solo.srt",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: La etapa 'x' declara un 'detect' desconocido ('inventado'). Valores válidos: any, not_intro, starts_with_intro.",
+        ""
+      ]
+    },
+    {
+      "label": "--show nostages --srt <FIXTURE>/srt/solo.srt",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: El perfil no declara 'episodes.srt_stages'.",
+        "       Sin etapas no se puede clasificar ningún SRT.",
+        ""
+      ]
+    }
+  ]
+}

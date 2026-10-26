@@ -1,5 +1,11 @@
 //! `reference-rebase` — reescritura de hooks `Próximo episodio`, reporte de prosa
-//! y de hooks sin título, con contraste en vivo contra el oráculo.
+//! y de hooks sin título, con contraste contra el **golden congelado**.
+//!
+//! El golden (`tests/golden/rebase_references/oraculo_rebase_references.json`) se
+//! grabó **una sola vez** con el oráculo recuperado del histórico de `~/.agents`
+//! (commit `c70287f^`), que ya no existe y es el **origen** del golden, no el contrato
+//! vivo. La paridad **no es en vivo** y el golden **no se regenera solo** ni se generó
+//! nunca desde el binario; es evidencia histórica y candado contra regresiones.
 
 mod common;
 
@@ -220,7 +226,7 @@ fn sin_material_no_falla() {
     assert!(out.contains("(sin hooks que reescribir)"));
 }
 
-// ─── contraste en vivo ──────────────────────────────────────────────
+// ─── contraste contra el golden congelado ───────────────────────────
 
 #[test]
 fn oraculo_rebase_references() {
@@ -235,27 +241,37 @@ fn oraculo_rebase_references() {
         std::fs::write(&guion, format!("{GUION_DOS}\nProximo episodio: 999\n")).expect("write");
     };
 
-    common::assert_oracle_parity(
+    common::assert_golden_parity(
+        "rebase_references/oraculo_rebase_references",
+        0,
         REBASE_YAML,
         &["--show", "demo", "rebase-references"],
         &setup_rebase,
     );
-    common::assert_oracle_parity(
+    common::assert_golden_parity(
+        "rebase_references/oraculo_rebase_references",
+        1,
         REBASE_YAML,
         &["--show", "demo", "rebase-references", "--dry-run"],
         &setup_rebase,
     );
-    common::assert_oracle_parity(
+    common::assert_golden_parity(
+        "rebase_references/oraculo_rebase_references",
+        2,
         REBASE_YAML,
         &["--show", "demo", "rebase-references"],
         &no_title,
     );
-    common::assert_oracle_parity(
+    common::assert_golden_parity(
+        "rebase_references/oraculo_rebase_references",
+        3,
         REBASE_YAML,
         &["--show", "demo", "rebase-references"],
         &bare_hook,
     );
-    common::assert_oracle_parity(
+    common::assert_golden_parity(
+        "rebase_references/oraculo_rebase_references",
+        4,
         REBASE_YAML,
         &["--show", "demo", "rebase-references"],
         &|_fx| {},
