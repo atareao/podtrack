@@ -1,11 +1,12 @@
-//! Guardián de paridad en vivo: compara, comando a comando, la salida del
-//! binario con la del **oráculo** Python sobre el **mismo fixture** (texto +
-//! exit codes).
+//! Guardián de paridad congelada: compara, comando a comando, la salida del
+//! binario con el **golden congelado** (`tests/golden/parity_oracle/*.json`)
+//! sobre el **mismo fixture** (texto + exit codes).
 //!
-//! Cuando el oráculo o Python/PyYAML no están disponibles (p. ej. en CI), el
-//! test **se salta** imprimiendo el motivo. Para que un *skip* no pase en vacío,
-//! definiendo `PODTRACK_REQUIRE_ORACLE=1` el test **falla** si no puede comparar
-//! (ver `common::require_oracle`).
+//! El golden se grabó **una sola vez** con el oráculo recuperado del histórico de
+//! `~/.agents` (commit `c70287f^`), que ya no existe: el oráculo es el **origen**
+//! del golden, no el contrato vivo. La paridad **no es en vivo** y el golden **no
+//! se regenera solo** ni se generó nunca desde el binario; es evidencia histórica y
+//! candado contra regresiones.
 
 mod common;
 
@@ -14,72 +15,10 @@ use std::process::Command;
 
 use common::{Fixture, MINI_YAML, MINI_YAML_V2};
 
-const HARNESS: &str = r#"
-import importlib.util, sys
-from pathlib import Path
-spec = importlib.util.spec_from_file_location("pt", sys.argv[1])
-m = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(m)
-m.TRACKER_PATH = Path(sys.argv[2])
-m.SHOW_NAME = sys.argv[3]
-data = m.load_tracker()
-cmd = sys.argv[4]
-args = sys.argv[5:]
-if cmd == "status":
-    m.cmd_status(data)
-elif cmd == "next":
-    m.cmd_next(data)
-elif cmd == "list":
-    kw = {"status": None, "season": None, "last": None}
-    i = 0
-    while i < len(args):
-        a = args[i]
-        if a == "--status":
-            kw["status"] = args[i + 1]; i += 2
-        elif a == "--season":
-            kw["season"] = int(args[i + 1]); i += 2
-        elif a == "--last":
-            kw["last"] = int(args[i + 1]); i += 2
-        else:
-            i += 1
-    m.cmd_list(data, **kw)
-elif cmd == "list-range":
-    m.cmd_list_range(data, int(args[0]), int(args[1]))
-elif cmd == "get":
-    m.cmd_get(data, args[0])
-elif cmd == "where":
-    m.cmd_where(data, args[0])
-else:
-    print("unknown", file=sys.stderr); sys.exit(2)
-"#;
-
 struct Outcome {
     code: i32,
     stdout: String,
     stderr: String,
-}
-
-fn run_oracle(
-    python: &Path,
-    module: &Path,
-    harness: &Path,
-    tracker: &Path,
-    name: &str,
-    args: &[&str],
-) -> Outcome {
-    let output = Command::new(python)
-        .arg(harness)
-        .arg(module)
-        .arg(tracker)
-        .arg(name)
-        .args(args)
-        .output()
-        .expect("python oracle");
-    Outcome {
-        code: output.status.code().unwrap_or(-1),
-        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
-        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
-    }
 }
 
 fn run_podtrack(fx: &Fixture, harness_dir: &Path, args: &[&str]) -> Outcome {
@@ -102,6 +41,15 @@ fn run_podtrack(fx: &Fixture, harness_dir: &Path, args: &[&str]) -> Outcome {
 // `status` se omite a propósito desde el change `status-upcoming-window`:
 // su ventana final diverge del oráculo por diseño (último publicado + 7 próximos
 // en vez de los 8 últimos por parrilla). El resto de comandos siguen en paridad.
+//
+// `get 100` y `get 101` se omiten **solo en el test del fixture `mini`** desde
+// `close-the-port`: el binario imprime `Slug:` y `Ruta:` desde el change archivado
+// `2026-10-25-get-shows-slug-and-path` (commit `c7a15e9`) y el oráculo recuperado
+// (`c70287f^`) no lo hacía. Esas dos líneas están cubiertas a mano en
+// `tests/parity_read.rs` (líneas 154-275). La matriz es una **constante compartida**
+// con el fixture `v2`, donde `get 100`/`get 101` **sí están en paridad** (allí esos
+// episodios no existen y la salida es «no encontrado»), así que la exclusión se pasa
+// por test a `assert_parity` en vez de quitar entradas de `SPECS`.
 const SPECS: &[&[&str]] = &[
     &["next"],
     &["list"],
@@ -115,41 +63,34 @@ const SPECS: &[&[&str]] = &[
     &["where", "no-existe"],
 ];
 
-fn assert_parity(fx: &Fixture, name: &str) {
-    let Some(module) = common::require_oracle() else {
-        return;
-    };
-    let harness = fx.dir.path().join("oracle_harness.py");
-    std::fs::write(&harness, HARNESS).expect("harness");
-    let python = Path::new("python3");
+fn assert_parity(fx: &Fixture, golden: &str, excluded: &[&str]) {
+    // La matriz de este test es `SPECS` menos los escenarios excluidos (por etiqueta, el
+    // `argv` unido por espacios): los índices del golden corresponden a la matriz **filtrada**.
+    let specs: Vec<&[&str]> = SPECS
+        .iter()
+        .copied()
+        .filter(|spec| !excluded.contains(&spec.join(" ").as_str()))
+        .collect();
 
-    for spec in SPECS {
-        let expected = run_oracle(python, &module, &harness, &fx.tracker, name, spec);
+    for (idx, spec) in specs.iter().enumerate() {
+        let expected = common::golden::case(golden, idx);
         let actual = run_podtrack(fx, fx.dir.path(), spec);
-        assert_eq!(
-            expected.stdout, actual.stdout,
-            "stdout difiere para {spec:?}\n--- oráculo ---\n{}\n--- podtrack ---\n{}",
-            expected.stdout, actual.stdout
-        );
-        assert_eq!(
-            expected.stderr, actual.stderr,
-            "stderr difiere para {spec:?}"
-        );
-        assert_eq!(
-            expected.code, actual.code,
-            "exit code difiere para {spec:?}"
-        );
+        expected.assert_outcome(fx.dir.path(), actual.code, &actual.stdout, &actual.stderr);
     }
 }
 
 #[test]
 fn paridad_oraculo_fixture_mini() {
     let fx = Fixture::new(MINI_YAML, "demo", "Show de prueba");
-    assert_parity(&fx, "Show de prueba");
+    assert_parity(
+        &fx,
+        "parity_oracle/paridad_oraculo_fixture_mini",
+        &["get 100", "get 101"],
+    );
 }
 
 #[test]
 fn paridad_oraculo_fixture_v2() {
     let fx = Fixture::new(MINI_YAML_V2, "demo", "Show de prueba");
-    assert_parity(&fx, "Show de prueba");
+    assert_parity(&fx, "parity_oracle/paridad_oraculo_fixture_v2", &[]);
 }

@@ -1,5 +1,11 @@
 //! `srt-stage` — clasificación de la etapa de un SRT por contenido, con contraste
-//! en vivo contra `srt-stage.py`.
+//! contra el **golden congelado** del oráculo (`tests/golden/srt_stage/*.json`).
+//!
+//! El golden se grabó **una sola vez** con el oráculo `srt-stage.py` recuperado del
+//! histórico de `~/.agents` (commit `c70287f^`), que ya no existe y es el **origen**
+//! del golden, no el contrato vivo. La paridad **no es en vivo** y el golden **no se
+//! regenera solo** ni se generó nunca desde el binario; es evidencia histórica y
+//! candado contra regresiones.
 
 mod common;
 
@@ -84,25 +90,20 @@ impl Harness {
         (outcome.code, outcome.stdout, outcome.stderr)
     }
 
-    /// Contraste en vivo con el oráculo sobre el mismo fixture.
+    /// Contraste contra el **golden congelado** sobre el mismo fixture.
     ///
     /// Los `args` son los del oráculo (`--show … --srt …`); al binario se le
     /// antepone el subcomando `srt-stage` (el oráculo no tiene subcomandos).
-    fn assert_parity(&self, args: &[&str]) {
-        let Some(module) = common::require_oracle_srt() else {
-            return;
-        };
-        let harness = self.dir.path().join("srt_harness.py");
-        std::fs::write(&harness, common::SRT_MAIN_HARNESS).expect("harness");
-        let oracle = common::run_oracle_main(&module, &harness, &self.shows, args);
+    /// `golden` identifica el caso como `srt_stage/<nombre_del_test>` e `idx` es la
+    /// posición del escenario dentro del caso.
+    fn assert_parity(&self, golden: &str, idx: usize, args: &[&str]) {
+        let expected = common::golden::case(golden, idx);
 
         let mut full = vec!["srt-stage"];
         full.extend_from_slice(args);
-        let lib = self.run(&full);
+        let actual = self.run(&full);
 
-        assert_eq!(oracle.stdout, lib.stdout, "stdout difiere para {args:?}");
-        assert_eq!(oracle.stderr, lib.stderr, "stderr difiere para {args:?}");
-        assert_eq!(oracle.code, lib.code, "exit code difiere para {args:?}");
+        expected.assert_outcome(self.dir.path(), actual.code, &actual.stdout, &actual.stderr);
     }
 }
 
@@ -487,11 +488,13 @@ fn sin_json_no_hay_json() {
     assert!(!out.trim_start().starts_with('{'));
 }
 
-// ─── contraste en vivo con el oráculo ───────────────────────────────
+// ─── contraste contra el golden congelado del oráculo ───────────────
 
 #[test]
 fn oraculo_srt_por_contenido() {
+    const GOLDEN: &str = "srt_stage/oraculo_srt_por_contenido";
     let h = distros_harness();
+    let mut idx = 0usize;
     for fixture in [
         "final-intro.srt",
         "final-dash.srt",
@@ -503,96 +506,159 @@ fn oraculo_srt_por_contenido() {
         "raw-late-intro.srt",
     ] {
         let path = h.copy(fixture, &format!("o-{fixture}"));
-        h.assert_parity(&["--show", "distros", "--srt", &path.display().to_string()]);
-        h.assert_parity(&[
-            "--show",
-            "distros",
-            "--srt",
-            &path.display().to_string(),
-            "--expect",
-            "raw",
-        ]);
-        h.assert_parity(&[
-            "--show",
-            "distros",
-            "--srt",
-            &path.display().to_string(),
-            "--expect",
-            "final",
-        ]);
+        h.assert_parity(
+            GOLDEN,
+            idx,
+            &["--show", "distros", "--srt", &path.display().to_string()],
+        );
+        h.assert_parity(
+            GOLDEN,
+            idx + 1,
+            &[
+                "--show",
+                "distros",
+                "--srt",
+                &path.display().to_string(),
+                "--expect",
+                "raw",
+            ],
+        );
+        h.assert_parity(
+            GOLDEN,
+            idx + 2,
+            &[
+                "--show",
+                "distros",
+                "--srt",
+                &path.display().to_string(),
+                "--expect",
+                "final",
+            ],
+        );
+        idx += 3;
     }
 }
 
 #[test]
 fn oraculo_episode() {
+    const GOLDEN: &str = "srt_stage/oraculo_episode";
     let h = distros_harness();
+    let mut idx = 0usize;
     for episode in ["1", "2", "3", "99"] {
-        h.assert_parity(&["--show", "distros", "--episode", episode]);
-        h.assert_parity(&[
-            "--show",
-            "distros",
-            "--episode",
-            episode,
-            "--expect",
-            "final",
-        ]);
-        h.assert_parity(&["--show", "distros", "--episode", episode, "--expect", "raw"]);
+        h.assert_parity(GOLDEN, idx, &["--show", "distros", "--episode", episode]);
+        h.assert_parity(
+            GOLDEN,
+            idx + 1,
+            &[
+                "--show",
+                "distros",
+                "--episode",
+                episode,
+                "--expect",
+                "final",
+            ],
+        );
+        h.assert_parity(
+            GOLDEN,
+            idx + 2,
+            &["--show", "distros", "--episode", episode, "--expect", "raw"],
+        );
+        idx += 3;
     }
 }
 
 #[test]
 fn oraculo_una_sola_etapa() {
+    const GOLDEN: &str = "srt_stage/oraculo_una_sola_etapa";
     let h = Harness::new("one-stage", "one");
     let path = h.copy("raw-conversation.srt", "solo.srt");
-    h.assert_parity(&["--show", "one", "--srt", &path.display().to_string()]);
-    h.assert_parity(&[
-        "--show",
-        "one",
-        "--srt",
-        &path.display().to_string(),
-        "--expect",
-        "final",
-    ]);
-    h.assert_parity(&[
-        "--show",
-        "one",
-        "--srt",
-        &path.display().to_string(),
-        "--expect",
-        "raw",
-    ]);
+    h.assert_parity(
+        GOLDEN,
+        0,
+        &["--show", "one", "--srt", &path.display().to_string()],
+    );
+    h.assert_parity(
+        GOLDEN,
+        1,
+        &[
+            "--show",
+            "one",
+            "--srt",
+            &path.display().to_string(),
+            "--expect",
+            "final",
+        ],
+    );
+    h.assert_parity(
+        GOLDEN,
+        2,
+        &[
+            "--show",
+            "one",
+            "--srt",
+            &path.display().to_string(),
+            "--expect",
+            "raw",
+        ],
+    );
 }
 
 #[test]
 fn oraculo_errores() {
+    const GOLDEN: &str = "srt_stage/oraculo_errores";
     let h = distros_harness();
     let nocues = h.copy("no-cues.srt", "n.srt");
     let empty = h.copy("empty.srt", "e.srt");
     let good = h.copy("final-intro.srt", "g.srt");
-    h.assert_parity(&["--show", "distros", "--srt", &nocues.display().to_string()]);
-    h.assert_parity(&["--show", "distros", "--srt", &empty.display().to_string()]);
-    h.assert_parity(&["--show", "distros", "--srt", "/no/existe.srt"]);
-    h.assert_parity(&["--show", "noexiste", "--srt", &good.display().to_string()]);
-    h.assert_parity(&["--show", "distros"]);
-    h.assert_parity(&[
-        "--show",
-        "distros",
-        "--srt",
-        &good.display().to_string(),
-        "--episode",
-        "1",
-    ]);
+    h.assert_parity(
+        GOLDEN,
+        0,
+        &["--show", "distros", "--srt", &nocues.display().to_string()],
+    );
+    h.assert_parity(
+        GOLDEN,
+        1,
+        &["--show", "distros", "--srt", &empty.display().to_string()],
+    );
+    h.assert_parity(GOLDEN, 2, &["--show", "distros", "--srt", "/no/existe.srt"]);
+    h.assert_parity(
+        GOLDEN,
+        3,
+        &["--show", "noexiste", "--srt", &good.display().to_string()],
+    );
+    h.assert_parity(GOLDEN, 4, &["--show", "distros"]);
+    h.assert_parity(
+        GOLDEN,
+        5,
+        &[
+            "--show",
+            "distros",
+            "--srt",
+            &good.display().to_string(),
+            "--episode",
+            "1",
+        ],
+    );
 }
 
 #[test]
 fn oraculo_perfiles_rotos() {
+    const GOLDEN: &str = "srt_stage/oraculo_perfiles_rotos";
     let bad = Harness::new("bad-detect", "bad");
     let path = bad.copy("final-intro.srt", "solo.srt");
-    bad.assert_parity(&["--show", "bad", "--srt", &path.display().to_string()]);
+    bad.assert_parity(
+        GOLDEN,
+        0,
+        &["--show", "bad", "--srt", &path.display().to_string()],
+    );
 
     let none = Harness::new("no-stages", "nostages");
     let path2 = none.copy("final-intro.srt", "solo.srt");
-    none.assert_parity(&["--show", "nostages", "--srt", &path2.display().to_string()]);
+    none.assert_parity(
+        GOLDEN,
+        1,
+        &["--show", "nostages", "--srt", &path2.display().to_string()],
+    );
 }
 
 // ─── regresión: anclaje por caracteres (no bytes) ───────────────────
@@ -621,13 +687,24 @@ fn anclaje_cuenta_caracteres_no_bytes() {
 
 #[test]
 fn oraculo_anclaje_multibyte() {
+    const GOLDEN: &str = "srt_stage/oraculo_anclaje_multibyte";
     let h = Harness::new("anchor", "anchor");
+    let mut idx = 0usize;
     for fixture in ["final-multibyte-2b.srt", "final-multibyte-3b.srt"] {
         let path = h.copy(fixture, &format!("m-{fixture}"));
         let file = path.display().to_string();
-        h.assert_parity(&["--show", "anchor", "--srt", &file]);
-        h.assert_parity(&["--show", "anchor", "--srt", &file, "--expect", "final"]);
-        h.assert_parity(&["--show", "anchor", "--srt", &file, "--expect", "raw"]);
+        h.assert_parity(GOLDEN, idx, &["--show", "anchor", "--srt", &file]);
+        h.assert_parity(
+            GOLDEN,
+            idx + 1,
+            &["--show", "anchor", "--srt", &file, "--expect", "final"],
+        );
+        h.assert_parity(
+            GOLDEN,
+            idx + 2,
+            &["--show", "anchor", "--srt", &file, "--expect", "raw"],
+        );
+        idx += 3;
     }
 }
 
@@ -650,9 +727,14 @@ fn intro_vacio_cuenta_como_ausente() {
 
 #[test]
 fn oraculo_intro_vacio() {
+    const GOLDEN: &str = "srt_stage/oraculo_intro_vacio";
     let h = Harness::new("empty-intro", "emptyintro");
     let path = h.copy("final-intro.srt", "solo.srt");
-    h.assert_parity(&["--show", "emptyintro", "--srt", &path.display().to_string()]);
+    h.assert_parity(
+        GOLDEN,
+        0,
+        &["--show", "emptyintro", "--srt", &path.display().to_string()],
+    );
 }
 
 #[test]

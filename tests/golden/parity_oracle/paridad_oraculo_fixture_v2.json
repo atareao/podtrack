@@ -1,0 +1,136 @@
+{
+  "cases": [
+    {
+      "label": "next",
+      "code": 0,
+      "stdout": [
+        "",
+        "  Siguiente episodio: #203  (Temporada 9)",
+        "  Próximo a publicar: #201",
+        "  Fecha propuesta:    2026-09-14 (lunes)",
+        "",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "list",
+      "code": 0,
+      "stdout": [
+        "",
+        "  Todos (3 episodios):",
+        "     Nº  Fecha          Estado        Temporada  Título",
+        "  ─────  ─────────────  ────────────  ─────────  ─────────────────────────────",
+        "   200   2025-09-04    ✅ published  S8     Primero",
+        "     —   2026-09-07    📝 scripted   S9     Sin número",
+        "  202*   2026-09-10    🎙 recorded   S9     Tercero",
+        "  * número provisional (se fija al publicar)",
+        "",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "list --status published",
+      "code": 0,
+      "stdout": [
+        "",
+        "  [published] (1 episodios):",
+        "     Nº  Fecha          Estado        Temporada  Título",
+        "  ─────  ─────────────  ────────────  ─────────  ─────────────────────────────",
+        "   200   2025-09-04    ✅ published  S8     Primero",
+        "",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "list --season 8 --last 2",
+      "code": 0,
+      "stdout": [
+        "",
+        "  Temporada 8 últimos 2 (1 episodios):",
+        "     Nº  Fecha          Estado        Temporada  Título",
+        "  ─────  ─────────────  ────────────  ─────────  ─────────────────────────────",
+        "   200   2025-09-04    ✅ published  S8     Primero",
+        "",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "list-range 100 102",
+      "code": 0,
+      "stdout": [
+        "  No hay episodios entre #100 y #102.",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "get 100",
+      "code": 1,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: Episodio '100' no encontrado.",
+        ""
+      ]
+    },
+    {
+      "label": "get 101",
+      "code": 1,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: Episodio '101' no encontrado.",
+        ""
+      ]
+    },
+    {
+      "label": "get 999",
+      "code": 1,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: Episodio '999' no encontrado.",
+        ""
+      ]
+    },
+    {
+      "label": "where 100",
+      "code": 1,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: Episodio '100' no encontrado.",
+        ""
+      ]
+    },
+    {
+      "label": "where no-existe",
+      "code": 1,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: Episodio 'no-existe' no encontrado.",
+        ""
+      ]
+    }
+  ]
+}

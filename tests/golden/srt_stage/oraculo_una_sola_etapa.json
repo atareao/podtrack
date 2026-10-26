@@ -1,0 +1,39 @@
+{
+  "cases": [
+    {
+      "label": "--show one --srt <FIXTURE>/srt/solo.srt",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/solo.srt\tfinal",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show one --srt <FIXTURE>/srt/solo.srt --expect final",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/solo.srt\tfinal",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show one --srt <FIXTURE>/srt/solo.srt --expect raw",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: La etapa 'raw' no existe en el perfil 'one'.",
+        "       Etapas declaradas: final",
+        ""
+      ]
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "cases": [
+    {
+      "label": "Show de prueba",
+      "code": 0,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "yaml": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 9",
+        "season_start: 2026-09-03",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 200",
+        "    slug: primer-episodio",
+        "    season: 8",
+        "    date: 2025-09-04",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: null",
+        "    slug: sin-numero",
+        "    season: 9",
+        "    date: 2026-09-07",
+        "    title: \"Sin número\"",
+        "    status: scripted",
+        "  - number: 202",
+        "    season: 9",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: recorded",
+        ""
+      ]
+    }
+  ]
+}

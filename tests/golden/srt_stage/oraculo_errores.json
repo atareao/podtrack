@@ -1,0 +1,72 @@
+{
+  "cases": [
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/n.srt",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: El fichero <FIXTURE>/srt/n.srt no parece un SRT: sin cues.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/e.srt",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: El fichero <FIXTURE>/srt/e.srt no parece un SRT: sin cues.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt /no/existe.srt",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: No se encuentra el SRT /no/existe.srt",
+        ""
+      ]
+    },
+    {
+      "label": "--show noexiste --srt <FIXTURE>/srt/g.srt",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: No existe el perfil de podcast 'noexiste'.",
+        "       Se esperaba el fichero <FIXTURE>/shows/noexiste.yaml",
+        "       Perfiles disponibles: distros",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: Indica --srt <ruta> o --episode NN.",
+        ""
+      ]
+    },
+    {
+      "label": "--show distros --srt <FIXTURE>/srt/g.srt --episode 1",
+      "code": 2,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        "ERROR: --srt y --episode son excluyentes.",
+        ""
+      ]
+    }
+  ]
+}

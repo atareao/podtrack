@@ -1,0 +1,78 @@
+{
+  "cases": [
+    {
+      "label": "--show anchor --srt <FIXTURE>/srt/m-final-multibyte-2b.srt",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/m-final-multibyte-2b.srt\tfinal",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show anchor --srt <FIXTURE>/srt/m-final-multibyte-2b.srt --expect final",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/m-final-multibyte-2b.srt\tfinal",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show anchor --srt <FIXTURE>/srt/m-final-multibyte-2b.srt --expect raw",
+      "code": 5,
+      "stdout": [
+        "<FIXTURE>/srt/m-final-multibyte-2b.srt\tfinal",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Se esperaba la etapa 'raw' pero el SRT es de la etapa 'final'.",
+        "       No generes entregables de una etapa que el SRT no es: en un bruto las marcas de tiempo están desplazadas ~26-30 s.",
+        ""
+      ]
+    },
+    {
+      "label": "--show anchor --srt <FIXTURE>/srt/m-final-multibyte-3b.srt",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/m-final-multibyte-3b.srt\tfinal",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show anchor --srt <FIXTURE>/srt/m-final-multibyte-3b.srt --expect final",
+      "code": 0,
+      "stdout": [
+        "<FIXTURE>/srt/m-final-multibyte-3b.srt\tfinal",
+        "OK",
+        ""
+      ],
+      "stderr": [
+        ""
+      ]
+    },
+    {
+      "label": "--show anchor --srt <FIXTURE>/srt/m-final-multibyte-3b.srt --expect raw",
+      "code": 5,
+      "stdout": [
+        "<FIXTURE>/srt/m-final-multibyte-3b.srt\tfinal",
+        "FALLO",
+        ""
+      ],
+      "stderr": [
+        "ERROR: Se esperaba la etapa 'raw' pero el SRT es de la etapa 'final'.",
+        "       No generes entregables de una etapa que el SRT no es: en un bruto las marcas de tiempo están desplazadas ~26-30 s.",
+        ""
+      ]
+    }
+  ]
+}

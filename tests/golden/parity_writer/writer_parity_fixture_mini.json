@@ -1,0 +1,43 @@
+{
+  "cases": [
+    {
+      "label": "Show de prueba",
+      "code": 0,
+      "stdout": [
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "yaml": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 8",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    season: 8",
+        "    date: 2026-09-03",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: 101",
+        "    season: 8",
+        "    date: 2026-09-07",
+        "    title: \"Segundo\"",
+        "    status: scripted",
+        "  - number: 102",
+        "    season: 8",
+        "    date: 2026-09-10",
+        "    title: \"Tercero\"",
+        "    status: scripted",
+        ""
+      ]
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "cases": [
+    {
+      "label": "--show demo insert --before 101 --title Nuevo --slug nuevo",
+      "code": 0,
+      "stdout": [
+        "  ✓ Insertar antes de #101: \"Nuevo\"",
+        "    Nuevo: #101  (2026-09-07)",
+        "      #102 → #103  (2026-09-10 → 2026-09-14)",
+        "      #101 → #102  (2026-09-07 → 2026-09-10)",
+        "      · 0102/zdir/deep/e102-deep.md  →  0102/zdir/deep/e103-deep.md",
+        "      · 0102/mdir/e102-m.md  →  0102/mdir/e103-m.md",
+        "      · 0102/adir/e102-a.md  →  0102/adir/e103-a.md",
+        "      · 0102/zdir/e102-z.md  →  0102/zdir/e103-z.md",
+        "      · 0102/e102-top.md  →  0102/e103-top.md",
+        "      · 0102/top-0102.md  →  0102/top-0103.md",
+        "      · 0102  →  0103",
+        "      · 0101/zdir/deep/e101-deep.md  →  0101/zdir/deep/e102-deep.md",
+        "      · 0101/mdir/e101-m.md  →  0101/mdir/e102-m.md",
+        "      · 0101/adir/e101-a.md  →  0101/adir/e102-a.md",
+        "      · 0101/zdir/e101-z.md  →  0101/zdir/e102-z.md",
+        "      · 0101/e101-top.md  →  0101/e102-top.md",
+        "      · 0101/top-0101.md  →  0101/top-0102.md",
+        "      · 0101  →  0102",
+        "✓ Tracker actualizado: <FIXTURE>/guiones/podcast-tracker.yaml",
+        ""
+      ],
+      "stderr": [
+        ""
+      ],
+      "tracker": [
+        "# podcast-tracker.yaml",
+        "# Estado del podcast \"Show de prueba\"",
+        "# Temporadas: empiezan el 1 de septiembre",
+        "# Formato de episodio: XXXX (4 dígitos)",
+        "",
+        "season: 8",
+        "season_start: 2026-09-01",
+        "episode_duration_minutes: 25",
+        "publish_days: [Monday, Thursday]",
+        "",
+        "episodes:",
+        "  - number: 100",
+        "    season: 8",
+        "    date: 2026-09-03",
+        "    title: \"Primero\"",
+        "    status: published",
+        "  - number: 101",
+        "    slug: nuevo",
+        "    season: 8",
+        "    date: 2026-09-07",
+        "    title: \"Nuevo\"",
+        "    status: scripted",
+        "  - number: 102",
+        "    season: 8",
+        "    date: 2026-09-10",
+        "    title: \"Segundo\"",
+        "    status: scripted",
+        "  - number: 103",
+        "    season: 8",
+        "    date: 2026-09-14",
+        "    title: \"Tercero\"",
+        "    status: scripted",
+        ""
+      ],
+      "material": {
+        "0102/adir/e102-a.md": [
+          "x",
+          ""
+        ],
+        "0102/e102-top.md": [
+          "x",
+          ""
+        ],
+        "0102/mdir/e102-m.md": [
+          "x",
+          ""
+        ],
+        "0102/top-0102.md": [
+          "x",
+          ""
+        ],
+        "0102/zdir/deep/01010-largo.md": [
+          "x",
+          ""
+        ],
+        "0102/zdir/deep/e102-deep.md": [
+          "x",
+          ""
+        ],
+        "0102/zdir/e102-z.md": [
+          "x",
+          ""
+        ],
+        "0103/adir/e103-a.md": [
+          "x",
+          ""
+        ],
+        "0103/e103-top.md": [
+          "x",
+          ""
+        ],
+        "0103/mdir/e103-m.md": [
+          "x",
+          ""
+        ],
+        "0103/top-0103.md": [
+          "x",
+          ""
+        ],
+        "0103/zdir/deep/01020-largo.md": [
+          "x",
+          ""
+        ],
+        "0103/zdir/deep/e103-deep.md": [
+          "x",
+          ""
+        ],
+        "0103/zdir/e103-z.md": [
+          "x",
+          ""
+        ]
+      }
+    }
+  ]
+}

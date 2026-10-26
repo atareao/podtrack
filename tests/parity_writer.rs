@@ -1,16 +1,16 @@
-//! Paridad byte a byte del **writer canónico** (D1) contra el `save_tracker` del
-//! oráculo Python.
+//! Paridad byte a byte del **writer canónico** (D1) contra el **golden congelado**.
 //!
 //! El writer a mano es el punto más delicado del port (reproduce un formato fijo
-//! sin `serde`): este test lo compara, sobre el **mismo fixture**, con el
-//! `save_tracker` real del oráculo y exige **bytes idénticos**. Cubre cabecera de
+//! sin `serde`): este test lo compara, sobre el **mismo fixture**, con el YAML
+//! canónico del golden y exige **bytes idénticos**. Cubre cabecera de
 //! comentarios, orden de campos, `title` entrecomillado, `slug` presente y
 //! ausente, y `number: null`.
 //!
-//! Cuando el oráculo o Python/PyYAML no están disponibles, el test **se salta**
-//! imprimiendo el motivo; con `PODTRACK_REQUIRE_ORACLE=1` **falla** en vez de
-//! saltar (ver `common::require_oracle`), de modo que el *skip* nunca pasa en
-//! silencio si el operador exige la comparación.
+//! El golden (`tests/golden/parity_writer/*.json`) se grabó **una sola vez** con el
+//! oráculo recuperado del histórico de `~/.agents` (commit `c70287f^`), que ya no
+//! existe: el oráculo es el **origen** del golden, no el contrato vivo. La paridad
+//! **no es en vivo** y el golden **no se regenera solo** ni se generó nunca desde el
+//! binario; es evidencia histórica y candado contra regresiones.
 
 mod common;
 
@@ -18,20 +18,6 @@ use std::path::Path;
 
 use common::{Fixture, MINI_YAML, MINI_YAML_V2};
 use podtrack::tracker::{load_tracker, save_tracker};
-
-/// Harness que carga el módulo del oráculo por ruta y guarda el tracker in-place
-/// (`m.TRACKER_PATH = …; data = m.load_tracker(); m.save_tracker(data)`).
-const WRITER_HARNESS: &str = r#"
-import importlib.util, sys
-from pathlib import Path
-spec = importlib.util.spec_from_file_location("pt", sys.argv[1])
-m = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(m)
-m.TRACKER_PATH = Path(sys.argv[2])
-m.SHOW_NAME = sys.argv[3]
-data = m.load_tracker()
-m.save_tracker(data)
-"#;
 
 /// Guarda con la librería de podtrack y devuelve los bytes del fichero resultante.
 fn lib_save(path: &Path, name: &str) -> Vec<u8> {
@@ -42,54 +28,30 @@ fn lib_save(path: &Path, name: &str) -> Vec<u8> {
     std::fs::read(path).expect("read")
 }
 
-/// Compara byte a byte el writer de la lib con el del oráculo sobre el mismo YAML.
-fn assert_writer_parity(yaml: &str, name: &str) {
-    let Some(module) = common::require_oracle() else {
-        return;
-    };
+/// Compara byte a byte el writer de la lib con el YAML canónico del golden.
+fn assert_writer_parity(yaml: &str, name: &str, golden: &str) {
     let fx = Fixture::new(yaml, "demo", name);
-
-    let harness = fx.dir.path().join("writer_harness.py");
-    std::fs::write(&harness, WRITER_HARNESS).expect("harness");
-
-    // Dos copias con el MISMO contenido de entrada.
-    let oracle_tracker = fx.dir.path().join("oracle_tracker.yaml");
-    let lib_tracker = fx.dir.path().join("lib_tracker.yaml");
-    std::fs::write(&oracle_tracker, yaml).expect("seed oracle");
-    std::fs::write(&lib_tracker, yaml).expect("seed lib");
-
-    // (1) writer del oráculo.
-    let output = common::run_python_harness(&harness, &module, &oracle_tracker, name);
-    assert!(
-        output.status.success(),
-        "el oráculo falló: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-
-    // (2) writer de la lib.
-    let lib_bytes = lib_save(&lib_tracker, name);
-
-    // (3) bytes idénticos.
-    let oracle_bytes = std::fs::read(&oracle_tracker).expect("read oracle");
-    assert_eq!(
-        String::from_utf8_lossy(&oracle_bytes),
-        String::from_utf8_lossy(&lib_bytes),
-        "el writer de la lib difiere del oráculo byte a byte"
-    );
-    assert_eq!(
-        oracle_bytes, lib_bytes,
-        "el writer de la lib difiere del oráculo byte a byte"
-    );
+    let lib_bytes = lib_save(&fx.tracker, name);
+    let expected = common::golden::case(golden, 0);
+    expected.assert_yaml(&lib_bytes);
 }
 
 #[test]
 fn writer_parity_fixture_mini() {
-    assert_writer_parity(MINI_YAML, "Show de prueba");
+    assert_writer_parity(
+        MINI_YAML,
+        "Show de prueba",
+        "parity_writer/writer_parity_fixture_mini",
+    );
 }
 
 #[test]
 fn writer_parity_fixture_v2() {
-    assert_writer_parity(MINI_YAML_V2, "Show de prueba");
+    assert_writer_parity(
+        MINI_YAML_V2,
+        "Show de prueba",
+        "parity_writer/writer_parity_fixture_v2",
+    );
 }
 
 /// Fija (sin depender del oráculo) las formas canónicas que el test de paridad
