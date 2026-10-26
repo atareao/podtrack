@@ -1,8 +1,10 @@
 //! Errores tipados del dominio (D4).
 //!
-//! Los mensajes reproducen los del oráculo (`podcast-tracker.py`) **incluido el
-//! prefijo literal `ERROR: `**, de modo que `println!(stderr, "{err}")` da byte a
-//! byte la misma línea que el Python. Los *exit codes* también son contrato.
+//! Los mensajes reproducen los que dictaba el oráculo (`podcast-tracker.py`)
+//! **incluido el prefijo literal `ERROR: `**, de modo que
+//! `println!(stderr, "{err}")` da byte a byte la misma línea que el intérprete.
+//! Los *exit codes* siguen siendo contrato, y nada de eso puede cambiar ahora
+//! que el oráculo ya no existe.
 
 use std::path::PathBuf;
 use thiserror::Error;
@@ -161,7 +163,8 @@ pub enum PodtrackError {
     #[error("ERROR: rename-material requiere --from y --delta (o --check).")]
     RenameMaterialRequiresArgs,
 
-    /// `srt-stage`: perfil inexistente (exit 2; mensaje propio de `srt-stage.py`).
+    /// `srt-stage`: perfil inexistente (exit 2; mensaje heredado del retirado
+    /// `srt-stage.py`).
     #[error(
         "ERROR: No existe el perfil de podcast '{slug}'.\n       Se esperaba el fichero {expected}\n       Perfiles disponibles: {available}"
     )]
