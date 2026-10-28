@@ -462,5 +462,5 @@ El change `close-the-port` se ejecutó completo el **2026-10-26** en la rama
 documentación puesta al día. La suite queda en **340 passed / 0 failed / 0 ignorados** sin ninguna
 variable de entorno y `just check-all` en verde.
 
-El testigo de esa sesión es [`PLAN-009.md`](./PLAN-009.md) (fase A: cierre del port; fase B:
+El testigo de esa sesión es [`PLAN-009-COMPLETED.md`](./PLAN-009-COMPLETED.md) (fase A: cierre del port; fase B:
 `episode-neighborhood`). Este fichero se renombra a `PLAN-008-COMPLETED.md` al cerrar el change.
