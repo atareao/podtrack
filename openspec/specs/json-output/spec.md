@@ -36,6 +36,12 @@ propia del comando. Para `status`, la carga útil SHALL incluir el siguiente a p
 con `number`, `slug`, `season`, `date`, `title`, `status` y `material` (la ruta del material del
 episodio, calculada con la **regla única** de resolución de material, `<raíz de material>/<dir>`, que
 SHALL ser absoluta cuando el `tracker:` del perfil lo sea; o `null` si el episodio no tiene `slug`).
+Para `neighborhood`, la carga útil SHALL incluir `episode` (el episodio de referencia) y las listas
+`before` y `after` (los vecinos anteriores y siguientes), con los campos `number`, `slug`, `season`,
+`date`, `title` y `status` en cada episodio y **sin** ruta de material. Ambas listas SHALL ir en orden
+ascendente de `number`, de modo que el **último** elemento de `before` es el vecino inmediatamente
+inferior y el **primero** de `after` el inmediatamente superior. Las dos claves SHALL estar siempre
+presentes, aunque la lista esté vacía.
 
 #### Scenario: `status --json` expone el siguiente a publicar
 - **GIVEN** un tracker con un no publicado
@@ -58,6 +64,21 @@ SHALL ser absoluta cuando el `tracker:` del perfil lo sea; o `null` si el episod
 - **GIVEN** un perfil con `episodes.scripts.dir: "episodio-{n:02d}"` y un episodio de número `7`
 - **WHEN** se invoca `podtrack get <episodio> --json`
 - **THEN** `episode.material` SHALL ser la ruta `<raíz de material>/episodio-07`
+
+#### Scenario: `neighborhood --json` parte la vecindad en anteriores y siguientes
+- **GIVEN** un tracker con episodios de números `676`, `677`, `678`, `679` y `680`
+- **WHEN** se invoca `podtrack neighborhood 678 --json`
+- **THEN** `episode.number` SHALL ser `678`
+- **AND** `before` SHALL contener los números `676` y `677`, con `677` en último lugar
+- **AND** `after` SHALL contener los números `679` y `680`, con `679` en primer lugar
+- **AND** `schema_version` SHALL seguir siendo `1`
+- **AND** ningún episodio SHALL incluir la clave `material`
+
+#### Scenario: `neighborhood --json` sin vecinos deja listas vacías
+- **GIVEN** un tracker con un solo episodio numerado
+- **WHEN** se invoca `podtrack neighborhood <ese número> --json`
+- **THEN** `before` y `after` SHALL ser listas vacías
+- **AND** ninguna de las dos claves SHALL omitirse del documento
 
 ### Requirement: Los errores con `--json` son JSON en `stderr`
 

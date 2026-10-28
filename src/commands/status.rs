@@ -130,7 +130,7 @@ pub fn run(ctx: &Ctx<'_>, json_mode: bool) -> Result<Rendered, PodtrackError> {
         .collect();
     upcoming.sort_by_key(|e| e.sort_key());
     window.extend(upcoming.into_iter().take(WINDOW_UPCOMING));
-    show_episodes(&window, true, &mut out, &mut err);
+    show_episodes(&window, true, None, &mut out, &mut err);
 
     Ok(Rendered::new(out, err))
 }
