@@ -1,4 +1,9 @@
 # Changelog
+## [0.6.1] - 2026-10-28
+
+### Bug Fixes
+
+- *(test)* Canoniza el orden del plan de renombrado en el comparador del golden
 ## [0.6.0] - 2026-10-28
 
 ### Documentation
@@ -9,6 +14,10 @@
 ### Features
 
 - *(neighborhood)* Añade la vecindad numérica de un episodio
+
+### Miscellaneous Tasks
+
+- Release v0.6.0
 ## [0.5.2] - 2026-10-26
 
 ### Documentation
