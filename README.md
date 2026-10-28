@@ -29,6 +29,7 @@ La identidad de un episodio es su **`slug`**, no su número. El número se asign
 - **Número al publicar**: `publish` estampa `max(publicados) + 1` y lo congela.
 - **Material por slug**: el material de guion vive en `<scripts.root>/<slug>/`, nunca indexado por número.
 - **Relleno de huecos**: `insert`, `move`, `renumber` y `rename-material` reordenan sin cirugía manual.
+- **Vecindad numérica**: `neighborhood` lista los episodios alrededor de uno, con la referencia marcada en su sitio.
 - **`--json` opt-in**: estructura para los agentes, texto bonito para las personas.
 - **Seguro por defecto**: backup `.bak` y escritura atómica en cada operación; `--dry-run` en todo lo que reordena.
 
@@ -57,6 +58,9 @@ podtrack next --show atareao-con-linux
 
 # Dónde vive el material de un episodio
 podtrack where la-memoria-de-valet --show atareao-con-linux
+
+# Los cuatro episodios anteriores y los cuatro siguientes a este número
+podtrack neighborhood 843 --show atareao-con-linux
 
 # Lo mismo, en JSON
 podtrack status --json --show atareao-con-linux

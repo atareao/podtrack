@@ -155,3 +155,112 @@ fn el_material_es_exclusivo_de_get() {
         doc["episode"]
     );
 }
+
+/// Tracker de cinco episodios consecutivos (`676`–`680`), todos publicados.
+const BARRIO_YAML: &str = "\
+season: 8
+season_start: 2026-09-01
+episode_duration_minutes: 25
+publish_days: [Monday, Thursday]
+
+episodes:
+  - number: 676
+    season: 8
+    date: 2026-09-03
+    title: \"Episodio 676\"
+    status: published
+  - number: 677
+    season: 8
+    date: 2026-09-04
+    title: \"Episodio 677\"
+    status: published
+  - number: 678
+    season: 8
+    date: 2026-09-05
+    title: \"Episodio 678\"
+    status: published
+  - number: 679
+    season: 8
+    date: 2026-09-06
+    title: \"Episodio 679\"
+    status: published
+  - number: 680
+    season: 8
+    date: 2026-09-07
+    title: \"Episodio 680\"
+    status: published
+";
+
+#[test]
+fn neighborhood_json_parte_la_vecindad_en_anteriores_y_siguientes() {
+    let fx = Fixture::new(BARRIO_YAML, "demo", "Show de prueba");
+    let out = common::run_ok(&fx, &["neighborhood", "678", "--json"]);
+    let doc: Value = serde_json::from_str(&out).expect("JSON válido");
+
+    assert_eq!(doc["schema_version"], Value::from(1));
+    assert_eq!(doc["show"], Value::from("demo"));
+    assert_eq!(doc["episode"]["number"], Value::from(678));
+
+    let numeros = |key: &str| -> Vec<u64> {
+        doc[key]
+            .as_array()
+            .unwrap_or_else(|| panic!("{key} debe ser un array"))
+            .iter()
+            .map(|e| e["number"].as_u64().expect("number entero"))
+            .collect()
+    };
+    assert_eq!(numeros("before"), vec![676, 677], "677 al final de before");
+    assert_eq!(
+        numeros("after"),
+        vec![679, 680],
+        "679 al principio de after"
+    );
+
+    let mut episodios = vec![&doc["episode"]];
+    episodios.extend(doc["before"].as_array().expect("before array").iter());
+    episodios.extend(doc["after"].as_array().expect("after array").iter());
+    for ep in episodios {
+        let obj = ep.as_object().expect("episodio objeto");
+        assert!(
+            !obj.contains_key("material"),
+            "ningún episodio debe exponer `material`: {ep}"
+        );
+    }
+}
+
+#[test]
+fn neighborhood_json_sin_vecinos_deja_listas_vacias() {
+    let fx = Fixture::new(
+        "season: 8\n\
+         season_start: 2026-09-01\n\
+         episode_duration_minutes: 25\n\
+         publish_days: [Monday, Thursday]\n\
+         \n\
+         episodes:\n\
+         \x20 - number: 678\n\
+         \x20   season: 8\n\
+         \x20   date: 2026-09-05\n\
+         \x20   title: \"Solo\"\n\
+         \x20   status: published\n",
+        "demo",
+        "Show de prueba",
+    );
+    let out = common::run_ok(&fx, &["neighborhood", "678", "--json"]);
+    let doc: Value = serde_json::from_str(&out).expect("JSON válido");
+
+    assert_eq!(doc["episode"]["number"], Value::from(678));
+    assert!(doc.get("before").is_some(), "falta la clave before");
+    assert!(doc.get("after").is_some(), "falta la clave after");
+    assert_eq!(
+        doc["before"].as_array().expect("before array").len(),
+        0,
+        "before debe estar vacío: {}",
+        doc["before"]
+    );
+    assert_eq!(
+        doc["after"].as_array().expect("after array").len(),
+        0,
+        "after debe estar vacío: {}",
+        doc["after"]
+    );
+}

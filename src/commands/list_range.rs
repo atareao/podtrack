@@ -41,6 +41,6 @@ pub fn run(
         "\n  Episodios #{start}–#{end} ({}):\n",
         episodes.len()
     ));
-    show_episodes(&episodes, true, &mut out, &mut err);
+    show_episodes(&episodes, true, None, &mut out, &mut err);
     Ok(Rendered::new(out, err))
 }

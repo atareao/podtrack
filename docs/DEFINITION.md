@@ -102,6 +102,7 @@ Por `date` ascendente; `number` solo desempata. **El número no ordena la parril
 | `next` | lectura | Hueco provisional («Siguiente episodio») y número autoritativo («Próximo a publicar»). |
 | `next-date` | lectura | Próxima fecha publicable. |
 | `list` / `list-range` | lectura | Listado filtrable (`--status`, `--season`, `--last`). Marca no publicados con `*` + leyenda. |
+| `neighborhood` | lectura | Vecindad **numérica** alrededor de un episodio (por número o slug): `--before`/`--after` (4 por defecto; `0` válido) con la referencia **en su sitio y marcada `►`**. Con huecos muestra los episodios **existentes más cercanos**; en los extremos, los que haya, sin error. Sin ruta de material. |
 | `get` | lectura | Detalle de un episodio (por número o slug), con su `slug` y la ruta del material. |
 | `where` | lectura | Ruta del material de guion de un episodio (por slug/número), sin crear nada. |
 | `open` | lectura | Abre la presentación Typst del episodio (por número o slug) con typshow, sin bloquear; `--dry-run` resuelve la ruta sin lanzar. |

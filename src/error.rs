@@ -215,6 +215,10 @@ pub enum PodtrackError {
     )]
     EpisodeWithoutNumber { label: String },
 
+    /// `neighborhood` sobre un episodio sin número: una vecindad numérica necesita uno (exit 1).
+    #[error("ERROR: El episodio '{label}' no tiene número; una vecindad numérica necesita uno.")]
+    NeighborhoodWithoutNumber { label: String },
+
     /// El perfil declara un `episodes.scripts.dir` que, **renderizado**, escapa de
     /// la raíz de material: es una ruta **absoluta** o contiene componentes `..`
     /// (exit 2, error de configuración).
@@ -362,6 +366,17 @@ mod tests {
         assert_eq!(sin_numero.exit_code(), 1);
         let msg = sin_numero.to_string();
         assert!(msg.contains("no tiene número"), "mensaje: {msg}");
+    }
+
+    #[test]
+    fn una_vecindad_sin_numero_sale_con_uno_y_lo_explica() {
+        let err = PodtrackError::NeighborhoodWithoutNumber {
+            label: "recien-anadido".into(),
+        };
+        assert_eq!(err.exit_code(), 1);
+        let msg = err.to_string();
+        assert!(msg.contains("no tiene número"), "mensaje: {msg}");
+        assert!(msg.contains("recien-anadido"), "mensaje: {msg}");
     }
 
     #[test]
