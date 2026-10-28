@@ -16,6 +16,13 @@
 //! `<FIXTURE>` en lugar de la raíz temporal de la fixture en `stdout`/`stderr` y también en el
 //! `label` (que reproduce el `argv` y por eso puede llevar la ruta del SRT). `tracker`,
 //! `material` y `yaml` **no** necesitan normalización: nunca contienen rutas.
+//!
+//! **Excepción acotada — el orden del plan de renombrado**: dentro de una tirada de líneas
+//! `      · <origen>  →  <destino>`, los hermanos de una misma profundidad se comparan como
+//! multiconjunto. Su orden lo decide `read_dir` (`src/material.rs`), no está especificado y nunca
+//! fue contrato del oráculo: compararlo en orden exacto hacía la suite intermitente. Todo lo demás
+//! —el contenido y el número de líneas del plan, la posición de cada tirada, el orden entre grupos
+//! de profundidad y cualquier línea que no sea del plan— sigue comparándose exacto y en orden.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -51,19 +58,79 @@ pub struct GoldenCase {
     pub yaml: Option<Vec<String>>,
 }
 
+/// Profundidad del origen de una línea del plan de renombrado, o `None` si la línea no es del plan.
+///
+/// El plan tiene la forma `      · <origen>  →  <destino>`. Cualquier otra línea que empiece por
+/// `      · ` NO es del plan y NO SHALL canonizarse: los registros de `rebase-references`
+/// (`      · <ruta>:<línea>`, sin flecha) van ordenados a propósito y su orden sí es contrato, y
+/// los avisos de `migrate-material` (`      · <problema>`, en `stderr`) tampoco llevan flecha.
+fn plan_depth(line: &str) -> Option<usize> {
+    let rest = line.strip_prefix("      · ")?;
+    let (from, to) = rest.split_once("  →  ")?;
+    if from.is_empty() || to.is_empty() {
+        return None;
+    }
+    Some(from.matches('/').count())
+}
+
+/// Ordena cada grupo de igual profundidad de una tirada y conserva el orden de los grupos.
+fn canonical_run(tirada: Vec<String>) -> Vec<String> {
+    let mut out: Vec<String> = Vec::with_capacity(tirada.len());
+    let mut inicio = 0;
+    while inicio < tirada.len() {
+        let depth = plan_depth(&tirada[inicio]);
+        let mut fin = inicio + 1;
+        while fin < tirada.len() && plan_depth(&tirada[fin]) == depth {
+            fin += 1;
+        }
+        let mut grupo: Vec<&String> = tirada[inicio..fin].iter().collect();
+        grupo.sort_unstable();
+        out.extend(grupo.into_iter().cloned());
+        inicio = fin;
+    }
+    out
+}
+
+/// Canoniza el orden de las tiradas del plan de renombrado de una salida.
+///
+/// `collect_descendants` (`src/material.rs`) recorre el material con `read_dir` y ordena **estable**
+/// solo por profundidad: los hermanos de una misma profundidad quedan en el orden que devuelva el
+/// sistema de ficheros, que no está especificado y por tanto **no es contrato**. Aquí se agrupa cada
+/// tirada máxima por profundidad y se ordena cada grupo; la posición de la tirada y el orden
+/// **entre** grupos (de más profundo a menos) SHALL permanecer. El número y el contenido de las
+/// líneas NO SHALL relajarse: una línea de más, de menos o alterada sigue fallando.
+fn canonical_plan_runs(lineas: Vec<String>) -> Vec<String> {
+    let mut out: Vec<String> = Vec::with_capacity(lineas.len());
+    let mut tirada: Vec<String> = Vec::new();
+    for linea in lineas {
+        if plan_depth(&linea).is_some() {
+            tirada.push(linea);
+        } else {
+            out.extend(canonical_run(std::mem::take(&mut tirada)));
+            out.push(linea);
+        }
+    }
+    out.extend(canonical_run(tirada));
+    out
+}
+
 impl GoldenCase {
     /// Compara código de salida, `stdout` y `stderr`, normalizando las rutas temporales.
+    ///
+    /// `stdout` y `stderr` se comparan exactos y en orden, con la única excepción de las tiradas del
+    /// plan de renombrado: dentro de una tirada, los hermanos de una misma profundidad se comparan
+    /// como multiconjunto, porque su orden lo decide el sistema de ficheros y no es contrato.
     pub fn assert_outcome(&self, dir: &Path, code: i32, stdout: &str, stderr: &str) {
         assert_eq!(self.code, code, "exit code difiere [{}]", self.label);
         assert_eq!(
-            self.stdout,
-            lines(&normalize(stdout, dir)),
+            canonical_plan_runs(self.stdout.clone()),
+            canonical_plan_runs(lines(&normalize(stdout, dir))),
             "stdout difiere [{}]",
             self.label
         );
         assert_eq!(
-            self.stderr,
-            lines(&normalize(stderr, dir)),
+            canonical_plan_runs(self.stderr.clone()),
+            canonical_plan_runs(lines(&normalize(stderr, dir))),
             "stderr difiere [{}]",
             self.label
         );
