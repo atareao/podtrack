@@ -139,6 +139,35 @@ pub fn list_range_document(ctx: &Ctx<'_>, start: u64, end: u64, episodes: &[&Epi
     )
 }
 
+/// Documento JSON del comando `neighborhood`.
+///
+/// Reutiliza el objeto `episode` compartido (`episode_fields`) y **nunca**
+/// añade `material` (esa clave es exclusiva de `get`). Las listas `before` y
+/// `after` van siempre presentes, aunque estén vacías, en el orden recibido
+/// (ascendente de número).
+#[must_use]
+pub fn neighborhood_document(
+    ctx: &Ctx<'_>,
+    episode: &Episode,
+    before: &[&Episode],
+    after: &[&Episode],
+) -> String {
+    document(
+        &ctx.show.slug,
+        json!({
+            "episode": Value::Object(episode_fields(episode)),
+            "before": before
+                .iter()
+                .map(|e| Value::Object(episode_fields(e)))
+                .collect::<Vec<_>>(),
+            "after": after
+                .iter()
+                .map(|e| Value::Object(episode_fields(e)))
+                .collect::<Vec<_>>(),
+        }),
+    )
+}
+
 /// Documento JSON del comando `get`.
 ///
 /// # Errors

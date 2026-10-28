@@ -8,6 +8,7 @@ pub mod list;
 pub mod list_range;
 pub mod migrate_material;
 pub mod move_cmd;
+pub mod neighborhood;
 pub mod next;
 pub mod next_date;
 pub mod open;
@@ -194,9 +195,20 @@ pub fn warn_date_collisions(episodes: &[&Episode], err: &mut String) {
 }
 
 /// Muestra una lista de episodios formateada (`show_episodes`).
+///
+/// La comparten `list`, `list-range` y `status`, por eso `reference` es
+/// **opcional**: la fila que **es** ese episodio empieza por `► ` en lugar de la
+/// indentación habitual, para señalar el episodio del que habla el comando
+/// (`neighborhood`). La comparación es **por identidad** (`std::ptr::eq`), no por
+/// `number`: el número no identifica un episodio (puede repetirse en el tracker)
+/// y marcar por número pintaría varias filas de referencia. El marcador
+/// **sustituye el primer carácter** de la indentación, no la amplía: la fila
+/// conserva la misma anchura y las columnas quedan alineadas con el resto. Sin
+/// marcador (`None`) la salida es byte a byte la de siempre.
 pub fn show_episodes(
     episodes: &[&Episode],
     mark_provisional: bool,
+    reference: Option<&Episode>,
     out: &mut String,
     err: &mut String,
 ) {
@@ -225,8 +237,14 @@ pub fn show_episodes(
         let provisional = mark_provisional && ep.status != Status::Published && ep.number.is_some();
         has_provisional = has_provisional || provisional;
         let title: String = ep.title.chars().take(50).collect();
+        // Marcador de referencia: sustituye el primer carácter de la indentación,
+        // no la amplía (misma anchura y columnas alineadas).
+        let prefix = match reference {
+            Some(reference) if std::ptr::eq(*ep, reference) => "► ",
+            _ => "  ",
+        };
         out.push_str(&format!(
-            "  {}   {:<13} {} {:<9}  S{:<4}  {}\n",
+            "{prefix}{}   {:<13} {} {:<9}  S{:<4}  {}\n",
             fmt_number_cell(ep.number, provisional),
             ep.date.to_iso(),
             ep.status.icon(),
