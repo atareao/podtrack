@@ -1,4 +1,14 @@
 # Changelog
+## [0.6.0] - 2026-10-28
+
+### Documentation
+
+- Documenta `neighborhood` en el SRS y el README
+- *(spec)* Aprueba y archiva el change episode-neighborhood
+
+### Features
+
+- *(neighborhood)* Añade la vecindad numérica de un episodio
 ## [0.5.2] - 2026-10-26
 
 ### Documentation
@@ -11,6 +21,7 @@
 ### Miscellaneous Tasks
 
 - *(justfile)* Retira la convención FEATURE-NNN sin uso
+- Release v0.5.2
 
 ### Testing
 
