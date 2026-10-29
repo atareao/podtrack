@@ -148,6 +148,7 @@ fn perfil_sin_clave_tracker_falla_nombrando_la_causa() {
         .env("PODTRACK_SHOWS_DIR", &shows)
         .env("HOME", tmp.path())
         .env_remove("XDG_CONFIG_HOME")
+        .env_remove("COMPLETE")
         .output()
         .expect("run");
     assert_ne!(output.status.code(), Some(0));
@@ -170,6 +171,7 @@ fn perfil_invalido_falla_nombrando_la_causa() {
         .env("PODTRACK_SHOWS_DIR", &shows)
         .env("HOME", tmp.path())
         .env_remove("XDG_CONFIG_HOME")
+        .env_remove("COMPLETE")
         .output()
         .expect("run");
     assert_eq!(output.status.code(), Some(2));
@@ -192,6 +194,7 @@ fn perfil_con_tracker_none_sale_con_codigo_tres() {
         .env("PODTRACK_SHOWS_DIR", &shows)
         .env("HOME", tmp.path())
         .env_remove("XDG_CONFIG_HOME")
+        .env_remove("COMPLETE")
         .output()
         .expect("run");
     assert_eq!(output.status.code(), Some(3));
@@ -248,6 +251,7 @@ fn show_acepta_una_ruta_absoluta_al_perfil() {
         .args(["status", "--show", profile.to_str().expect("utf8")])
         .env("HOME", tmp.path())
         .env_remove("XDG_CONFIG_HOME")
+        .env_remove("COMPLETE")
         .output()
         .expect("run");
     assert!(
@@ -295,6 +299,7 @@ impl RelFixture {
         cmd.env("PODTRACK_SHOW", "demo");
         cmd.env("HOME", self.dir.path());
         cmd.env_remove("XDG_CONFIG_HOME");
+        cmd.env_remove("COMPLETE");
         cmd
     }
 

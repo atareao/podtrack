@@ -23,6 +23,10 @@ path = "src/main.rs"
 [dependencies]
 # CLI y serialización (rangos resueltos contra la caché local de ~/.cargo/registry).
 clap = { version = "4.6", features = ["derive"] }
+# Autocompletado de shell (bash/zsh/fish): el feature `unstable-dynamic` es el motor de
+# completado de `clap` (habilita `clap/unstable-ext` y arrastra `is_executable`, `shlex` y
+# `clap_lex`). Fija la versión en `Cargo.lock`.
+clap_complete = { version = "4.6", features = ["unstable-dynamic"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 # serde_yaml está deprecada, pero es la única disponible en caché; se usa SOLO
