@@ -1,11 +1,11 @@
 //! CLI de `podtrack` (`clap` derive). Solo parsea y despacha a la librería.
 
-use std::path::{Path, PathBuf};
-
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory as _, Parser, Subcommand};
+use clap_complete::engine::ArgValueCompleter;
 
 use podtrack::commands::add::{AddParams, parse_add_positionals};
 use podtrack::commands::backfill_slugs::BackfillParams;
+use podtrack::commands::completions::{CompletionsParams, run as run_completions};
 use podtrack::commands::insert::InsertParams;
 use podtrack::commands::list::Filters;
 use podtrack::commands::migrate_material::MigrateParams;
@@ -21,9 +21,10 @@ use podtrack::commands::{
     neighborhood, next, next_date, open, publish, rebase_references, rename_material, renumber,
     status, update, where_cmd,
 };
+use podtrack::completions::{BIN, SHELLS, Shell, show_completer, target_completer};
 use podtrack::error::PodtrackError;
 use podtrack::json;
-use podtrack::profile::ShowResolver;
+use podtrack::profile::{ShowResolver, exe_dir};
 use podtrack::tracker;
 
 #[derive(Parser)]
@@ -34,7 +35,7 @@ use podtrack::tracker;
 )]
 struct Cli {
     /// Perfil de podcast a usar (`shows/<SLUG>.yaml`).
-    #[arg(long, global = true, value_name = "SLUG")]
+    #[arg(long, global = true, value_name = "SLUG", add = ArgValueCompleter::new(show_completer))]
     show: Option<String>,
 
     /// Emitir un documento JSON (opt-in) en lugar del texto.
@@ -75,16 +76,19 @@ enum Command {
     /// Mostrar el detalle de un episodio (por número o slug).
     Get {
         /// Número o slug del episodio.
+        #[arg(add = ArgValueCompleter::new(target_completer))]
         target: String,
     },
     /// Mostrar la ruta del material de un episodio (no crea nada).
     Where {
         /// Número o slug del episodio.
+        #[arg(add = ArgValueCompleter::new(target_completer))]
         target: String,
     },
     /// Mostrar la vecindad numérica de un episodio (por número o slug).
     Neighborhood {
         /// Número o slug del episodio de referencia.
+        #[arg(add = ArgValueCompleter::new(target_completer))]
         target: String,
         /// Vecinos anteriores a mostrar.
         #[arg(long, default_value_t = 4)]
@@ -96,6 +100,7 @@ enum Command {
     /// Abrir la presentación Typst de un episodio con typshow.
     Open {
         /// Número o slug del episodio.
+        #[arg(add = ArgValueCompleter::new(target_completer))]
         target: String,
         /// Resolver y mostrar la ruta sin lanzar la presentación.
         #[arg(long)]
@@ -119,6 +124,7 @@ enum Command {
     /// Cambiar el estado y/o el título de un episodio.
     Update {
         /// Número o slug del episodio.
+        #[arg(add = ArgValueCompleter::new(target_completer))]
         target: String,
         /// Nuevo estado.
         #[arg(
@@ -135,6 +141,7 @@ enum Command {
     /// Publicar un episodio estampando su número público autoritativo.
     Publish {
         /// Número o slug del episodio.
+        #[arg(add = ArgValueCompleter::new(target_completer))]
         target: String,
         /// Previsualizar los cambios sin escribir nada.
         #[arg(long)]
@@ -161,6 +168,7 @@ enum Command {
     /// Cambiar la fecha de emisión de un episodio.
     Move {
         /// Número o slug del episodio.
+        #[arg(add = ArgValueCompleter::new(target_completer))]
         target: String,
         /// Nueva fecha `YYYY-MM-DD` (lunes o jueves).
         #[arg(long, short = 'd')]
@@ -229,9 +237,25 @@ enum Command {
         #[arg(long, value_parser = ["raw", "final"])]
         expect: Option<String>,
     },
+    /// Emitir el script de autocompletado para un shell (bash, zsh o fish).
+    Completions {
+        /// Shell para el que generar el script.
+        #[arg(value_enum)]
+        shell: Shell,
+    },
 }
 
 fn main() -> std::process::ExitCode {
+    // El completado de shell se resuelve ANTES de parsear nada: si `COMPLETE` está en el entorno,
+    // `clap_complete` escribe los candidatos (o el script de registro) y sale. El binario y el
+    // ejecutable del script se fijan a `podtrack` (literal, sin ruta) para que el script sea
+    // determinista y no dependa de dónde esté instalado.
+    clap_complete::CompleteEnv::with_factory(Cli::command)
+        .bin(BIN)
+        .completer(BIN)
+        .shells(SHELLS)
+        .complete();
+
     let cli = Cli::parse();
     match run(&cli) {
         Ok(rendered) => {
@@ -274,6 +298,13 @@ fn run(cli: &Cli) -> anyhow::Result<Rendered> {
             expect: expect.clone(),
         };
         return Ok(run_srt_stage(&resolver, &params, cli.json)?);
+    }
+
+    // `completions` tampoco opera sobre la parrilla: emite un script y no necesita ni perfil ni
+    // tracker, así que se despacha antes de resolver el show.
+    if let Command::Completions { shell } = &cli.command {
+        let params = CompletionsParams { shell: *shell };
+        return run_completions(&params);
     }
 
     let show = resolver.resolve(cli.show.as_deref())?;
@@ -419,12 +450,10 @@ fn run(cli: &Cli) -> anyhow::Result<Rendered> {
         Command::SrtStage { .. } => {
             anyhow::bail!("srt-stage se despacha antes de cargar el tracker")
         }
+        // `completions` se despacha antes de resolver el show; no llega aquí.
+        Command::Completions { .. } => {
+            anyhow::bail!("completions se despacha antes de resolver el show")
+        }
     };
     Ok(rendered)
-}
-
-fn exe_dir() -> Option<PathBuf> {
-    std::env::current_exe()
-        .ok()
-        .and_then(|path| path.parent().map(Path::to_path_buf))
 }

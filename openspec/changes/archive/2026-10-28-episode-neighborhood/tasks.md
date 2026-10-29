@@ -5,7 +5,7 @@
 - [x] 0.1 `src/commands/neighborhood.rs`: selector **puro** de la ventana
       (`select_neighborhood(&[Episode], &Episode, before, after) -> Neighborhood`, con `before`/`episode`/`after`), sin render y sin tocar ningún otro módulo. Test unitario en el propio fichero (`#[cfg(test)]`). La referencia se identifica **por identidad** (`std::ptr::eq`), no por número: con números repetidos marcar por número rompía el contrato (§ auditoría 2026-10-28).
 - [x] 0.2 `cargo check` limpio.
-- [x] 0.3 **Requiere la fase A de `plans/PLAN-009.md` cerrada** (con la suite en 340/0): esta feature
+- [x] 0.3 **Requiere la fase A de `plans/PLAN-009-COMPLETED.md` cerrada** (con la suite en 340/0): esta feature
       no arranca con `close-the-port` a medias.
 
 ## 1. RED (pruebas que fallan primero)
@@ -62,9 +62,9 @@
 - [x] 4.2 `just spec-validate episode-neighborhood` en estricto.
 - [x] 4.3 `just check-all` en verde.
 - [x] 4.4 Auditoría con el subagente `rust-reviewer` sobre el diff completo. — una pasada; H1 (marcador por número con duplicados) reparado y re-verificado.
-- [ ] 4.5 PR `feature/episode-neighborhood` → `development`; release **minor** (`0.6.0`).
+- [x] 4.5 PR `feature/episode-neighborhood` → `development`; release **minor** (`0.6.0`). — PR **#31** mergeada como `df5e1f6`; PR **#32** `development` → `main` mergeada como `5d16745`; `v0.6.0` publicada (tag, `CHANGELOG.md`, `Cargo.toml`, `.vampus.yml`, crates.io y GitHub Release) y `development` sincronizado en `91fe756`.
 - [x] 4.6 `just spec-archive episode-neighborhood`. — archivado como openspec/changes/archive/2026-10-28-episode-neighborhood/; deltas fundidos (+1 en tracker-read, ~1 en json-output); openspec validate --specs --strict → 13/0.
-- [ ] 4.7 `plans/PLAN-009.md` → `plans/PLAN-009-COMPLETED.md`.
+- [x] 4.7 `plans/PLAN-009.md` → `plans/PLAN-009-COMPLETED.md`. — renombrado con `just plan-done 9`; el testigo recoge el cierre de la fase B y el flake del comparador del golden con su hotfix `v0.6.1` (§11 de `PLAN-009-COMPLETED.md`).
 - [x] 4.8 Tras archivar, comprobar que el `Purpose` de `openspec/specs/tracker-read/spec.md`
       enumera ya `neighborhood`: el `## Purpose` del delta es **descriptivo** (documenta por qué se
       toca la capacidad) y **no** sobrescribe el `Purpose` del spec fundido —eso solo ocurre en las

@@ -2,6 +2,7 @@
 
 pub mod add;
 pub mod backfill_slugs;
+pub mod completions;
 pub mod get;
 pub mod insert;
 pub mod list;

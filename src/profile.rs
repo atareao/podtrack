@@ -298,8 +298,9 @@ impl ShowResolver {
         }
     }
 
-    /// Perfiles disponibles (`*.yaml`) en los directorios candidatos, sin repetir.
-    fn available(&self) -> String {
+    /// Slugs de los perfiles (`*.yaml`) de los directorios candidatos, sin repetir y ordenados.
+    #[must_use]
+    pub fn available_slugs(&self) -> Vec<String> {
         let mut slugs: Vec<String> = Vec::new();
         for dir in self.candidate_dirs() {
             let Ok(entries) = std::fs::read_dir(&dir) else {
@@ -318,6 +319,12 @@ impl ShowResolver {
             }
         }
         slugs.sort();
+        slugs
+    }
+
+    /// Perfiles disponibles (`*.yaml`) en los directorios candidatos, sin repetir.
+    fn available(&self) -> String {
+        let slugs = self.available_slugs();
         if slugs.is_empty() {
             "ninguno".to_string()
         } else {
@@ -503,6 +510,16 @@ fn render_marker(
             Ok(format!("{{{marker}}}"))
         }
     }
+}
+
+/// Directorio del ejecutable en curso, si el sistema lo puede resolver.
+///
+/// Es el segundo candidato de la cascada de perfiles (`<exe_dir>/shows`).
+#[must_use]
+pub fn exe_dir() -> Option<PathBuf> {
+    std::env::current_exe()
+        .ok()
+        .and_then(|path| path.parent().map(Path::to_path_buf))
 }
 
 fn config_dir() -> Option<PathBuf> {

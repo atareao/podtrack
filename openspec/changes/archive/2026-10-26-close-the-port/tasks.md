@@ -83,7 +83,7 @@
       la extensión; el código pasa a comprobar el **nombre completo** («termina en `.py`», sin
       distinguir mayúsculas) en ficheros y directorios—, **cerrada**. **N-2b** —un directorio llamado
       con un token de la familia A (p. ej. `tests/PODTRACK_ORACLE/`) no se detecta— queda como
-      **observación asumida**, sin reparación (exigiría mala fe). Ver D5 y `plans/PLAN-009.md` §9.7.
+      **observación asumida**, sin reparación (exigiría mala fe). Ver D5 y `plans/PLAN-009-COMPLETED.md` §9.7.
 - [x] 4.4 Cabecera de cada uno de los seis ficheros: documentar que el golden se grabó con el
       oráculo recuperado (`c70287f^`) y que ya no hay paridad viva.
 - [x] 4.5 `just check-all` y `just fmt-fix` si hiciera falta.
@@ -103,7 +103,7 @@
       **Nota:** el barrido cubre también `docs/DEFINITION.md`, que no figuraba en la lista y se
       contradecía (§12 cerrada frente a §1/§2/§10/§11 en presente). Las coincidencias que quedan
       tras el barrido son la lista blanca de históricos y las citas en negativo de los testigos del
-      change (`plans/PLAN-008-COMPLETED.md`, `plans/PLAN-009.md`) y de sus propios artefactos: no son
+      change (`plans/PLAN-008-COMPLETED.md`, `plans/PLAN-009-COMPLETED.md`) y de sus propios artefactos: no son
       afirmaciones desfasadas.
       **Ampliación de la lista blanca (H-5):** el escenario «barrido final sin afirmaciones
       desfasadas» del delta se amplió para que la lista blanca incluya también los artefactos del

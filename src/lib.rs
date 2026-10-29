@@ -10,6 +10,7 @@
 //! el binario (`main.rs`) es solo la CLI.
 
 pub mod commands;
+pub mod completions;
 pub mod error;
 pub mod json;
 pub mod material;

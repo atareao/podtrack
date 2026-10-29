@@ -28,6 +28,7 @@ fn run_podtrack(fx: &Fixture, harness_dir: &Path, args: &[&str]) -> Outcome {
         .env("PODTRACK_SHOW", &fx.slug)
         .env("HOME", harness_dir)
         .env_remove("XDG_CONFIG_HOME")
+        .env_remove("COMPLETE")
         .output()
         .expect("podtrack");
     Outcome {

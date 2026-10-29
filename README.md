@@ -66,6 +66,30 @@ podtrack neighborhood 843 --show atareao-con-linux
 podtrack status --json --show atareao-con-linux
 ```
 
+## Autocompletado
+
+`podtrack` completa los subcomandos, los flags y —de forma dinámica— los números y slugs de los
+episodios del show activo y los perfiles de `--show`. Añade a tu arranque de shell:
+
+```bash
+# ~/.bashrc
+source <(podtrack completions bash)
+```
+
+```zsh
+# ~/.zshrc
+source <(podtrack completions zsh)
+```
+
+```fish
+# ~/.config/fish/config.fish
+podtrack completions fish | source
+```
+
+El script se regenera cada vez que abres el shell, así que se mantiene al día tras cada
+actualización del binario. `podtrack completions <shell>` no necesita un show resuelto: funciona
+fuera de cualquier show.
+
 ## Desarrollo
 
 ```bash

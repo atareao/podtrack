@@ -166,6 +166,7 @@ impl Fixture {
         cmd.env("PODTRACK_SHOW", &self.slug);
         cmd.env("HOME", self.dir.path());
         cmd.env_remove("XDG_CONFIG_HOME");
+        cmd.env_remove("COMPLETE");
         cmd
     }
 }
@@ -360,6 +361,7 @@ pub fn run_podtrack(fx: &Fixture, args: &[&str]) -> Outcome {
         .env("PODTRACK_SHOW", &fx.slug)
         .env("HOME", fx.dir.path())
         .env_remove("XDG_CONFIG_HOME")
+        .env_remove("COMPLETE")
         .output()
         .expect("podtrack");
     Outcome {
