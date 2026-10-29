@@ -116,8 +116,15 @@ Por `date` ascendente; `number` solo desempata. **El número no ordena la parril
 | `backfill-slugs` | cirugía | Rellena `slug` donde falte. |
 | `migrate-material` | cirugía | Migra el material a la carpeta de la regla única del perfil (por defecto, `{slug}`) (colisión-segura; solo no publicados por defecto). |
 | `rebase-references` | cirugía | Reescribe referencias estructurales entre guiones. Resuelve la carpeta con la regla única y salta los episodios sin carpeta resoluble. |
+| `completions` | UX | Emite en `stdout` el script de autocompletado para `bash`, `zsh` o `fish`. No necesita perfil ni tracker (se despacha antes de resolver el show), no escribe ficheros y `--json` no aplica. |
 
 `insert`, `move`, `renumber`, `rename-material`, `backfill-slugs`, `migrate-material`, `rebase-references` y `open` aceptan `--dry-run`.
+
+El autocompletado cubre los subcomandos, los flags y los valores ya enumerados por `clap`
+(`--status`, `--expect`) y, de forma **dinámica**, el `target` de `get`, `where`, `open`,
+`neighborhood`, `update`, `publish` y `move` —el número y el slug de cada episodio del show
+resuelto— y el valor de `--show` —los slugs de perfil de la cascada—. Sin la variable `COMPLETE` en
+el entorno, el binario se comporta byte a byte como siempre.
 
 ### 6.1 Resolución de la carpeta de material
 

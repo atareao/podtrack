@@ -65,6 +65,7 @@ impl Harness {
             .env("PODTRACK_SHOW", &self.slug)
             .env("HOME", self.dir.path())
             .env_remove("XDG_CONFIG_HOME")
+            .env_remove("COMPLETE")
             .output()
             .expect("podtrack");
         Outcome {
