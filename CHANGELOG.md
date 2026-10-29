@@ -1,9 +1,23 @@
 # Changelog
+## [0.7.0] - 2026-10-29
+
+### Documentation
+
+- *(spec)* Aprueba y archiva el change fix-golden-listing-order
+- *(plan)* Cierra el plan del change episode-neighborhood
+
+### Features
+
+- *(completions)* Autocompletado de shell para bash, zsh y fish
 ## [0.6.1] - 2026-10-28
 
 ### Bug Fixes
 
 - *(test)* Canoniza el orden del plan de renombrado en el comparador del golden
+
+### Miscellaneous Tasks
+
+- Release v0.6.1
 ## [0.6.0] - 2026-10-28
 
 ### Documentation
