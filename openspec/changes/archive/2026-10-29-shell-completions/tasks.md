@@ -40,7 +40,7 @@
 - [x] 4.2 `just spec-validate shell-completions` en estricto. — `Change 'shell-completions' is valid`.
 - [x] 4.3 Auditoría con el subagente `rust-reviewer` sobre el diff completo (solo lectura). — sin hallazgos bloqueantes; los menores (guarda `COMPLETE` en toda la suite, protocolo de entorno acotado a los tres shells, test de shell no soportado endurecido, `show_completer` sobre `available_slugs`, `VAR` privado y limpieza de `_CLAP_*` en los tests) reparados y re-verificados.
 - [x] 4.4 `docs/DEFINITION.md` §6 con la fila de `completions` y `README.md` con el ejemplo de instalación del completado.
-- [ ] 4.5 Commit `✨ feat(completions): …` y PR de feature → `development`.
-- [ ] 4.6 `just spec-archive shell-completions`.
-- [ ] 4.7 PR `development` → `main`; release **minor** (`0.7.0`) publicada.
-- [ ] 4.8 `plans/PLAN-010.md` → `plans/PLAN-010-COMPLETED.md`.
+- [x] 4.5 Commit `✨ feat(completions): …` y PR de feature → `development`. — commit `2e3aa05`, PR #36 fusionado tras CI verde (fmt/clippy/test/doc) y suite en **385 passed / 0 failed**.
+- [x] 4.6 `just spec-archive shell-completions`. — delta fundido en `openspec/specs/shell-completions/` en el PR de archivo.
+- [x] 4.7 PR `development` → `main`; release **minor** (`0.7.0`) publicada. — PR #37; `release-prepare` subió a `0.7.0`, generó el CHANGELOG, etiquetó `v0.7.0` y sincronizó `development`; `release.yml` publicó el crate y creó la GitHub Release.
+- [x] 4.8 `plans/PLAN-010.md` → `plans/PLAN-010-COMPLETED.md`. — `just plan-done 10` en el PR de archivo.
